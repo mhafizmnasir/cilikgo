@@ -188,14 +188,63 @@ async function renderUser(p){
   if($('#recommendedActivity')) $('#recommendedActivity').onclick=()=>openLevelPicker(({Membaca:'read',Menulis:'write',Mengira:'count'})[rec.module],true);
 }
 async function renderAgent(p){
-  let orders=[], commissions=[];
-  try{ const oq=fb.query(fb.collection(fb.db,'orders'),fb.where('agentUid','==',p.uid)); orders=(await fb.getDocs(oq)).docs.map(d=>({id:d.id,...d.data()})); }catch(e){console.warn('orders',e)}
-  try{ const cq=fb.query(fb.collection(fb.db,'commissions'),fb.where('agentUid','==',p.uid)); commissions=(await fb.getDocs(cq)).docs.map(d=>({id:d.id,...d.data()})); }catch(e){console.warn('commissions',e)}
-  const total=commissions.reduce((s,x)=>s+Number(x.amount||0),0), code=p.agentCode||('CG-'+p.uid.slice(0,7).toUpperCase()), link=`${location.origin}${location.pathname}?ref=${code}`;
-  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>🤝 Portal Agent</h3><a class="active">Dashboard</a><a>Pautan Affiliate</a><a>Pembelian</a><a>Komisen</a><a>Profil</a><a>Tetapan</a></aside><section class="dash-main"><div class="dash-head"><div><small>Agent</small><h2>${esc(p.name)}</h2></div><span class="badge">${esc(code)}</span></div><div class="stat-grid"><div class="stat"><small>Pembelian dirujuk</small><b>${orders.length}</b></div><div class="stat"><small>Rekod komisen</small><b>${commissions.length}</b></div><div class="stat"><small>Jumlah komisen</small><b>RM${total.toFixed(2)}</b></div></div><h3>Pautan Affiliate Anda</h3><div class="ref-box"><code id="agentLink">${esc(link)}</code><button class="btn primary" id="copyRef">Salin</button></div><h3>Pembelian</h3>${orders.length?`<table class="table"><tr><th>Rujukan</th><th>Nilai</th><th>Status</th></tr>${orders.slice(0,10).map(o=>`<tr><td>${esc(o.id)}</td><td>RM${Number(o.amount||69).toFixed(2)}</td><td><span class="badge">${esc(o.status||'direkod')}</span></td></tr>`).join('')}</table>`:'<div class="empty-state">Belum ada pembelian melalui pautan affiliate anda.</div>'}</section></div>`;
-  $('#copyRef').onclick=async()=>{ await navigator.clipboard.writeText(link); toast('Pautan affiliate disalin.'); };
-}
+  const safeDocs=async(name)=>{
+    try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
+    catch(e){console.warn(name,e);return [];}
+  };
+  const [users,orders,commissions]=await Promise.all([safeDocs('users'),safeDocs('orders'),safeDocs('commissions')]);
+  const code=p.agentCode||'';
+  const referrals=users.filter(u=>u.role==='user'&&u.referredByCode===code);
+  const myOrders=orders.filter(o=>o.agentUid===p.uid||o.agentRef===code);
+  const paidOrders=myOrders.filter(o=>o.status==='paid');
+  const myCommissions=commissions.filter(c=>c.agentUid===p.uid);
+  const pending=myCommissions.filter(c=>c.status==='pending').reduce((s,c)=>s+Number(c.amount||0),0);
+  const paidCommission=myCommissions.filter(c=>c.status==='paid').reduce((s,c)=>s+Number(c.amount||0),0);
+  const totalCommission=myCommissions.reduce((s,c)=>s+Number(c.amount||0),0);
+  const sales=paidOrders.reduce((s,o)=>s+Number(o.amount||0),0);
+  const conversion=referrals.length?Math.round((paidOrders.length/referrals.length)*100):0;
+  const refUrl=`${location.origin}${location.pathname}?ref=${encodeURIComponent(code)}`;
 
+  const status=s=>`<span class="badge ${['failed','inactive'].includes(s)?'status-inactive':''}">${esc(s||'-')}</span>`;
+  const referralRows=referrals.length?`<div class="table-wrap"><table class="table"><tr><th>Penjaga</th><th>E-mel</th><th>Langganan</th><th>Jualan</th></tr>${referrals.map(u=>{
+    const uo=myOrders.filter(o=>o.userUid===u.id);
+    return `<tr><td>${esc(u.name||'-')}</td><td>${esc(u.email||'-')}</td><td>${status(u.subscriptionStatus||'inactive')}</td><td>${uo.filter(o=>o.status==='paid').length}</td></tr>`;
+  }).join('')}</table></div>`:'<div class="empty-state">Belum ada Penjaga mendaftar melalui link anda.</div>';
+
+  const commissionRows=myCommissions.length?`<div class="table-wrap"><table class="table"><tr><th>Order</th><th>Jualan</th><th>Kadar</th><th>Komisen</th><th>Status</th></tr>${[...myCommissions].reverse().map(c=>`<tr><td><code>${esc(c.orderId||c.id)}</code></td><td>RM${Number(c.saleAmount||0).toFixed(2)}</td><td>${Number(c.ratePercent||0)}%</td><td><b>RM${Number(c.amount||0).toFixed(2)}</b></td><td>${status(c.status)}</td></tr>`).join('')}</table></div>`:'<div class="empty-state">Belum ada rekod komisen. Rekod akan muncul selepas transaksi pembayaran sebenar tersedia.</div>';
+
+  $('#dashboard').innerHTML=`<div class="dash-shell agent-shell"><aside class="dash-side"><h3>🤝 Agent</h3>
+    <a class="agent-nav active" data-view="overview">Overview</a><a class="agent-nav" data-view="referrals">Referral</a><a class="agent-nav" data-view="sales">Jualan</a><a class="agent-nav" data-view="commission">Komisen</a><a href="#settings">Settings</a>
+    </aside><section class="dash-main">
+    <div id="agentView"></div>
+  </section></div>`;
+
+  const views={
+    overview:()=>`<div class="dash-head"><div><small>Selamat datang, Agent</small><h2>${esc(p.name||p.email)} 👋</h2></div><span class="badge">Agent</span></div>
+      <div class="agent-link-card"><div><small>Link referral unik anda</small><h3>Kongsi CilikGo dan bina rangkaian anda</h3><div class="copy-row"><input id="agentRefUrl" readonly value="${esc(refUrl)}"><button class="btn primary" id="copyAgentLink">Salin Link</button></div><p>Kod Agent: <b>${esc(code||'-')}</b></p></div><span class="agent-link-icon">🔗</span></div>
+      <div class="agent-stat-grid"><div class="stat"><small>Pendaftaran referral</small><b>${referrals.length}</b></div><div class="stat"><small>Pembelian berjaya</small><b>${paidOrders.length}</b></div><div class="stat"><small>Conversion</small><b>${conversion}%</b></div><div class="stat"><small>Nilai jualan</small><b>RM${sales.toFixed(2)}</b></div><div class="stat"><small>Komisen pending</small><b>RM${pending.toFixed(2)}</b></div><div class="stat"><small>Komisen dibayar</small><b>RM${paidCommission.toFixed(2)}</b></div></div>
+      <div class="agent-info-grid"><div class="recommend-card"><span class="recommend-icon">📣</span><div><small>Cara guna</small><h3>Kongsi link referral anda</h3><p>Apabila Penjaga membuka link anda dan mendaftar, kod Agent akan direkodkan pada akaun tersebut.</p></div></div><div class="strength-card"><small>Status pembayaran</small><h3>ToyyibPay masih KIV</h3><p>Pendaftaran referral sudah boleh direkod. Statistik jualan dan komisen sebenar akan mula bertambah selepas payment gateway diaktifkan.</p></div></div>`,
+    referrals:()=>`<div class="dash-head"><div><small>Affiliate network</small><h2>Senarai Referral</h2></div><span class="badge">${referrals.length} Penjaga</span></div><div class="agent-toolbar"><input id="agentSearch" placeholder="Cari nama atau e-mel…"><span>${referrals.length} pendaftaran</span></div><div id="referralTable">${referralRows}</div>`,
+    sales:()=>`<div class="dash-head"><div><small>Prestasi jualan</small><h2>Jualan Referral</h2></div><span class="badge">RM${sales.toFixed(2)}</span></div><div class="agent-stat-grid compact"><div class="stat"><small>Jumlah order</small><b>${myOrders.length}</b></div><div class="stat"><small>Berjaya</small><b>${paidOrders.length}</b></div><div class="stat"><small>Conversion</small><b>${conversion}%</b></div></div>${myOrders.length?`<div class="table-wrap"><table class="table"><tr><th>Order</th><th>Pelan</th><th>Nilai</th><th>Status</th></tr>${[...myOrders].reverse().map(o=>`<tr><td><code>${esc(o.id)}</code></td><td>${esc(o.plan||'-')}</td><td>RM${Number(o.amount||0).toFixed(2)}</td><td>${status(o.status)}</td></tr>`).join('')}</table></div>`:'<div class="empty-state">Belum ada jualan. ToyyibPay masih KIV.</div>'}`,
+    commission:()=>`<div class="dash-head"><div><small>Pendapatan affiliate</small><h2>Komisen</h2></div><span class="badge">RM${totalCommission.toFixed(2)}</span></div><div class="agent-stat-grid compact"><div class="stat"><small>Jumlah komisen</small><b>RM${totalCommission.toFixed(2)}</b></div><div class="stat"><small>Pending</small><b>RM${pending.toFixed(2)}</b></div><div class="stat"><small>Dibayar</small><b>RM${paidCommission.toFixed(2)}</b></div></div>${commissionRows}`
+  };
+
+  const mount=view=>{
+    $('#agentView').innerHTML=views[view]();
+    document.querySelectorAll('.agent-nav').forEach(a=>a.classList.toggle('active',a.dataset.view===view));
+    if($('#copyAgentLink')) $('#copyAgentLink').onclick=async()=>{
+      try{await navigator.clipboard.writeText(refUrl);toast('Link referral berjaya disalin.');}
+      catch(e){$('#agentRefUrl').select();document.execCommand('copy');toast('Link referral berjaya disalin.');}
+    };
+    if($('#agentSearch')) $('#agentSearch').oninput=()=>{
+      const q=$('#agentSearch').value.toLowerCase();
+      const list=referrals.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q));
+      $('#referralTable').innerHTML=list.length?`<div class="table-wrap"><table class="table"><tr><th>Penjaga</th><th>E-mel</th><th>Langganan</th></tr>${list.map(u=>`<tr><td>${esc(u.name||'-')}</td><td>${esc(u.email||'-')}</td><td>${status(u.subscriptionStatus||'inactive')}</td></tr>`).join('')}</table></div>`:'<div class="empty-state">Tiada referral sepadan.</div>';
+    };
+  };
+  document.querySelectorAll('.agent-nav').forEach(a=>a.onclick=()=>mount(a.dataset.view));
+  mount('overview');
+}
 async function renderAdmin(p){
   const safeDocs=async(name)=>{
     try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
