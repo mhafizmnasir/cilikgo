@@ -108,7 +108,7 @@ $('#dashboardBtn').onclick=()=>$('#portal').scrollIntoView({behavior:'smooth'});
 async function getProfile(user){
   const snap=await fb.getDoc(fb.doc(fb.db,'users',user.uid));
   if(snap.exists()) return {uid:user.uid,...snap.data()};
-  const fallback={name:user.displayName||user.email?.split('@')[0]||'Pengguna',email:user.email||'',role:'user',subscriptionStatus:'inactive',createdAt:fb.serverTimestamp()};
+  const fallback={name:user.displayName||user.email?.split('@')[0]||'Pengguna',email:user.email||'',role:'user',agentCode:null,referredByCode:null,subscriptionStatus:'inactive',createdAt:fb.serverTimestamp()};
   await fb.setDoc(fb.doc(fb.db,'users',user.uid),fallback,{merge:true}); return {uid:user.uid,...fallback};
 }
 
@@ -216,10 +216,14 @@ async function renderAgent(p){
       return (await fb.getDocs(q)).docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.role==='user');
     }catch(e){console.warn('referrals',e);return [];}
   };
-  const [referrals,orders,commissions]=await Promise.all([loadReferrals(),safeDocs('orders'),safeDocs('commissions')]);
-  const myOrders=orders.filter(o=>o.agentUid===p.uid||o.agentRef===code);
+  const loadAgentDocs=async(name)=>{
+    try{
+      const q=fb.query(fb.collection(fb.db,name),fb.where('agentUid','==',p.uid));
+      return (await fb.getDocs(q)).docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){console.warn(name,e);return [];}
+  };
+  const [referrals,myOrders,myCommissions]=await Promise.all([loadReferrals(),loadAgentDocs('orders'),loadAgentDocs('commissions')]);
   const paidOrders=myOrders.filter(o=>o.status==='paid');
-  const myCommissions=commissions.filter(c=>c.agentUid===p.uid);
   const pending=myCommissions.filter(c=>c.status==='pending').reduce((s,c)=>s+Number(c.amount||0),0);
   const paidCommission=myCommissions.filter(c=>c.status==='paid').reduce((s,c)=>s+Number(c.amount||0),0);
   const totalCommission=myCommissions.reduce((s,c)=>s+Number(c.amount||0),0);

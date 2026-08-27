@@ -58,7 +58,13 @@ service cloud.firestore {
         && request.resource.data.age <= 6;
       allow update: if signedIn()
         && (resource.data.ownerUid == request.auth.uid || isAdmin())
-        && request.resource.data.ownerUid == resource.data.ownerUid;
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.age is int
+        && request.resource.data.age >= 4
+        && request.resource.data.age <= 6;
       allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
     }
 
