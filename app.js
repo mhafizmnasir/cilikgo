@@ -151,9 +151,75 @@ async function renderAgent(p){
 }
 
 async function renderAdmin(p){
-  let users=[]; try{ users=(await fb.getDocs(fb.collection(fb.db,'users'))).docs.map(d=>({id:d.id,...d.data()})); }catch(e){console.error(e);}
+  const safeDocs=async(name)=>{
+    try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
+    catch(e){console.warn(name,e);return [];}
+  };
+  const [users,children,progress,orders,commissions,modules]=await Promise.all([
+    safeDocs('users'),safeDocs('children'),safeDocs('progress'),safeDocs('orders'),safeDocs('commissions'),safeDocs('modules')
+  ]);
   const agents=users.filter(u=>u.role==='agent'), customers=users.filter(u=>u.role==='user');
-  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>🛡️ Admin</h3><a class="active">Overview</a><a>User</a><a>Agent</a><a>Langganan</a><a>Transaksi</a><a>Modul 3M</a><a>Komisen</a><a>Settings</a></aside><section class="dash-main"><div class="dash-head"><div><small>CilikGo Control Center</small><h2>${esc(p.name)}</h2></div><span class="badge">Admin</span></div><div class="stat-grid"><div class="stat"><small>Jumlah akaun</small><b>${users.length}</b></div><div class="stat"><small>User/Penjaga</small><b>${customers.length}</b></div><div class="stat"><small>Agent</small><b>${agents.length}</b></div></div><h3>Akaun terkini</h3>${users.length?`<table class="table"><tr><th>Nama</th><th>E-mel</th><th>Role</th></tr>${users.slice(0,12).map(u=>`<tr><td>${esc(u.name||'-')}</td><td>${esc(u.email||'-')}</td><td><span class="badge">${esc(u.role||'user')}</span></td></tr>`).join('')}</table>`:'<div class="empty-state">Tiada rekod pengguna ditemui.</div>'}<div class="dash-note">Role Admin tidak boleh dipilih ketika pendaftaran awam. Akaun Admin pertama perlu ditetapkan secara manual dalam Firestore untuk keselamatan.</div></section></div>`;
+  const activeSubs=customers.filter(u=>u.subscriptionStatus==='active');
+  const paidOrders=orders.filter(o=>o.status==='paid');
+  const sales=paidOrders.reduce((s,o)=>s+Number(o.amount||0),0);
+  const commissionTotal=commissions.reduce((s,c)=>s+Number(c.amount||0),0);
+  const totalStars=progress.reduce((s,x)=>s+Number(x.stars||0),0);
+
+  const shell=(view,body)=>`<div class="dash-shell admin-shell"><aside class="dash-side"><h3>🛡️ Admin</h3>
+    ${[['overview','Overview'],['users','User / Penjaga'],['agents','Agent'],['children','Profil Anak'],['learning','Prestasi 3M'],['subscriptions','Langganan'],['transactions','Transaksi'],['commissions','Komisen'],['modules','CMS Modul 3M'],['settings','Settings']].map(([k,l])=>`<a class="admin-nav ${view===k?'active':''}" data-view="${k}">${l}</a>`).join('')}
+    </aside><section class="dash-main">${body}</section></div>`;
+
+  const head=(title,sub='CilikGo Control Center')=>`<div class="dash-head"><div><small>${sub}</small><h2>${title}</h2></div><span class="badge">Admin</span></div>`;
+  const empty=t=>`<div class="empty-state">${t}</div>`;
+  const statusBadge=s=>`<span class="badge ${s==='inactive'||s==='failed'?'status-inactive':''}">${esc(s||'-')}</span>`;
+
+  const views={
+    overview:()=>`${head('Overview')}<div class="admin-stat-grid">
+      <div class="stat"><small>Penjaga</small><b>${customers.length}</b></div><div class="stat"><small>Agent</small><b>${agents.length}</b></div>
+      <div class="stat"><small>Profil anak</small><b>${children.length}</b></div><div class="stat"><small>Langganan aktif</small><b>${activeSubs.length}</b></div>
+      <div class="stat"><small>Jualan dibayar</small><b>RM${sales.toFixed(2)}</b></div><div class="stat"><small>⭐ Dikumpul</small><b>${totalStars}</b></div>
+      </div><div class="admin-two-col"><div><h3>Akaun terkini</h3>${users.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>Role</th><th>Status</th></tr>${users.slice(-8).reverse().map(u=>`<tr><td>${esc(u.name||u.email||'-')}</td><td>${statusBadge(u.role)}</td><td>${statusBadge(u.subscriptionStatus||'n/a')}</td></tr>`).join('')}</table></div>`:empty('Tiada akaun.')}</div>
+      <div><h3>Ringkasan sistem</h3><div class="admin-summary"><p><b>${orders.length}</b> rekod transaksi</p><p><b>${commissions.length}</b> rekod komisen</p><p><b>RM${commissionTotal.toFixed(2)}</b> jumlah komisen</p><p><b>${progress.length}</b> rekod aktiviti 3M</p></div></div></div>`,
+
+    users:()=>`${head('User / Penjaga','Pengurusan akaun')}<div class="admin-toolbar"><input id="adminSearch" placeholder="Cari nama atau e-mel…"><span>${customers.length} akaun</span></div><div id="adminUserTable">${renderUserRows(customers)}</div>`,
+
+    agents:()=>`${head('Agent','Pengurusan affiliate')}<div class="admin-toolbar"><input id="adminSearch" placeholder="Cari agent atau kod…"><span>${agents.length} agent</span></div>${agents.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>E-mel</th><th>Kod</th><th>Jualan</th><th>Komisen</th></tr>${agents.map(a=>{const ao=orders.filter(o=>o.agentUid===a.id), ac=commissions.filter(c=>c.agentUid===a.id);return `<tr><td>${esc(a.name||'-')}</td><td>${esc(a.email||'-')}</td><td><code>${esc(a.agentCode||'-')}</code></td><td>${ao.length}</td><td>RM${ac.reduce((s,c)=>s+Number(c.amount||0),0).toFixed(2)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada Agent.')}`,
+
+    children:()=>`${head('Profil Anak','Pemantauan profil pembelajaran')}<div class="stat-grid"><div class="stat"><small>Jumlah profil</small><b>${children.length}</b></div><div class="stat"><small>Umur 4</small><b>${children.filter(c=>Number(c.age)===4).length}</b></div><div class="stat"><small>Umur 5–6</small><b>${children.filter(c=>Number(c.age)>=5).length}</b></div></div>${children.length?`<div class="table-wrap"><table class="table"><tr><th>Anak</th><th>Umur</th><th>Penjaga</th><th>⭐</th></tr>${children.map(c=>{const owner=users.find(u=>u.id===c.ownerUid);const stars=progress.filter(x=>x.childId===c.id).reduce((s,x)=>s+Number(x.stars||0),0);return `<tr><td>${esc(c.avatar||'🧒')} ${esc(c.name||'-')}</td><td>${esc(c.age||'-')}</td><td>${esc(owner?.name||owner?.email||'-')}</td><td>${stars}</td></tr>`}).join('')}</table></div>`:empty('Belum ada profil anak.')}`,
+
+    learning:()=>`${head('Prestasi 3M','Analitik pembelajaran')}<div class="admin-stat-grid">${['Membaca','Menulis','Mengira'].map(m=>{const rows=progress.filter(x=>x.module===m);return `<div class="stat"><small>${m}</small><b>${rows.reduce((s,x)=>s+Number(x.stars||0),0)} ⭐</b><span>${rows.length} aktiviti</span></div>`}).join('')}</div>${progress.length?`<div class="table-wrap"><table class="table"><tr><th>Modul</th><th>Level</th><th>⭐</th><th>Percubaan</th></tr>${progress.slice(-20).reverse().map(x=>`<tr><td>${esc(x.module||'-')}</td><td>${esc(x.level||'-')}</td><td>${Number(x.stars||0)}</td><td>${Number(x.attempts||0)}</td></tr>`).join('')}</table></div>`:empty('Belum ada rekod pembelajaran.')}`,
+
+    subscriptions:()=>`${head('Langganan','Status akses Penjaga')}<div class="stat-grid"><div class="stat"><small>Aktif</small><b>${activeSubs.length}</b></div><div class="stat"><small>Tidak aktif</small><b>${customers.length-activeSubs.length}</b></div><div class="stat"><small>Jumlah Penjaga</small><b>${customers.length}</b></div></div>${customers.length?`<div class="table-wrap"><table class="table"><tr><th>Penjaga</th><th>Status</th><th>Tamat</th></tr>${customers.map(u=>`<tr><td>${esc(u.name||u.email||'-')}</td><td>${statusBadge(u.subscriptionStatus||'inactive')}</td><td>${formatDate(u.subscriptionEndsAt)}</td></tr>`).join('')}</table></div>`:empty('Tiada Penjaga.')}`,
+
+    transactions:()=>`${head('Transaksi','ToyyibPay KIV — rekod sedia ada sahaja')}<div class="stat-grid"><div class="stat"><small>Jumlah rekod</small><b>${orders.length}</b></div><div class="stat"><small>Dibayar</small><b>${paidOrders.length}</b></div><div class="stat"><small>Nilai dibayar</small><b>RM${sales.toFixed(2)}</b></div></div>${orders.length?`<div class="table-wrap"><table class="table"><tr><th>ID</th><th>Pelan</th><th>Nilai</th><th>Status</th></tr>${orders.slice(-30).reverse().map(o=>`<tr><td><code>${esc(o.id)}</code></td><td>${esc(o.plan||'-')}</td><td>RM${Number(o.amount||0).toFixed(2)}</td><td>${statusBadge(o.status)}</td></tr>`).join('')}</table></div>`:empty('Belum ada transaksi. ToyyibPay sedang KIV.')}`,
+
+    commissions:()=>`${head('Komisen','Rekod affiliate')}<div class="stat-grid"><div class="stat"><small>Rekod</small><b>${commissions.length}</b></div><div class="stat"><small>Jumlah</small><b>RM${commissionTotal.toFixed(2)}</b></div><div class="stat"><small>Pending</small><b>${commissions.filter(c=>c.status==='pending').length}</b></div></div>${commissions.length?`<div class="table-wrap"><table class="table"><tr><th>Agent</th><th>Jualan</th><th>Kadar</th><th>Komisen</th><th>Status</th></tr>${commissions.map(c=>{const a=users.find(u=>u.id===c.agentUid);return `<tr><td>${esc(a?.name||c.agentUid||'-')}</td><td>RM${Number(c.saleAmount||0).toFixed(2)}</td><td>${Number(c.ratePercent||0)}%</td><td>RM${Number(c.amount||0).toFixed(2)}</td><td>${statusBadge(c.status)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada komisen.')}`,
+
+    modules:()=>`${head('CMS Modul 3M','Asas pengurusan kandungan')}<div class="dash-note">Bank soalan aplikasi masih menggunakan kurikulum terbina dalam. Bahagian ini menyediakan koleksi CMS Firestore untuk kandungan baharu tanpa mengganggu modul yang sedang stabil.</div>
+      <form id="moduleForm" class="admin-form"><select id="cmsModule"><option>Membaca</option><option>Menulis</option><option>Mengira</option></select><select id="cmsLevel"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select><input id="cmsTitle" required placeholder="Nama aktiviti / tajuk"><button class="btn primary">Tambah Kandungan</button></form>
+      ${modules.length?`<div class="table-wrap"><table class="table"><tr><th>Modul</th><th>Level</th><th>Tajuk</th><th>Tindakan</th></tr>${modules.map(m=>`<tr><td>${esc(m.module||'-')}</td><td>${esc(m.level||'-')}</td><td>${esc(m.title||'-')}</td><td><button class="btn ghost admin-delete-module" data-id="${esc(m.id)}">Padam</button></td></tr>`).join('')}</table></div>`:empty('Belum ada kandungan CMS tambahan.')}`,
+
+    settings:()=>`${head('Settings','Konfigurasi sistem')}<div class="settings-grid"><div class="setting-card"><b>Harga permulaan</b><strong>RM69</strong><small>4 bulan</small></div><div class="setting-card"><b>Pembaharuan</b><strong>RM15</strong><small>1 bulan · KIV pembayaran</small></div><div class="setting-card"><b>Komisen contoh</b><strong>15%</strong><small>Ubah sebelum production jika perlu</small></div></div><div class="dash-note">Tetapan kewangan sensitif dan secret ToyyibPay tidak disimpan atau diedit dari frontend Admin.</div>`
+  };
+
+  function renderUserRows(list){
+    return list.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>E-mel</th><th>Langganan</th><th>Daftar melalui</th></tr>${list.map(u=>`<tr><td>${esc(u.name||'-')}</td><td>${esc(u.email||'-')}</td><td>${statusBadge(u.subscriptionStatus||'inactive')}</td><td>${esc(u.referredByCode||'Direct')}</td></tr>`).join('')}</table></div>`:empty('Tiada pengguna ditemui.');
+  }
+
+  let currentView='overview';
+  const mount=async(view)=>{
+    currentView=view;
+    $('#dashboard').innerHTML=shell(view,views[view]());
+    document.querySelectorAll('.admin-nav').forEach(a=>a.onclick=()=>mount(a.dataset.view));
+    const search=$('#adminSearch');
+    if(search&&view==='users') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminUserTable').innerHTML=renderUserRows(customers.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
+    if(search&&view==='agents') search.oninput=()=>{ /* jadual agent kekal ringkas; carian disediakan pada fasa seterusnya */ };
+    if(view==='modules'){
+      $('#moduleForm').onsubmit=async e=>{e.preventDefault();try{await fb.addDoc(fb.collection(fb.db,'modules'),{module:$('#cmsModule').value,level:Number($('#cmsLevel').value),title:$('#cmsTitle').value.trim(),active:true,createdBy:p.uid,createdAt:fb.serverTimestamp()});toast('Kandungan CMS ditambah.');await renderAdmin(p);}catch(err){toast('Gagal tambah: '+friendlyError(err));}};
+      document.querySelectorAll('.admin-delete-module').forEach(b=>b.onclick=async()=>{if(!confirm('Padam kandungan CMS ini?'))return;try{await fb.deleteDoc(fb.doc(fb.db,'modules',b.dataset.id));toast('Kandungan dipadam.');await renderAdmin(p);}catch(err){toast('Gagal padam: '+friendlyError(err));}});
+    }
+  };
+  await mount('overview');
 }
 
 async function renderPortal(p){
