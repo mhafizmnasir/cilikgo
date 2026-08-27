@@ -68,12 +68,13 @@
       signInWithPopup
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { 
-      getFirestore, 
-      doc, 
-      setDoc, 
-      getDoc, 
-      serverTimestamp 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc,
+  updateDoc,          // <-- Tambah ini
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // Konfigurasi Firebase Anda
     const firebaseConfig = {
@@ -187,6 +188,37 @@
       }
     };
 
+    // Simulasi Bayaran RM70 untuk Ujian (Sandbox Mode)
+window.handleSimulatePayment = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Sila log masuk terlebih dahulu.");
+    return;
+  }
+
+  const confirmPay = confirm("Ini adalah mod simulasi ujian (Tanpa caj sebenar).\n\nAdakah anda ingin mengaktifkan langganan RM70 (3 Bulan)?");
+  if (!confirmPay) return;
+
+  try {
+    const userDocRef = doc(db, "users", user.uid);
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + 3); // Akses 3 bulan
+
+    // Kemaskini status langganan pengguna kepada 'active'
+    await updateDoc(userDocRef, {
+      subscriptionStatus: "active",
+      expiresAt: expiresAt,
+      lastPaymentDate: serverTimestamp(),
+      planType: "initial_3_months"
+    });
+
+    alert("🎉 Pembayaran RM70 berjaya disimulasikan! Akaun anda kini aktif.");
+    window.navTo('kids-zone');
+  } catch (error) {
+    alert("Ralat semasa mengaktifkan akaun: " + error.message);
+  }
+};
+    
     // Pendaftaran Manual Penjaga
     window.handleRegister = async (e) => {
       e.preventDefault();
@@ -762,21 +794,27 @@
       </div>
     </section>
 
-    <!-- 5. Status Langganan Belum Aktif -->
-    <section id="subscription-pending" class="hidden max-w-md mx-auto text-center">
-      <div class="card-modern p-8 rounded-3xl">
-        <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-          🔒
-        </div>
-        <h2 class="font-bold text-2xl text-slate-900 mb-2">Langganan Belum Aktif</h2>
-        <p class="text-sm text-slate-500 mb-6">
-          Sila selesaikan bayaran langganan permulaan sebanyak <strong>RM 70.00</strong> (Akses 3 Bulan) untuk membuka Zon Belajar 3M bagi anak anda.
-        </p>
-        <button onclick="alert('Panggilan API ke ToyyibPay / Billplz akan dibuka.')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-100 transition">
-          Bayar RM 70 Sekarang (FPX)
-        </button>
+   <!-- 5. Status Langganan Belum Aktif -->
+  <section id="subscription-pending" class="hidden max-w-md mx-auto text-center">
+    <div class="card-modern p-6 sm:p-8 rounded-3xl">
+      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+        🔒
       </div>
-    </section>
+      <h2 class="font-bold text-2xl text-slate-900 mb-2">Langganan Belum Aktif</h2>
+      <p class="text-xs sm:text-sm text-slate-500 mb-6">
+        Sila selesaikan bayaran langganan permulaan sebanyak <strong>RM 70.00</strong> (Akses 3 Bulan) untuk membuka Zon Belajar 3M bagi anak anda.
+      </p>
+
+      <!-- Butang Simulasi Ujian Bayaran -->
+      <button onclick="handleSimulatePayment()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-100 transition text-xs sm:text-sm">
+        Bayar RM 70 Sekarang (Ujian Simulasi)
+      </button>
+
+      <p class="text-[11px] text-slate-400 mt-4">
+        Mod Pembangunan: Klik butang di atas untuk mengaktifkan akaun ke Firestore secara langsung tanpa caj bank.
+      </p>
+    </div>
+  </section>
 
     <!-- 6. Zon Kanak-Kanak (3M Interaktif) -->
     <section id="kids-zone" class="hidden space-y-8">
