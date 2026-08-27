@@ -1031,9 +1031,7 @@ window.handleSimulatePayment = async () => {
 
   <!-- Skrip Modul Interaktif 3M & Logik PWA -->
   <script>
-  // ==========================================
-  // 1. KAMUS TERJEMAHAN DWIBAHASA (BM / EN)
-  // ==========================================
+ // 1. Tambah Perkataan Kad ke dalam Kamus Terjemahan
   const translations = {
     ms: {
       // Navbar
@@ -1058,7 +1056,12 @@ window.handleSimulatePayment = async () => {
       canvas_title: "Kanvas CilikGo",
       btn_clear: "Padam Semula",
       math_correct: "🌟 Hebat! Jawapan tepat (3 biji epal)!",
-      math_wrong: "✨ Cuba kira sekali lagi ya!"
+      math_wrong: "✨ Cuba kira sekali lagi ya!",
+      // Perkataan Kad Membaca (BM)
+      word_chicken: "Ayam",
+      word_ball: "Bola",
+      word_ciku: "Ciku",
+      word_dice: "Dadu"
     },
     en: {
       // Navbar
@@ -1083,10 +1086,31 @@ window.handleSimulatePayment = async () => {
       canvas_title: "CilikGo Canvas",
       btn_clear: "Clear Canvas",
       math_correct: "🌟 Awesome! Correct answer (3 apples)!",
-      math_wrong: "✨ Try counting again!"
+      math_wrong: "✨ Try counting again!",
+      // Perkataan Kad Membaca (EN)
+      word_chicken: "Chicken",
+      word_ball: "Ball",
+      word_ciku: "Potato",
+      word_dice: "Dice"
     }
   };
 
+  // 2. Fungsi Sebutan Suara Automatik Mengikut Bahasa Terpilih
+  window.speakCard = (wordKey) => {
+    const currentLang = localStorage.getItem('cilikgo_lang') || 'ms';
+    const textToSpeak = translations[currentLang][wordKey];
+
+    if ('speechSynthesis' in window && textToSpeak) {
+      // Hentikan sebutan audio terdahulu jika ada
+      window.speechSynthesis.cancel();
+
+      const utter = new SpeechSynthesisUtterance(textToSpeak);
+      utter.lang = currentLang === 'en' ? 'en-US' : 'ms-MY';
+      utter.rate = 0.85;
+      utter.pitch = 1.1; // Nada ceria kanak-kanak
+      window.speechSynthesis.speak(utter);
+    }
+  };
   // Fungsi Penukar Bahasa
   window.setLanguage = (lang) => {
     localStorage.setItem('cilikgo_lang', lang);
