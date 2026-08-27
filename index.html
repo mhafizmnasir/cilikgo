@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CilikGo - Platform Pembelajaran Interaktif 3M</title>
+  
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sniglet:wght@800&display=swap" rel="stylesheet">
+  
+  <!-- PWA Meta Tags & Manifest Link -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CilikGo">
+
+  <style>
+    .font-cilik { font-family: 'Sniglet', cursive, sans-serif; }
+    .font-modern { font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    .bg-mesh {
+      background-color: #F8FAFC;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(244, 63, 94, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(14, 165, 233, 0.15) 0px, transparent 50%);
+    }
+
+    .card-modern {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+
+  <!-- Firebase SDK (Modular v10 via CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc, 
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Konfigurasi Firebase Anda (Gantikan dengan data config projek anda)
+    const firebaseConfig = {
+      apiKey: "AIzaSy_GANTIKAN_DENGAN_API_KEY_ANDA",
+      authDomain: "tadika-pintar-3m.firebaseapp.com",
+      projectId: "tadika-pintar-3m",
+      storageBucket: "tadika-pintar-3m.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdef123456"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Pengurusan Autentikasi Pengguna & Kawalan Peranan (Role-Based)
+    onAuthStateChanged(auth, async (user) => {
+      // Komponen Desktop
+      const dGuestNav = document.getElementById("desktop-guest-nav");
+      const dUserNav = document.getElementById("desktop-user-nav");
+      const dUserDisplay = document.getElementById("desktop-user-display");
+      const dKidsBtn = document.getElementById("desktop-kids-btn");
+      const dAgentBtn = document.getElementById("desktop-agent-btn");
+      const dAdminBtn = document.getElementById("desktop-admin-btn");
+
+      // Komponen Mobile
+      const mGuestNav = document.getElementById("mobile-guest-nav");
+      const mUserNav = document.getElementById("mobile-user-nav");
+      const mUserDisplay = document.getElementById("mobile-user-display");
+      const mKidsBtn = document.getElementById("mobile-kids-btn");
+      const mAgentBtn = document.getElementById("mobile-agent-btn");
+      const mAdminBtn = document.getElementById("mobile-admin-btn");
+
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userData = userDoc.exists() ? userDoc.data() : {};
+        const role = userData.role || "parent";
+        const displayName = userData.firstName || userData.fullName || user.email.split('@')[0];
+
+        if (dGuestNav) dGuestNav.classList.add("hidden");
+        if (mGuestNav) mGuestNav.classList.add("hidden");
+        if (dUserNav) dUserNav.classList.remove("hidden");
+        if (mUserNav) mUserNav.classList.remove("hidden");
+
+        if (dUserDisplay) dUserDisplay.innerText = `Hai, ${displayName}!`;
+        if (mUserDisplay) mUserDisplay.innerText = displayName;
+
+        [dKidsBtn, dAgentBtn, dAdminBtn, mKidsBtn, mAgentBtn, mAdminBtn].forEach(el => {
+          if (el) el.classList.add("hidden");
+        });
+
+        if (role === "admin") {
+          if (dAdminBtn) dAdminBtn.classList.remove("hidden");
+          if (mAdminBtn) mAdminBtn.classList.remove("hidden");
+          window.navTo('admin-portal');
+        } else if (role === "agent") {
+          if (dAgentBtn) dAgentBtn.classList.remove("hidden");
+          if (mAgentBtn) mAgentBtn.classList.remove("hidden");
+          window.navTo('agent-portal');
+        } else {
+          if (dKidsBtn) dKidsBtn.classList.remove("hidden");
+          if (mKidsBtn) mKidsBtn.classList.remove("hidden");
+          
+          if (userData.subscriptionStatus === "active") {
+            window.navTo('kids-zone');
+          } else {
+            window.navTo('subscription-pending');
+          }
+        }
+      } else {
+        if (dGuestNav) dGuestNav.classList.remove("hidden");
+        if (mGuestNav) mGuestNav.classList.remove("hidden");
+        if (dUserNav) dUserNav.classList.add("hidden");
+        if (mUserNav) mUserNav.classList.add("hidden");
+        window.navTo('landing');
+      }
+    });
+
+    // Pendaftaran Penjaga
+    window.handleRegister = async (e) => {
+      e.preventDefault();
+      const firstName = document.getElementById("regFirstName").value.trim();
+      const lastName = document.getElementById("regLastName").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const agentRefCode = document.getElementById("regRefCode").value.trim();
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await setDoc(doc(db, "users", user.uid), {
+          firstName,
+          lastName,
+          email,
+          role: "parent",
+          subscriptionStatus: "pending",
+          agentRefCode: agentRefCode || null,
+          createdAt: serverTimestamp()
+        });
+
+        alert("Akaun CilikGo berjaya didaftarkan! Sila teruskan pembayaran langganan RM70.");
+        window.navTo('subscription-pending');
+      } catch (error) {
+        alert("Ralat Pendaftaran: " + error.message);
+      }
+    };
+
+    // Pendaftaran Agen Affiliate
+    window.handleAgentRegister = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("agentName").value.trim();
+      const phone = document.getElementById("agentPhone").value.trim();
+      const email = document.getElementById("agentEmail").value.trim();
+      const password = document.getElementById("agentPassword").value;
+      const refCode = document.getElementById("agentCustomCode").value.trim().toUpperCase();
+      const bankName = document.getElementById("agentBankName").value;
+      const accountNo = document.getElementById("agentAccountNo").value.trim();
+
+      try {
+        const codeCheck = await getDoc(doc(db, "affiliates", refCode));
+        if (codeCheck.exists()) {
+          alert("Kod rujukan ini telah digunakan. Sila pilih kod yang lain.");
+          return;
+        }
+
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
+        await setDoc(doc(db, "users", uid), {
+          fullName: name,
+          email,
+          phone,
+          role: "agent",
+          referralCode: refCode,
+          createdAt: serverTimestamp()
+        });
+
+        await setDoc(doc(db, "affiliates", refCode), {
+          agentUid: uid,
+          agentName: name,
+          email,
+          phone,
+          referralCode: refCode,
+          bankName,
+          accountNo,
+          totalSalesCount: 0,
+          unpaidCommission: 0.00,
+          totalPaidCommission: 0.00,
+          createdAt: serverTimestamp()
+        });
+
+        alert(`Tahniah ${name}! Akaun agen aktif. Pautan anda: https://cilikgo.my/?ref=${refCode}`);
+      } catch (error) {
+        alert("Ralat Pendaftaran Agen: " + error.message);
+      }
+    };
+
+    // Log Masuk
+    window.handleLogin = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        alert("Ralat Log Masuk: E-mel atau kata laluan tidak tepat.");
+      }
+    };
+
+    // Log Keluar
+    window.handleLogout = async () => {
+      await signOut(auth);
+      window.navTo('landing');
+    };
+  </script>
+
+  <!-- Skrip Antaramuka (UI) & Navigasi -->
+  <script>
+    function toggleMobileMenu() {
+      const menu = document.getElementById("mobile-menu");
+      const openIcon = document.getElementById("hamburger-open-icon");
+      const closeIcon = document.getElementById("hamburger-close-icon");
+      const isOpen = !menu.classList.contains("hidden");
+
+      if (isOpen) {
+        menu.classList.add("hidden");
+        openIcon.classList.remove("hidden");
+        closeIcon.classList.add("hidden");
+      } else {
+        menu.classList.remove("hidden");
+        openIcon.classList.add("hidden");
+        closeIcon.classList.remove("hidden");
+      }
+    }
+
+    function navTo(sectionId) {
+      const menu = document.getElementById("mobile-menu");
+      if (menu && !menu.classList.contains("hidden")) {
+        toggleMobileMenu();
+      }
+      showSection(sectionId);
+    }
+
+    function showSection(id) {
+      const sections = [
+        'landing', 
+        'login-section', 
+        'register-section', 
+        'register-agent-section', 
+        'subscription-pending', 
+        'kids-zone', 
+        'agent-portal', 
+        'admin-portal'
+      ];
+      sections.forEach(sec => {
+        const el = document.getElementById(sec);
+        if (el) el.classList.add('hidden');
+      });
+
+      const target = document.getElementById(id);
+      if (target) target.classList.remove('hidden');
+
+      if (id === 'kids-zone' && typeof initCanvas === 'function') {
+        initCanvas();
+      }
+    }
+
+    // Auto-detect referral code (?ref=KOD)
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get('ref');
+      if (refCode) {
+        const regRefInput = document.getElementById("regRefCode");
+        if (regRefInput) {
+          regRefInput.value = refCode.toUpperCase();
+          regRefInput.readOnly = true;
+        }
+      }
+    });
+  </script>
+</head>
+<body class="bg-mesh font-modern text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- Header & Navbar Responsif CilikGo -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-100 shadow-sm transition-all duration-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between">
+      
+      <!-- Logo CilikGo -->
+      <div class="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer group" onclick="navTo('landing')">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-md shadow-indigo-200 transform group-hover:rotate-6 transition duration-300">
+          <span class="text-xl sm:text-2xl">🚀</span>
+        </div>
+        <div>
+          <span class="font-cilik text-2xl sm:text-3xl tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-extrabold">CilikGo</span>
+          <span class="block text-[9px] sm:text-[10px] uppercase tracking-widest font-extrabold text-slate-400 -mt-1">Pintar 3M</span>
+        </div>
+      </div>
+      
+      <!-- Navigasi Desktop -->
+      <div class="hidden md:flex items-center gap-3">
+        <!-- Pelawat Desktop -->
+        <div id="desktop-guest-nav" class="flex items-center gap-2.5">
+          <button onclick="navTo('register-agent-section')" class="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/60 font-bold text-xs px-3.5 py-2 rounded-xl transition">
+            <span>💼</span> Jadi Agen
+          </button>
+          <button onclick="navTo('login-section')" class="text-slate-600 hover:text-indigo-600 font-bold text-sm px-4 py-2 transition">
+            Log Masuk
+          </button>
+          <button onclick="navTo('register-section')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow-md hover:shadow-lg transition">
+            Daftar Penjaga
+          </button>
+        </div>
+
+        <!-- Pengguna Aktif Desktop -->
+        <div id="desktop-user-nav" class="hidden flex items-center gap-3">
+          <span id="desktop-user-display" class="font-bold text-sm text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full"></span>
+          <button id="desktop-kids-btn" onclick="navTo('kids-zone')" class="bg-gradient-to-r from-emerald-400 to-teal-500 text-white font-cilik text-lg px-5 py-1.5 rounded-2xl shadow-md hover:shadow-teal-200 transition">
+            🌟 Zon Belajar
+          </button>
+          <button id="desktop-agent-btn" onclick="navTo('agent-portal')" class="hidden bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md transition">
+            📊 Portal Agen
+          </button>
+          <button id="desktop-admin-btn" onclick="navTo('admin-portal')" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md transition">
+            ⚡ Panel Admin
+          </button>
+          <button onclick="handleLogout()" class="text-slate-400 hover:text-rose-500 text-xs font-bold transition px-2 py-1">
+            Log Keluar
+          </button>
+        </div>
+      </div>
+
+      <!-- Hamburger Menu Mobile -->
+      <div class="flex items-center md:hidden">
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="p-2 rounded-xl text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition" aria-label="Buka Menu">
+          <svg id="hamburger-open-icon" class="w-6 h-6 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg id="hamburger-close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Dropdown Menu Mobile -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-100 px-5 pt-3 pb-6 shadow-xl transition-all">
+      <div id="mobile-guest-nav" class="space-y-3 pt-2">
+        <button onclick="navTo('login-section')" class="w-full text-left font-bold text-sm text-slate-700 bg-slate-50 hover:bg-slate-100 py-3 px-4 rounded-xl transition">
+          🔑 Log Masuk Penjaga
+        </button>
+        <button onclick="navTo('register-section')" class="w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm py-3 px-4 rounded-xl shadow-md transition">
+          ✨ Daftar Akaun Penjaga (RM70)
+        </button>
+        <button onclick="navTo('register-agent-section')" class="w-full text-center text-purple-700 bg-purple-50 hover:bg-purple-100 font-bold text-xs py-3 px-4 rounded-xl border border-purple-200 transition">
+          💼 Sertai Program Agen Affiliate
+        </button>
+      </div>
+
+      <div id="mobile-user-nav" class="hidden space-y-3 pt-2">
+        <div class="bg-indigo-50/60 p-3 rounded-xl flex items-center justify-between border border-indigo-100/50">
+          <span class="text-xs text-indigo-500 font-bold uppercase tracking-wide">Akaun Pengguna</span>
+          <span id="mobile-user-display" class="font-extrabold text-xs text-slate-800"></span>
+        </div>
+        <button id="mobile-kids-btn" onclick="navTo('kids-zone')" class="w-full text-center bg-gradient-to-r from-emerald-400 to-teal-500 text-white font-cilik text-xl py-3 rounded-2xl shadow-md">
+          🌟 Zon Belajar Kanak-Kanak
+        </button>
+        <button id="mobile-agent-btn" onclick="navTo('agent-portal')" class="hidden w-full text-left font-bold text-sm text-purple-700 bg-purple-50 py-3 px-4 rounded-xl border border-purple-200">
+          📊 Portal Komisen Agen
+        </button>
+        <button id="mobile-admin-btn" onclick="navTo('admin-portal')" class="hidden w-full text-left font-bold text-sm text-slate-800 bg-slate-100 py-3 px-4 rounded-xl">
+          ⚡ Panel Pentadbir (Admin)
+        </button>
+        <button onclick="handleLogout()" class="w-full text-center text-rose-600 hover:bg-rose-50 font-bold text-xs py-2.5 rounded-xl border border-rose-100 transition mt-2">
+          Log Keluar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Kandungan Utama Laman Web -->
+  <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-10">
+
+    <!-- 1. Halaman Utama (Landing Page) -->
+    <section id="landing" class="block space-y-12">
+      <div class="text-center max-w-3xl mx-auto pt-6">
+        <span class="bg-indigo-50 text-indigo-600 font-bold text-xs px-4 py-1.5 rounded-full border border-indigo-100 inline-block mb-4">
+          ✨ Eksplorasi 3M untuk Kanak-Kanak 5-6 Tahun
+        </span>
+        <h1 class="font-cilik text-4xl md:text-6xl text-slate-900 leading-tight mb-6">
+          Belajar Membaca, Mengira & Mewarna Lebih <span class="bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent">Menyeronokkan!</span>
+        </h1>
+        <p class="text-slate-600 text-base md:text-lg mb-8 leading-relaxed font-normal">
+          Bantu si cilik menguasai kemahiran asas 3M melalui modul interaktif pintar yang ceria dan mesra skrin sentuh peranti mudah alih.
+        </p>
+
+        <!-- Kad Pelan Harga -->
+        <div class="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto text-left mb-10">
+          <div class="card-modern p-6 rounded-3xl border-2 border-indigo-100 relative">
+            <span class="bg-indigo-600 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full absolute -top-3 right-6">Akses Penuh 3 Bulan</span>
+            <p class="text-sm font-bold text-slate-500">Pendaftaran Awal</p>
+            <div class="flex items-baseline gap-1 my-2">
+              <span class="text-4xl font-extrabold text-slate-900">RM 70</span>
+              <span class="text-xs text-slate-500 font-bold">/ 3 Bulan Pertama</span>
+            </div>
+            <p class="text-xs text-slate-500">Akses tanpa had untuk modul interaktif Membaca (audio sebutan), Mengira, dan Kanvas Lukis.</p>
+          </div>
+
+          <div class="card-modern p-6 rounded-3xl border border-slate-100">
+            <span class="bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase px-3 py-1 rounded-full absolute -top-3 right-6">Bulan Ke-4</span>
+            <p class="text-sm font-bold text-slate-500">Langganan Seterusnya</p>
+            <div class="flex items-baseline gap-1 my-2">
+              <span class="text-4xl font-extrabold text-slate-900">RM 15</span>
+              <span class="text-xs text-slate-500 font-bold">/ Sebulan</span>
+            </div>
+            <p class="text-xs text-slate-500">Teruskan akses pembelajaran aktif pada kos serendah RM0.50 sehari tanpa sebarang ikatan kontrak.</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-4">
+          <button onclick="navTo('register-section')" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-bold text-base px-8 py-4 rounded-2xl shadow-xl shadow-indigo-200 transition transform hover:-translate-y-0.5">
+            Daftar Sekarang & Mula Belajar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Log Masuk Penjaga -->
+    <section id="login-section" class="hidden max-w-md mx-auto">
+      <div class="card-modern p-8 rounded-3xl">
+        <h2 class="font-bold text-2xl text-slate-900 mb-1">Log Masuk Penjaga</h2>
+        <p class="text-xs text-slate-500 mb-6">Sila masukkan e-mel dan kata laluan anda.</p>
+
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
+            <input type="email" id="loginEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
+            <input type="password" id="loginPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+          </div>
+          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition">
+            Masuk ke Akaun
+          </button>
+        </form>
+
+        <p class="text-center text-xs text-slate-500 mt-6">
+          Belum ada akaun CilikGo? <span onclick="navTo('register-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Daftar sekarang</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- 3. Daftar Akaun Penjaga -->
+    <section id="register-section" class="hidden max-w-lg mx-auto">
+      <div class="card-modern p-8 rounded-3xl">
+        <h2 class="font-bold text-2xl text-slate-900 mb-1">Cipta Akaun CilikGo</h2>
+        <p class="text-xs text-slate-500 mb-6">Daftar sebagai penjaga untuk membuka akses penuh 3M bagi anak anda.</p>
+
+        <form onsubmit="handleRegister(event)" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Depan</label>
+              <input type="text" id="regFirstName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Belakang</label>
+              <input type="text" id="regLastName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
+            <input type="email" id="regEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
+            <input type="password" id="regPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kod Rujukan Agen (Pilihan)</label>
+            <input type="text" id="regRefCode" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:border-indigo-500 transition" placeholder="Contoh: AGEN01">
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-100 hover:opacity-95 transition">
+            Daftar & Teruskan Pembayaran (RM70)
+          </button>
+        </form>
+
+        <p class="text-center text-xs text-slate-500 mt-6">
+          Sudah mempunyai akaun? <span onclick="navTo('login-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Log masuk</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- 4. Daftar Rakan Niaga (Agen Affiliate) -->
+    <section id="register-agent-section" class="hidden max-w-lg mx-auto">
+      <div class="card-modern p-8 rounded-3xl">
+        <span class="text-[10px] font-extrabold uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full">Program Affiliate</span>
+        <h2 class="font-bold text-2xl text-slate-900 mt-2 mb-1">Daftar Rakan Niaga CilikGo</h2>
+        <p class="text-xs text-slate-500 mb-6">Dapatkan komisen <strong>RM30</strong> bagi setiap langganan awal dan <strong>RM10/bulan</strong> secara recurring.</p>
+
+        <form onsubmit="handleAgentRegister(event)" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Penuh</label>
+              <input type="text" id="agentName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">No. Telefon</label>
+              <input type="tel" id="agentPhone" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
+            <input type="email" id="agentEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
+            <input type="password" id="agentPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1.5">Pilihan Kod Rujukan (Link Unik Anda)</label>
+            <div class="flex items-center">
+              <span class="bg-slate-100 border border-r-0 border-slate-200 text-slate-500 text-xs px-3 py-2.5 rounded-l-xl">cilikgo.my/?ref=</span>
+              <input type="text" id="agentCustomCode" required placeholder="NAMA-ANDA" class="w-full bg-white border border-slate-200 rounded-r-xl px-3 py-2.5 text-sm font-mono uppercase outline-none focus:border-purple-500">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 pt-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Bank</label>
+              <select id="agentBankName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none">
+                <option value="Maybank">Maybank</option>
+                <option value="CIMB Bank">CIMB Bank</option>
+                <option value="Bank Islam">Bank Islam</option>
+                <option value="RHB Bank">RHB Bank</option>
+                <option value="Public Bank">Public Bank</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">No. Akaun Bank</label>
+              <input type="text" id="agentAccountNo" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-purple-100 transition">
+            Daftar Sebagai Agen CilikGo
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 5. Status Langganan Belum Aktif -->
+    <section id="subscription-pending" class="hidden max-w-md mx-auto text-center">
+      <div class="card-modern p-8 rounded-3xl">
+        <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+          🔒
+        </div>
+        <h2 class="font-bold text-2xl text-slate-900 mb-2">Langganan Belum Aktif</h2>
+        <p class="text-sm text-slate-500 mb-6">
+          Sila selesaikan bayaran langganan permulaan sebanyak <strong>RM 70.00</strong> (Akses 3 Bulan) untuk membuka Zon Belajar 3M bagi anak anda.
+        </p>
+        <button onclick="alert('Panggilan API ke ToyyibPay / Billplz akan dibuka.')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-100 transition">
+          Bayar RM 70 Sekarang (FPX)
+        </button>
+      </div>
+    </section>
+
+    <!-- 6. Zon Kanak-Kanak (3M Interaktif) -->
+    <section id="kids-zone" class="hidden space-y-8">
+      <div class="flex justify-center gap-3 sm:gap-4 flex-wrap">
+        <button onclick="switch3MTab('membaca')" id="tab-membaca" class="tab-btn bg-pink-500 text-white font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-lg shadow-pink-200 transform transition">
+          📖 Membaca
+        </button>
+        <button onclick="switch3MTab('mengira')" id="tab-mengira" class="tab-btn bg-white text-slate-700 font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-sm hover:shadow-md transform transition">
+          🔢 Mengira
+        </button>
+        <button onclick="switch3MTab('mewarna')" id="tab-mewarna" class="tab-btn bg-white text-slate-700 font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-sm hover:shadow-md transform transition">
+          🎨 Mewarna
+        </button>
+      </div>
+
+      <!-- Tab Membaca -->
+      <div id="content-membaca" class="module-content card-modern p-6 sm:p-8 rounded-3xl text-center">
+        <span class="text-xs font-extrabold uppercase tracking-widest text-pink-500 bg-pink-50 px-3 py-1 rounded-full">Modul Membaca</span>
+        <h3 class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-8">Tekan & Dengar Sebutan!</h3>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
+          <div onclick="speakWord('Ayam')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+            <span class="text-5xl sm:text-6xl block mb-2">🐔</span>
+            <p class="font-cilik text-2xl sm:text-3xl text-slate-800">Ayam</p>
+          </div>
+          <div onclick="speakWord('Bola')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+            <span class="text-5xl sm:text-6xl block mb-2">⚽</span>
+            <p class="font-cilik text-2xl sm:text-3xl text-slate-800">Bola</p>
+          </div>
+          <div onclick="speakWord('Ciku')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+            <span class="text-5xl sm:text-6xl block mb-2">🥔</span>
+            <p class="font-cilik text-2xl sm:text-3xl text-slate-800">Ciku</p>
+          </div>
+          <div onclick="speakWord('Dadu')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+            <span class="text-5xl sm:text-6xl block mb-2">🎲</span>
+            <p class="font-cilik text-2xl sm:text-3xl text-slate-800">Dadu</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Mengira -->
+      <div id="content-mengira" class="module-content hidden card-modern p-6 sm:p-8 rounded-3xl text-center">
+        <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-500 bg-cyan-50 px-3 py-1 rounded-full">Modul Mengira</span>
+        <h3 class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-6">Berapakah bilangan epal ini?</h3>
+        
+        <div class="flex justify-center gap-3 text-4xl sm:text-5xl my-6">
+          🍎 🍎 🍎
+        </div>
+
+        <div class="flex justify-center gap-4">
+          <button onclick="checkMath(2)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">2</button>
+          <button onclick="checkMath(3)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">3</button>
+          <button onclick="checkMath(4)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">4</button>
+        </div>
+        <p id="mathFeedback" class="font-cilik text-xl sm:text-2xl mt-6 font-bold"></p>
+      </div>
+
+      <!-- Tab Mewarna -->
+      <div id="content-mewarna" class="module-content hidden card-modern p-6 sm:p-8 rounded-3xl text-center">
+        <span class="text-xs font-extrabold uppercase tracking-widest text-amber-500 bg-amber-50 px-3 py-1 rounded-full">Modul Mewarna</span>
+        <h3 class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-6">Kanvas CilikGo</h3>
+
+        <div class="flex justify-center items-center gap-3 mb-6">
+          <button onclick="setBrushColor('#f43f5e')" class="w-8 h-8 rounded-full bg-rose-500 border-2 border-white shadow-md"></button>
+          <button onclick="setBrushColor('#3b82f6')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow-md"></button>
+          <button onclick="setBrushColor('#10b981')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow-md"></button>
+          <button onclick="setBrushColor('#f59e0b')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white shadow-md"></button>
+          <button onclick="setBrushColor('#8b5cf6')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white shadow-md"></button>
+          <button onclick="clearCanvas()" class="ml-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs transition">
+            Padam Semula
+          </button>
+        </div>
+
+        <div class="flex justify-center">
+          <canvas id="paintCanvas" width="380" height="240" class="border border-slate-200 rounded-3xl bg-white shadow-inner cursor-crosshair"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Portal Rakan Niaga (Agen) -->
+    <section id="agent-portal" class="hidden card-modern p-6 sm:p-8 rounded-3xl border border-purple-100">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-purple-900">Portal Rakan Niaga CilikGo</h2>
+          <p class="text-xs text-slate-500">Pantau komisen pendaftaran dan pendapatan berterusan anda.</p>
+        </div>
+        <span class="bg-purple-100 text-purple-800 font-bold text-xs px-3 py-1 rounded-full">Agen Aktif</span>
+      </div>
+
+      <div class="bg-purple-50 p-4 rounded-2xl border border-purple-200 mb-6">
+        <label class="block text-xs font-bold text-purple-900 mb-1">Pautan Promosi Khas Anda:</label>
+        <div class="flex gap-2">
+          <input type="text" readonly id="agentShareLink" value="https://cilikgo.my/?ref=AGEN" class="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-sm text-slate-700 font-mono outline-none">
+          <button onclick="alert('Pautan telah disalin!')" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">Salin</button>
+        </div>
+        <p class="text-[11px] text-purple-700 mt-2">Komisen: <strong>RM 30.00</strong> bagi langganan awal + <strong>RM 10.00/bulan</strong> secara recurring.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-2xl border">
+          <p class="text-xs text-slate-500 font-bold">Jumlah Langganan</p>
+          <p class="text-2xl font-extrabold text-slate-800 mt-1">12 Pelajar</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border">
+          <p class="text-xs text-slate-500 font-bold">Komisen Belum Dibayar</p>
+          <p class="text-2xl font-extrabold text-rose-600 mt-1">RM 440.00</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border">
+          <p class="text-xs text-slate-500 font-bold">Jumlah Telah Diterima</p>
+          <p class="text-2xl font-extrabold text-emerald-600 mt-1">RM 1,200.00</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Panel Pentadbir (Admin) -->
+    <section id="admin-portal" class="hidden card-modern p-6 sm:p-8 rounded-3xl border border-slate-200">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">Panel Pentadbir (Admin)</h2>
+          <p class="text-xs text-slate-500">Audit jualan keseluruhan dan pengurusan bayaran komisen mingguan.</p>
+        </div>
+        <button onclick="alert('Penyata bayaran mingguan dieksport.')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+          Eksport Penyata Mingguan
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-100 text-slate-800">
+            <tr>
+              <th class="p-3 rounded-l-lg">Nama Agen</th>
+              <th class="p-3">Kod Rujukan</th>
+              <th class="p-3">Jualan</th>
+              <th class="p-3">Komisen Tertunggak</th>
+              <th class="p-3">Akaun Bank</th>
+              <th class="p-3 rounded-r-lg">Tindakan</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr>
+              <td class="p-3 font-bold text-slate-800">Hafizul Ardi</td>
+              <td class="p-3 font-mono">AGEN-PINTAR</td>
+              <td class="p-3">12 Transaksi</td>
+              <td class="p-3 text-rose-600 font-bold text-sm">RM 440.00</td>
+              <td class="p-3">Maybank - 514012345678</td>
+              <td class="p-3">
+                <button onclick="alert('Komisen ditandakan sebagai SELESAI')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-[11px]">
+                  Tanda Selesai Bayar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PWA Install Popup Banner -->
+  <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-sm bg-slate-900 text-white p-4 rounded-3xl shadow-2xl border border-slate-700 z-50 flex items-center justify-between gap-3 animate-bounce">
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">📱</span>
+      <div>
+        <p class="font-bold text-xs">Pasang Aplikasi CilikGo</p>
+        <p class="text-[10px] text-slate-400">Akses pantas terus dari skrin utama telefon!</p>
+      </div>
+    </div>
+    <button id="pwa-install-btn" class="bg-gradient-to-r from-indigo-500 to-pink-500 hover:opacity-90 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow">
+      Pasang
+    </button>
+  </div>
+
+  <!-- Skrip Modul Interaktif 3M & Logik PWA -->
+  <script>
+    // Tab Pembelajaran 3M
+    window.switch3MTab = (tabName) => {
+      document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-pink-500', 'bg-cyan-500', 'bg-amber-500', 'text-white', 'shadow-lg');
+        btn.classList.add('bg-white', 'text-slate-700', 'shadow-sm');
+      });
+
+      const activeBtn = document.getElementById(`tab-${tabName}`);
+      document.getElementById(`content-${tabName}`).classList.remove('hidden');
+
+      if (tabName === 'membaca') activeBtn.classList.add('bg-pink-500', 'text-white', 'shadow-lg');
+      if (tabName === 'mengira') activeBtn.classList.add('bg-cyan-500', 'text-white', 'shadow-lg');
+      if (tabName === 'mewarna') {
+        activeBtn.classList.add('bg-amber-500', 'text-white', 'shadow-lg');
+        initCanvas();
+      }
+    };
+
+    // Suara Sebutan
+    window.speakWord = (word) => {
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(word);
+        utter.lang = 'ms-MY';
+        utter.rate = 0.85;
+        window.speechSynthesis.speak(utter);
+      }
+    };
+
+    // Semakan Matematik
+    window.checkMath = (ans) => {
+      const fb = document.getElementById('mathFeedback');
+      if (ans === 3) {
+        fb.innerText = '🌟 Hebat! Jawapan tepat (3 biji epal)!';
+        fb.className = 'font-cilik text-xl sm:text-2xl mt-6 font-bold text-emerald-600';
+      } else {
+        fb.innerText = '✨ Cuba kira sekali lagi ya!';
+        fb.className = 'font-cilik text-xl sm:text-2xl mt-6 font-bold text-rose-500';
+      }
+    };
+
+    // Kanvas Mewarna
+    let canvas, ctx, painting = false, brushColor = '#f43f5e';
+    function initCanvas() {
+      canvas = document.getElementById('paintCanvas');
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+
+      canvas.onmousedown = (e) => { painting = true; draw(e); };
+      canvas.onmouseup = () => { painting = false; ctx.beginPath(); };
+      canvas.onmousemove = draw;
+
+      canvas.ontouchstart = (e) => { painting = true; drawTouch(e); };
+      canvas.ontouchend = () => { painting = false; ctx.beginPath(); };
+      canvas.ontouchmove = drawTouch;
+    }
+
+    window.setBrushColor = (c) => brushColor = c;
+    window.clearCanvas = () => { if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height); };
+
+    function draw(e) {
+      if (!painting) return;
+      const rect = canvas.getBoundingClientRect();
+      ctx.strokeStyle = brushColor;
+      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    function drawTouch(e) {
+      if (!painting) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      ctx.strokeStyle = brushColor;
+      ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    }
+
+    // PWA Service Worker & Pemasangan
+    let deferredPrompt;
+    const pwaBanner = document.getElementById('pwa-install-banner');
+    const pwaBtn = document.getElementById('pwa-install-btn');
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('Service Worker didaftarkan.'))
+          .catch(err => console.log('PWA Service Worker Error:', err));
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (pwaBanner) pwaBanner.classList.remove('hidden');
+    });
+
+    if (pwaBtn) {
+      pwaBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            console.log('Pengguna memasang aplikasi CilikGo.');
+          }
+          deferredPrompt = null;
+          pwaBanner.classList.add('hidden');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
