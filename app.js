@@ -112,6 +112,13 @@ async function loadProgress(uid,childId){
   }catch(e){ console.warn('progress',e); return []; }
 }
 
+async function loadAllProgress(uid){
+  try{
+    const q=fb.query(fb.collection(fb.db,'progress'),fb.where('ownerUid','==',uid));
+    return (await fb.getDocs(q)).docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ console.warn('all progress',e); return []; }
+}
+
 function formatDate(value){
   if(!value) return '-';
   const d=value?.toDate?value.toDate():new Date(value);
@@ -141,8 +148,8 @@ function parentRecommendation(summary){
 }
 
 async function renderUser(p){
-  const kids=await getMyChildren();
-  const progress=await getMyProgress();
+  const kids=await loadChildren(p.uid);
+  const progress=await loadAllProgress(p.uid);
   if(!activeChild&&kids.length) activeChild=kids[0];
   const totalStars=progress.reduce((s,x)=>s+Number(x.stars||0),0);
   const active=p.subscriptionStatus==='active';
