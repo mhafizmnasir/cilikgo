@@ -204,6 +204,46 @@ async function createPendingSubscriptionOrder(planId){
   return {id:ref.id,...order};
 }
 
+
+function renderParentSubscriptionView(p){
+  const sub=subscriptionState(p),days=subscriptionDaysLeft(p);
+  const startRaw=p?.subscriptionStartedAt?.toDate?.()||p?.subscriptionStartedAt||null;
+  const start=startRaw?new Date(startRaw):null;
+  const end=sub.end;
+  const active=sub.active,expired=sub.expired;
+  const title=active?'Langganan Aktif':expired?'Langganan Tamat':'Belum Melanggan';
+  const price=active?'RM15':expired?'RM15':'RM69';
+  const period=active?'renewal 1 bulan':expired?'untuk 1 bulan':'untuk 4 bulan pertama';
+  const desc=active
+    ?`Akses penuh Modul 3M sedang aktif. Anda mempunyai ${days} hari lagi.`
+    :expired?'Akses Modul 3M dikunci sehingga langganan diperbaharui.':'Aktifkan akses penuh Membaca, Menulis dan Mengira untuk anak anda.';
+  $('#dashboard').innerHTML=`<section class="parent-sub-page container">
+    <button class="btn ghost parent-sub-back">← Kembali ke Dashboard</button>
+    <div class="parent-sub-hero">
+      <span class="badge">${active?'AKTIF':expired?'TAMAT':'PELAN CILIKGO'}</span>
+      <h1>${title}</h1><p>${desc}</p>
+    </div>
+    <div class="parent-sub-card">
+      <div>
+        <small>Pelan semasa</small>
+        <h2>${active?'Akses Penuh CilikGo':expired?'Renewal CilikGo':'Pakej Permulaan'}</h2>
+        <div class="sub-detail-grid">
+          <div><small>Tarikh mula</small><b>${start?start.toLocaleDateString('ms-MY'):'-'}</b></div>
+          <div><small>Tarikh tamat</small><b>${end?end.toLocaleDateString('ms-MY'):'-'}</b></div>
+          <div><small>Baki akses</small><b>${active?days+' hari':expired?'0 hari':'-'}</b></div>
+          <div><small>Status</small><b>${active?'Aktif':expired?'Tamat':'Belum aktif'}</b></div>
+        </div>
+      </div>
+      <div class="parent-sub-price"><b>${price}</b><span>${period}</span>
+        <button class="btn primary" disabled>${active?'Renew RM15':expired?'Renew RM15':'Langgan RM69'}</button>
+        <small>ToyyibPay masih KIV</small>
+      </div>
+    </div>
+    <div class="parent-sub-info"><b>${active?'✓ Akses anda sedang aktif':'ℹ Pembayaran belum diaktifkan'}</b><p>${active?'Anda boleh menggunakan semua Modul 3M sehingga tarikh tamat di atas.':'Buat masa ini Admin boleh mengaktifkan langganan secara manual untuk tujuan testing.'}</p></div>
+  </section>`;
+  $('.parent-sub-back').onclick=()=>renderUser(p);
+}
+
 async function renderUser(p){
   const kids=await loadChildren(p.uid);
   const progress=await loadAllProgress(p.uid);
@@ -226,7 +266,7 @@ async function renderUser(p){
     return `<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>${esc(c.age)} tahun · ⭐ ${st}</small></button>`;
   }).join('');
 
-  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 Penjaga</h3><a class="active">Perkembangan</a><a href="#modules">Modul 3M</a><a href="#pricing">Langganan</a><a href="#settings">Settings</a></aside>
+  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 Penjaga</h3><a class="active">Perkembangan</a><a href="#modules">Modul 3M</a><a href="#" id="parentSubscriptionLink">Langganan</a><a href="#settings">Settings</a></aside>
   <section class="dash-main"><div class="dash-head"><div><small>Selamat datang</small><h2>${esc(p.name||'Penjaga')} 👋</h2></div><span class="badge ${active?'':'status-inactive'}">${active?'Langganan aktif':'Belum aktif'}</span></div>
   <div class="parent-overview"><div><small>Jumlah profil anak</small><b>${kids.length}</b></div><div><small>Jumlah ⭐ keluarga</small><b>${totalStars}</b></div><div><small>Aktiviti direkod</small><b>${progress.length}</b></div></div>
   <div class="child-selector-head"><div><h3>Profil Anak</h3><p>Pilih anak untuk melihat laporan perkembangannya.</p></div><button class="btn primary" id="addChildBtn">+ Tambah Anak</button></div>
@@ -768,3 +808,9 @@ async function startLevel(key,levelNo,track=false){
 }
 function openGame(key,track=false){ openLevelPicker(key,track); }
 document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dataset.game,false));
+
+
+document.addEventListener('click',e=>{
+  const a=e.target.closest?.('.parent-subscription-nav,#parentSubscriptionLink');
+  if(a && currentProfile?.role==='user'){e.preventDefault();renderParentSubscriptionView(currentProfile);}
+});
