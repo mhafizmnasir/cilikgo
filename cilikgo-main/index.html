@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#6c5ce7" />
+  <title>CilikGo — Belajar 3M Dengan Gembira</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <header class="topbar">
+    <a class="brand" href="#home"><span class="brand-badge">CG</span><span>CilikGo</span></a>
+    <nav id="mainNav">
+      <a href="#home">Utama</a><a href="#modules">Modul 3M</a><a href="#pricing">Harga</a><a href="#agent">Jadi Agent</a>
+    </nav>
+    <div class="top-actions" id="guestActions"><button class="btn ghost" data-open="loginModal">Log Masuk</button><button class="btn primary" data-open="registerModal">Daftar</button></div><div class="top-actions hidden" id="memberActions"><span id="memberName" class="member-name"></span><button class="btn ghost" id="dashboardBtn">Dashboard</button><button class="btn primary" id="logoutBtn">Log Keluar</button></div>
+  </header>
+
+  <main>
+    <section id="home" class="hero section">
+      <div class="hero-copy">
+        <div class="pill">Untuk kanak-kanak 4–6 tahun</div>
+        <h1>Belajar <span>3M</span> jadi seronok setiap hari.</h1>
+        <p>CilikGo membantu anak belajar Membaca, Menulis dan Mengira melalui aktiviti ringkas, permainan interaktif dan kemajuan yang mudah dipantau ibu bapa.</p>
+        <div class="hero-actions"><button class="btn primary big" data-open="registerModal">Mulakan RM69 / 4 bulan</button><a class="btn ghost big" href="#modules">Cuba Aktiviti</a></div>
+        <div class="trust"><span>✓ Mesra kanak-kanak</span><span>✓ Pantau kemajuan</span><span>✓ Akaun penjaga</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="mascot">🚀</div><h3>Misi Hari Ini</h3>
+        <div class="mission"><span>📚 Membaca</span><b>3 / 5</b></div><div class="progress"><i style="width:60%"></i></div>
+        <div class="mission"><span>✍️ Menulis</span><b>2 / 4</b></div><div class="progress"><i style="width:50%"></i></div>
+        <div class="mission"><span>🔢 Mengira</span><b>4 / 5</b></div><div class="progress"><i style="width:80%"></i></div>
+        <div class="streak">🔥 5 hari berturut-turut!</div>
+      </div>
+    </section>
+
+    <section id="modules" class="section alt">
+      <div class="section-head"><div class="pill">Modul 3M</div><h2>Tiga asas, satu perjalanan pembelajaran.</h2><p>Tekan mana-mana aktiviti demo di bawah.</p></div>
+      <div class="cards three">
+        <article class="learn-card purple"><div class="icon">📖</div><h3>Membaca</h3><p>Kenal huruf, suku kata, perkataan mudah dan bacaan pendek.</p><button class="btn light" data-game="read">Main Demo</button></article>
+        <article class="learn-card coral"><div class="icon">✏️</div><h3>Menulis</h3><p>Latihan bentuk huruf, ejaan ringkas dan susunan perkataan.</p><button class="btn light" data-game="write">Main Demo</button></article>
+        <article class="learn-card green"><div class="icon">🧮</div><h3>Mengira</h3><p>Nombor, kuantiti, tambah dan tolak asas melalui objek visual.</p><button class="btn light" data-game="count">Main Demo</button></article>
+      </div>
+    </section>
+
+    <section id="pricing" class="section">
+      <div class="section-head"><div class="pill">Pelan CilikGo</div><h2>Mudah untuk bermula.</h2></div>
+      <div class="pricing-card"><div><span class="tag">Permulaan</span><h3>4 Bulan Akses Penuh</h3><p>Semua modul 3M, rekod kemajuan, profil anak dan aktiviti baharu.</p></div><div class="price"><strong>RM69</strong><small>untuk 4 bulan pertama</small><p>Selepas itu <b>RM15/bulan</b></p><button id="buyBtn" class="btn primary big">Langgan Sekarang</button></div></div>
+    </section>
+
+    <section id="agent" class="section alt">
+      <div class="split"><div><div class="pill">Program Agent</div><h2>Kongsi CilikGo, jana komisen.</h2><p>Setiap agent mendapat pautan unik. Pembelian melalui pautan tersebut direkodkan secara automatik selepas pembayaran disahkan.</p><button class="btn primary" id="agentSignupBtn">Daftar Sebagai Agent</button></div><div class="affiliate-preview"><span>Pautan anda</span><code>cilikgo.my/?ref=CG-AZLAN7</code><div class="mini-stats"><div><b>24</b><small>Klik</small></div><div><b>7</b><small>Pembelian</small></div><div><b>RM105</b><small>Komisen</small></div></div></div></div>
+    </section>
+
+    <section class="section dashboard-demo" id="portal">
+      <div class="section-head"><div class="pill">Portal CilikGo</div><h2 id="portalTitle">Dashboard anda.</h2><p id="portalSubtitle">Log masuk untuk membuka dashboard mengikut peranan akaun anda.</p></div>
+      <div id="dashboard"><div class="portal-locked"><div class="lock-icon">🔐</div><h3>Portal dilindungi</h3><p>Log masuk sebagai User/Penjaga, Agent atau Admin untuk melihat paparan anda.</p><button class="btn primary" data-open="loginModal">Log Masuk</button></div></div>
+    </section>
+  </main>
+
+  <footer><div class="brand"><span class="brand-badge">CG</span><span>CilikGo</span></div><p>Belajar hari ini, yakin esok.</p><div><a href="#">Privasi</a> · <a href="#">Terma</a> · <a href="#">Bantuan</a></div></footer>
+
+  <dialog id="loginModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Log Masuk</h2><label>E-mel<input id="loginEmail" type="email" placeholder="nama@email.com" required></label><label>Kata laluan<input id="loginPassword" type="password" placeholder="••••••••" required></label><button type="button" id="loginBtn" class="btn primary full">Log Masuk</button><button type="button" id="forgotBtn" class="link-btn">Lupa kata laluan?</button><p class="muted">Gunakan akaun yang telah didaftarkan melalui Firebase Authentication.</p></form></dialog>
+
+  <dialog id="registerModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Buka Akaun CilikGo</h2><label>Nama penuh<input id="regName" required></label><label>E-mel<input id="regEmail" type="email" required></label><label>Kata laluan<input id="regPassword" type="password" minlength="6" required></label><label>Daftar sebagai<select id="regRole"><option value="user">Ibu/Bapa/Penjaga</option><option value="agent">Agent</option></select></label><button type="button" id="registerBtn" class="btn primary full">Daftar Akaun</button></form></dialog>
+
+  <dialog id="childModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Tambah Profil Anak</h2><label>Nama panggilan anak<input id="childName" maxlength="40" required></label><label>Umur<select id="childAge"><option value="4">4 tahun</option><option value="5">5 tahun</option><option value="6">6 tahun</option></select></label><label>Avatar<select id="childAvatar"><option value="🧒">🧒 Ceria</option><option value="👧">👧 Puteri</option><option value="👦">👦 Wira</option><option value="🐯">🐯 Harimau</option><option value="🚀">🚀 Angkasawan</option></select></label><button type="button" id="saveChildBtn" class="btn primary full">Simpan Profil</button></form></dialog>
+
+  <dialog id="gameModal"><div class="modal-form game"><button class="x" onclick="gameModal.close()">×</button><div id="gameContent"></div></div></dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

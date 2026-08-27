@@ -389,27 +389,6 @@ const curriculum={
     ]}
 };
 
-function speakBM(text){
-  if(!('speechSynthesis' in window)) return toast('Audio tidak disokong oleh browser ini.');
-  const clean=String(text||'').replace(/[^\p{L}\p{N}\s+\-=?]/gu,' ').trim();
-  if(!clean)return;
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(clean); u.lang='ms-MY'; u.rate=.82; u.pitch=1.08;
-  speechSynthesis.speak(u);
-}
-function celebrate(){
-  const layer=document.createElement('div'); layer.className='celebration';
-  layer.innerHTML=Array.from({length:18},(_,i)=>`<i style="--i:${i}">${['⭐','🎉','✨','🌟'][i%4]}</i>`).join('');
-  document.body.appendChild(layer); setTimeout(()=>layer.remove(),1300);
-}
-function awardBadge(moduleName,level,stars){
-  if(!activeChild||stars<8)return null;
-  const key=`badge_${activeChild.id}_${moduleName}_${level}`;
-  if(localStorage.getItem(key))return null;
-  localStorage.setItem(key,'1');
-  return stars>=13?'🏆 Juara 3M':stars>=10?'🥇 Bintang Hebat':'🏅 Berani Mencuba';
-}
-
 async function loadCmsQuestions(key,levelNo){
   if(!fb) return [];
   try{
@@ -440,53 +419,28 @@ async function startLevel(key,levelNo,track=false){
   const cmsQuestions=await loadCmsQuestions(key,levelNo);
   const sourceQuestions=cmsQuestions.length?cmsQuestions:level.questions;
   const questions=[...sourceQuestions].sort(()=>Math.random()-.5);
-  let index=0,scoreStars=0,totalAttempts=0;
-
+  let index=0, scoreStars=0, totalAttempts=0;
   const renderQuestion=()=>{
     const q=questions[index]; let attempts=0,completed=false;
-    const pct=Math.round((index/questions.length)*100);
-    $('#gameContent').innerHTML=`<h2>${c.title} · Level ${levelNo}</h2>
-      ${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${esc(level.name)}</p>`:''}
-      <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
-      <div class="level-progress"><span style="width:${pct}%"></span></div>
-      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Tak apa kalau tersalah. Cuba lagi 💜</span></div>
-      <div class="game-prompt">${q.prompt}</div>
-      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
-      <div id="gameMsg"></div>`;
-    $('#speakQuestion').onclick=()=>speakBM(q.prompt);
-    document.querySelectorAll('.answer').forEach(x=>x.onclick=()=>{
+    $('#gameContent').innerHTML=`<h2>${c.title} · Level ${levelNo}</h2>${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${esc(level.name)}</p>`:''}<div class="question-counter">Soalan ${index+1} / ${questions.length}</div><div class="game-prompt">${q.prompt}</div><div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div><p id="gameMsg"></p><div class="level-score">⭐ ${scoreStars} dikumpul</div>`;
+    document.querySelectorAll('.answer').forEach(x=>x.onclick=async()=>{
       if(completed)return; attempts++; totalAttempts++;
-      if(x.textContent!==q.correct){
-        x.classList.add('wrong'); setTimeout(()=>x.classList.remove('wrong'),450);
-        $('#gameMsg').innerHTML=`<div class="try-again">💪 Belum tepat. Cuba lagi! <small>Percubaan ${attempts}</small></div>`;
-        speakBM('Cuba lagi'); return;
-      }
+      if(x.textContent!==q.correct){ $('#gameMsg').textContent=`Belum tepat. Cuba lagi 💪 (Percubaan ${attempts})`; return; }
       completed=true; const stars=attempts===1?3:attempts===2?2:1; scoreStars+=stars;
-      x.classList.add('correct'); document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
-      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Hebat!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(stars)}</strong></div>`;
-      celebrate(); speakBM(q.success||'Hebat');
-      setTimeout(()=>{index++;index<questions.length?renderQuestion():finishLevel();},1200);
+      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
+      $('#gameMsg').innerHTML=`${esc(q.success)} <strong>${'⭐'.repeat(stars)}</strong>`;
+      setTimeout(()=>{ index++; index<questions.length?renderQuestion():finishLevel(); },900);
     });
   };
-
   const finishLevel=async()=>{
-    const passed=scoreStars>=8,maxStars=questions.length*3,pct=Math.round(scoreStars/maxStars*100);
-    const badge=awardBadge(gameKeyToModule[key],levelNo,scoreStars);
-    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <h2>${pct>=85?'Cemerlang!':pct>=65?'Syabas!':'Bagus kerana mencuba!'}</h2>
-      <p>${esc(activeChild?.name||'Adik')} sudah tamat ${esc(level.name)}.</p>
-      <div class="result-stars">⭐ ${scoreStars} / ${maxStars}</div>
-      <div class="result-grid"><div><b>${scoreStars}</b><small>Bintang</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Pencapaian</small></div></div>
-      ${badge?`<div class="badge-earned"><span>${badge.split(' ')[0]}</span><b>${badge.substring(badge.indexOf(' ')+1)}</b><small>Badge baharu!</small></div>`:''}
-      <div class="result-actions"><button class="btn primary" id="playAgain">Main Lagi</button><button class="btn ghost" id="backLevels">Pilih Level</button></div></div>`;
-    celebrate(); speakBM(passed?'Syabas, hebat!':'Bagus kerana mencuba');
+    const passed=scoreStars>=8;
+    $('#gameContent').innerHTML=`<div class="level-complete"><div class="complete-icon">${passed?'🏆':'🌱'}</div><h2>${passed?'Level Selesai!':'Bagus Mencuba!'}</h2><p>${esc(level.name)}</p><div class="big-stars">⭐ ${scoreStars} / ${questions.length*3}</div><p>${passed?'Tahap seterusnya boleh dibuka apabila syarat bintang keseluruhan dipenuhi.':'Cuba lagi untuk kumpul sekurang-kurangnya 8 ⭐.'}</p><button class="btn primary" id="backLevels">Kembali ke Level</button></div>`;
     if(track&&activeChild&&fb?.auth.currentUser){
       try{
         await fb.addDoc(fb.collection(fb.db,'progress'),{ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,module:gameKeyToModule[key],activity:key,level:levelNo,questions:questions.length,correct:true,attempts:totalAttempts,stars:scoreStars,passed,createdAt:fb.serverTimestamp()});
-        toast(`⭐ ${scoreStars} bintang ${activeChild.name} direkodkan!`);
+        toast(`⭐ ${scoreStars} bintang ${activeChild.name} direkodkan!`); await renderUser(currentProfile);
       }catch(e){console.error(e);toast('Level selesai, tetapi rekod kemajuan gagal disimpan.');}
     }
-    $('#playAgain').onclick=()=>startLevel(key,levelNo,track);
     $('#backLevels').onclick=()=>openLevelPicker(key,track);
   };
   renderQuestion();
