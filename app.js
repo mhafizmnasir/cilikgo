@@ -14,7 +14,34 @@ if (USE_FIREBASE) {
 
 const $ = s => document.querySelector(s);
 const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-const toast = msg => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); };
+let toastTimer;
+const toast = msg => {
+  const t = $('#toast');
+  if (!t) return;
+
+  // A modal <dialog> opened with showModal() lives in the browser top layer.
+  // A toast left under <body> cannot appear above that backdrop regardless of z-index.
+  // Move the toast into the currently-open dialog so it stays sharp and visible.
+  const openDialogs = [...document.querySelectorAll('dialog[open]')];
+  const activeDialog = openDialogs.at(-1);
+  const targetHost = activeDialog || document.body;
+  if (t.parentElement !== targetHost) targetHost.appendChild(t);
+
+  t.textContent = msg;
+  t.classList.remove('show');
+  // Restart animation reliably for consecutive notifications.
+  void t.offsetWidth;
+  t.classList.add('show');
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => {
+      // Return it to body after hiding so it is ready for non-modal notifications.
+      if (t.parentElement !== document.body) document.body.appendChild(t);
+    }, 300);
+  }, 3000);
+};
 
 document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>$('#'+b.dataset.open).showModal());
 document.querySelectorAll('dialog .x').forEach(b=>b.onclick=()=>b.closest('dialog').close());
