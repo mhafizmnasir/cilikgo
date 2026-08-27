@@ -444,15 +444,15 @@
       <!-- Navigasi Desktop -->
       <div class="hidden md:flex items-center gap-3">
         
-        <!-- Butang Tukar Bahasa Desktop (MY / EN) -->
-        <div class="flex items-center bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/60 text-[11px] font-bold">
-          <button id="btn-lang-ms" type="button" onclick="changeLanguage('ms')" class="px-2.5 py-1 rounded-lg bg-white text-indigo-600 shadow-sm transition">
-            MY
-          </button>
-          <button id="btn-lang-en" type="button" onclick="changeLanguage('en')" class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-indigo-600 transition">
-            EN
-          </button>
-        </div>
+       <!-- Butang Tukar Bahasa Desktop (MY / EN) -->
+<div class="notranslate flex items-center bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/60 text-[11px] font-bold" translate="no">
+  <button id="btn-lang-ms" type="button" onclick="changeLanguage('ms')" class="notranslate px-2.5 py-1 rounded-lg bg-white text-indigo-600 shadow-sm transition" translate="no">
+    MY
+  </button>
+  <button id="btn-lang-en" type="button" onclick="changeLanguage('en')" class="notranslate px-2.5 py-1 rounded-lg text-slate-500 hover:text-indigo-600 transition" translate="no">
+    EN
+  </button>
+</div>
 
         <!-- Pelawat Desktop -->
         <div id="desktop-guest-nav" class="flex items-center gap-2">
@@ -487,15 +487,15 @@
 
       <!-- Bahagian Kanan Mobile (Tukar Bahasa + Hamburger) -->
       <div class="flex items-center gap-2 md:hidden">
-        <!-- Butang Tukar Bahasa Mobile -->
-        <div class="flex items-center bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/60 text-[10px] font-bold">
-          <button id="btn-lang-ms-mobile" type="button" onclick="changeLanguage('ms')" class="px-2 py-0.5 rounded-lg bg-white text-indigo-600 shadow-sm transition">
-            MY
-          </button>
-          <button id="btn-lang-en-mobile" type="button" onclick="changeLanguage('en')" class="px-2 py-0.5 rounded-lg text-slate-500 hover:text-indigo-600 transition">
-            EN
-          </button>
-        </div>
+       <!-- Butang Tukar Bahasa Mobile -->
+<div class="notranslate flex items-center bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/60 text-[10px] font-bold" translate="no">
+  <button id="btn-lang-ms-mobile" type="button" onclick="changeLanguage('ms')" class="notranslate px-2 py-0.5 rounded-lg bg-white text-indigo-600 shadow-sm transition" translate="no">
+    MY
+  </button>
+  <button id="btn-lang-en-mobile" type="button" onclick="changeLanguage('en')" class="notranslate px-2 py-0.5 rounded-lg text-slate-500 hover:text-indigo-600 transition" translate="no">
+    EN
+  </button>
+</div>
 
         <!-- Butang Hamburger Mobile -->
         <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/60 focus:outline-none transition" aria-label="Menu">
