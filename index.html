@@ -852,7 +852,7 @@ window.handleSimulatePayment = async () => {
         </button>
       </div>
 
-      <!-- Tab Membaca -->
+     <!-- Tab Membaca (Dwibahasa & Audio Dinamik) -->
       <div id="content-membaca" class="module-content card-modern p-6 sm:p-8 rounded-3xl text-center">
         <span class="text-xs font-extrabold uppercase tracking-widest text-pink-500 bg-pink-50 px-3 py-1 rounded-full">3M</span>
         <h3 data-i18n="reading_title" class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-8">
@@ -860,21 +860,28 @@ window.handleSimulatePayment = async () => {
         </h3>
         
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
-          <div onclick="speakWord('Ayam')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+          <!-- Kad 1: Ayam / Chicken -->
+          <div onclick="speakCard('word_chicken')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
             <span class="text-5xl sm:text-6xl block mb-2">🐔</span>
-            <p class="font-cilik text-2xl sm:text-3xl text-slate-800">Ayam</p>
+            <p data-i18n="word_chicken" class="font-cilik text-2xl sm:text-3xl text-slate-800">Ayam</p>
           </div>
-          <div onclick="speakWord('Bola')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+
+          <!-- Kad 2: Bola / Ball -->
+          <div onclick="speakCard('word_ball')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
             <span class="text-5xl sm:text-6xl block mb-2">⚽</span>
-            <p class="font-cilik text-2xl sm:text-3xl text-slate-800">Bola</p>
+            <p data-i18n="word_ball" class="font-cilik text-2xl sm:text-3xl text-slate-800">Bola</p>
           </div>
-          <div onclick="speakWord('Ciku')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+
+          <!-- Kad 3: Ciku / Sapodilla (atau Carrot / Lobak) -->
+          <div onclick="speakCard('word_ciku')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
             <span class="text-5xl sm:text-6xl block mb-2">🥔</span>
-            <p class="font-cilik text-2xl sm:text-3xl text-slate-800">Ciku</p>
+            <p data-i18n="word_ciku" class="font-cilik text-2xl sm:text-3xl text-slate-800">Ciku</p>
           </div>
-          <div onclick="speakWord('Dadu')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+
+          <!-- Kad 4: Dadu / Dice -->
+          <div onclick="speakCard('word_dice')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
             <span class="text-5xl sm:text-6xl block mb-2">🎲</span>
-            <p class="font-cilik text-2xl sm:text-3xl text-slate-800">Dadu</p>
+            <p data-i18n="word_dice" class="font-cilik text-2xl sm:text-3xl text-slate-800">Dadu</p>
           </div>
         </div>
       </div>
