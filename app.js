@@ -20,10 +20,6 @@ function setButtonLoading(btn,loading,label='Memproses…'){
 }
 window.addEventListener('unhandledrejection',e=>{console.error('Unhandled promise:',e.reason);});
 
-document.addEventListener('click',e=>{
-  const a=e.target.closest?.('#adminSubscriptions');
-  if(a){e.preventDefault();renderAdminSubscriptions();}
-});
 
 
 const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -325,7 +321,7 @@ async function renderAgent(p){
 }
 
 async function renderAdminSubscriptions(){
-  const root=$('#adminView');
+  const root=$('.dash-main');
   root.innerHTML=`<div class="dash-head"><div><small>Pengurusan akses Penjaga</small><h2>Langganan</h2></div><span class="badge">Admin</span></div><div class="loading-skeleton" style="height:90px"></div>`;
   try{
     const [usersSnap,ordersSnap]=await Promise.all([
@@ -481,7 +477,8 @@ async function renderAdmin(p){
   let currentView='overview';
   const mount=async(view)=>{
     currentView=view;
-    $('#dashboard').innerHTML=shell(view,views[view]());
+    $('#dashboard').innerHTML=shell(view,view==='subscriptions'?'':views[view]());
+    if(view==='subscriptions') await renderAdminSubscriptions();
     document.querySelectorAll('.admin-nav').forEach(a=>a.onclick=()=>mount(a.dataset.view));
     const search=$('#adminSearch');
     if(search&&view==='users') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminUserTable').innerHTML=renderUserRows(customers.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
