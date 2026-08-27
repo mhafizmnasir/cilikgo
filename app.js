@@ -20,6 +20,12 @@ function setButtonLoading(btn,loading,label='Memproses…'){
 }
 window.addEventListener('unhandledrejection',e=>{console.error('Unhandled promise:',e.reason);});
 
+document.addEventListener('click',e=>{
+  const a=e.target.closest?.('#adminSubscriptions');
+  if(a){e.preventDefault();renderAdminSubscriptions();}
+});
+
+
 const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 let toastTimer;
 const toast = msg => {
@@ -317,6 +323,86 @@ async function renderAgent(p){
   document.querySelectorAll('.agent-nav').forEach(a=>a.onclick=()=>mount(a.dataset.view));
   mount('overview');
 }
+
+async function renderAdminSubscriptions(){
+  const root=$('#adminView');
+  root.innerHTML=`<div class="dash-head"><div><small>Pengurusan akses Penjaga</small><h2>Langganan</h2></div><span class="badge">Admin</span></div><div class="loading-skeleton" style="height:90px"></div>`;
+  try{
+    const [usersSnap,ordersSnap]=await Promise.all([
+      fb.getDocs(fb.collection(fb.db,'users')),
+      fb.getDocs(fb.collection(fb.db,'orders'))
+    ]);
+    const users=usersSnap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.role==='user');
+    const orders=ordersSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const now=Date.now();
+    const rows=users.map(u=>{
+      const raw=u.subscriptionEndsAt?.toDate?.()||u.subscriptionEndsAt||null;
+      const end=raw?new Date(raw):null;
+      const active=u.subscriptionStatus==='active'&&end&&end.getTime()>now;
+      const expired=!!end&&end.getTime()<=now;
+      const state=active?'active':expired?'expired':(u.subscriptionStatus||'inactive');
+      const days=active?Math.max(0,Math.ceil((end-now)/86400000)):0;
+      const userOrders=orders.filter(o=>o.userUid===u.id);
+      return {...u,_end:end,_state:state,_days:days,_orders:userOrders};
+    });
+    const activeCount=rows.filter(x=>x._state==='active').length;
+    const expiredCount=rows.filter(x=>x._state==='expired').length;
+    const inactiveCount=rows.length-activeCount-expiredCount;
+    const table=(list)=>list.length?`<div class="table-wrap"><table class="table admin-sub-table"><tr><th>Penjaga</th><th>Status</th><th>Tamat</th><th>Baki</th><th>Transaksi</th><th>Tindakan</th></tr>${list.map(u=>`<tr>
+      <td><b>${esc(u.name||'-')}</b><small>${esc(u.email||'-')}</small></td>
+      <td><span class="badge ${u._state==='active'?'':'status-inactive'}">${esc(u._state)}</span></td>
+      <td>${u._end?u._end.toLocaleDateString('ms-MY'):'-'}</td>
+      <td>${u._state==='active'?u._days+' hari':'-'}</td>
+      <td>${u._orders.length}</td>
+      <td><div class="admin-sub-actions"><button class="btn ghost sub-manage" data-uid="${u.id}" data-action="starter">+4 bulan</button><button class="btn ghost sub-manage" data-uid="${u.id}" data-action="renewal">+1 bulan</button><button class="btn ghost danger sub-manage" data-uid="${u.id}" data-action="expire">Tamatkan</button></div></td>
+    </tr>`).join('')}</table></div>`:'<div class="empty-state">Tiada Penjaga sepadan.</div>';
+    root.innerHTML=`<div class="dash-head"><div><small>Pengurusan akses Penjaga</small><h2>Langganan</h2></div><span class="badge">${rows.length} Penjaga</span></div>
+      <div class="admin-stat-grid"><div class="stat"><small>Aktif</small><b>${activeCount}</b></div><div class="stat"><small>Tamat</small><b>${expiredCount}</b></div><div class="stat"><small>Belum aktif</small><b>${inactiveCount}</b></div></div>
+      <div class="admin-sub-note">🛠️ <b>Mode Admin / Testing.</b> Perubahan manual direkodkan dalam audit log. ToyyibPay masih KIV.</div>
+      <div class="agent-toolbar"><input id="subSearch" placeholder="Cari nama atau e-mel…"><select id="subFilter"><option value="all">Semua status</option><option value="active">Aktif</option><option value="expired">Tamat</option><option value="inactive">Belum aktif</option></select></div>
+      <div id="subTable">${table(rows)}</div>`;
+    const bind=()=>{
+      document.querySelectorAll('.sub-manage').forEach(btn=>btn.onclick=async()=>{
+        const u=rows.find(x=>x.id===btn.dataset.uid); if(!u)return;
+        const action=btn.dataset.action;
+        const label=action==='starter'?'tambah 4 bulan':action==='renewal'?'tambah 1 bulan':'tamatkan langganan';
+        if(!confirm(`Sahkan ${label} untuk ${u.name||u.email}?`))return;
+        setButtonLoading(btn,true,'Simpan…');
+        try{
+          const nowDate=new Date(), current=u._end&&u._end>nowDate?u._end:nowDate;
+          let newEnd=null, update={updatedAt:fb.serverTimestamp()};
+          if(action==='expire'){
+            newEnd=nowDate;
+            update={...update,subscriptionStatus:'expired',subscriptionEndsAt:fb.Timestamp.fromDate(nowDate)};
+          }else{
+            const months=action==='starter'?4:1;
+            newEnd=new Date(current);
+            const day=newEnd.getDate(); newEnd.setDate(1); newEnd.setMonth(newEnd.getMonth()+months);
+            const last=new Date(newEnd.getFullYear(),newEnd.getMonth()+1,0).getDate(); newEnd.setDate(Math.min(day,last));
+            update={...update,subscriptionStatus:'active',subscriptionEndsAt:fb.Timestamp.fromDate(newEnd)};
+            if(!u.subscriptionStartedAt) update.subscriptionStartedAt=fb.serverTimestamp();
+          }
+          await fb.updateDoc(fb.doc(fb.db,'users',u.id),update);
+          await fb.addDoc(fb.collection(fb.db,'subscriptionAudit'),{
+            userUid:u.id,userEmail:u.email||null,action,
+            previousStatus:u._state,previousEndsAt:u._end?fb.Timestamp.fromDate(u._end):null,
+            newStatus:action==='expire'?'expired':'active',newEndsAt:newEnd?fb.Timestamp.fromDate(newEnd):null,
+            source:'admin_manual',adminUid:fb.auth.currentUser.uid,createdAt:fb.serverTimestamp()
+          });
+          toast('Langganan berjaya dikemas kini.');
+          await renderAdminSubscriptions();
+        }catch(e){console.error(e);toast('Gagal mengemas kini langganan: '+(e.message||e));setButtonLoading(btn,false);}
+      });
+    };
+    const refresh=()=>{
+      const q=($('#subSearch')?.value||'').toLowerCase(),f=$('#subFilter')?.value||'all';
+      const list=rows.filter(u=>(f==='all'||u._state===f)&&((u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));
+      $('#subTable').innerHTML=table(list);bind();
+    };
+    $('#subSearch').oninput=refresh; $('#subFilter').onchange=refresh; bind();
+  }catch(e){console.error(e);root.innerHTML=`<div class="empty-state">Gagal memuatkan langganan: ${esc(e.message||e)}</div>`;}
+}
+
 async function renderAdmin(p){
   const safeDocs=async(name)=>{
     try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
