@@ -61,7 +61,14 @@ if(paymentParams.has('payment') || paymentStatus){
 }
 
 const ref = new URLSearchParams(location.search).get('ref');
-if(ref){ localStorage.setItem('cilikgo_ref',ref); toast('Kod agent '+ref+' telah direkodkan.'); }
+if(ref){
+  const cleanRef=String(ref).trim();
+  if(/^CG-[A-Za-z0-9_-]{7,128}$/.test(cleanRef)){
+    localStorage.setItem('cilikgo_ref',cleanRef);
+    localStorage.setItem('cilikgo_ref_saved_at',String(Date.now()));
+    toast('Kod agent telah direkodkan.');
+  }
+}
 $('#agentSignupBtn').onclick=()=>{ $('#regRole').value='agent'; $('#registerModal').showModal(); };
 
 function friendlyError(e){
@@ -74,8 +81,10 @@ $('#registerBtn').onclick=async()=>{
   if(!fb) return toast('Firebase tidak dapat disambungkan.');
   try{
     const cred=await fb.createUserWithEmailAndPassword(fb.auth,email,pass);
-    const agentCode=role==='agent'?'CG-'+cred.user.uid.slice(0,7).toUpperCase():null;
-    const referredByCode=role==='user'?(localStorage.getItem('cilikgo_ref')||null):null;
+    const agentCode=role==='agent'?'CG-'+cred.user.uid:null;
+    const refSavedAt=Number(localStorage.getItem('cilikgo_ref_saved_at')||0);
+    const storedRef=(Date.now()-refSavedAt)<=30*24*60*60*1000?localStorage.getItem('cilikgo_ref'):null;
+    const referredByCode=role==='user'?(storedRef||null):null;
     await fb.setDoc(fb.doc(fb.db,'users',cred.user.uid),{name,email,role,agentCode,referredByCode,createdAt:fb.serverTimestamp(),subscriptionStatus:'inactive'});
     $('#registerModal').close(); toast('Akaun berjaya didaftarkan.');
   }catch(e){ console.error(e); toast(friendlyError(e)); }
@@ -199,9 +208,15 @@ async function renderAgent(p){
     try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
     catch(e){console.warn(name,e);return [];}
   };
-  const [users,orders,commissions]=await Promise.all([safeDocs('users'),safeDocs('orders'),safeDocs('commissions')]);
   const code=p.agentCode||'';
-  const referrals=users.filter(u=>u.role==='user'&&u.referredByCode===code);
+  const loadReferrals=async()=>{
+    if(!code) return [];
+    try{
+      const q=fb.query(fb.collection(fb.db,'users'),fb.where('referredByCode','==',code));
+      return (await fb.getDocs(q)).docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.role==='user');
+    }catch(e){console.warn('referrals',e);return [];}
+  };
+  const [referrals,orders,commissions]=await Promise.all([loadReferrals(),safeDocs('orders'),safeDocs('commissions')]);
   const myOrders=orders.filter(o=>o.agentUid===p.uid||o.agentRef===code);
   const paidOrders=myOrders.filter(o=>o.status==='paid');
   const myCommissions=commissions.filter(c=>c.agentUid===p.uid);
@@ -577,7 +592,7 @@ async function startLevel(key,levelNo,track=false){
       <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
       <div class="level-progress"><span style="width:${pct}%"></span></div>
       <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Tak apa kalau tersalah. Cuba lagi 💜</span></div>
-      <div class="game-prompt">${q.prompt}</div>
+      <div class="game-prompt">${esc(q.prompt)}</div>
       <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
       <div id="gameMsg"></div>`;
     $('#speakQuestion').onclick=()=>speakBM(q.prompt);
