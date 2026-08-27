@@ -1031,7 +1031,9 @@ window.handleSimulatePayment = async () => {
 
   <!-- Skrip Modul Interaktif 3M & Logik PWA -->
   <script>
- // 1. Tambah Perkataan Kad ke dalam Kamus Terjemahan
+// ==========================================
+  // KAMUS TERJEMAHAN LENGKAP (BM / EN)
+  // ==========================================
   const translations = {
     ms: {
       // Navbar & Logo
@@ -1056,7 +1058,7 @@ window.handleSimulatePayment = async () => {
       btn_start_learning: "🚀 Mula Belajar Sekarang",
       btn_parent_login: "Log Masuk Penjaga",
 
-      // 3 Modul Kad
+      // 3 Modul Kad Utama
       card_reading_title: "Membaca",
       card_reading_desc: "Kad imbasan bergambar bersuara audio sebutan suku kata yang jelas dan betul.",
       card_math_title: "Mengira",
@@ -1092,7 +1094,47 @@ window.handleSimulatePayment = async () => {
       plan2_feat3: "Boleh batalkan langganan pada bila-bila masa",
       btn_register_bottom: "Daftar Anak Anda Hari Ini",
 
-      // Modul 3M Dalam Zon Kanak-Kanak
+      // Borang Log Masuk Penjaga
+      login_title: "Log Masuk Penjaga",
+      login_sub: "Sila masukkan e-mel dan kata laluan anda.",
+      btn_google_login: "Log Masuk dengan Google",
+      or_manual_login: "Atau Log Masuk Emel",
+      form_email: "Alamat E-mel",
+      form_password: "Kata Laluan",
+      btn_login_submit: "Masuk ke Akaun",
+      no_account: "Belum ada akaun CilikGo?",
+      register_now: "Daftar sekarang",
+
+      // Borang Daftar Penjaga
+      reg_title: "Cipta Akaun CilikGo",
+      reg_sub: "Daftar sebagai penjaga untuk membuka akses penuh 3M bagi anak anda.",
+      btn_google_reg: "Daftar Pantas dengan Google",
+      or_manual_reg: "Atau Daftar Manual",
+      form_fname: "Nama Depan",
+      form_lname: "Nama Belakang",
+      form_refcode: "Kod Rujukan Agen (Pilihan)",
+      btn_reg_submit: "Daftar & Teruskan Pembayaran (RM70)",
+      already_have_acc: "Sudah mempunyai akaun?",
+      login_here: "Log masuk",
+
+      // Borang Daftar Agen Affiliate
+      agent_badge: "Program Affiliate",
+      agent_reg_title: "Daftar Rakan Niaga CilikGo",
+      agent_reg_sub: "Dapatkan komisen RM30 bagi setiap langganan awal dan RM10/bulan secara recurring.",
+      form_fullname: "Nama Penuh",
+      form_phone: "No. Telefon",
+      form_agent_code: "Pilihan Kod Rujukan (Link Unik Anda)",
+      form_bank_name: "Nama Bank",
+      form_bank_acc: "No. Akaun Bank",
+      btn_agent_reg_submit: "Daftar Sebagai Agen CilikGo",
+
+      // Status Langganan Pending
+      sub_pending_title: "Langganan Belum Aktif",
+      sub_pending_desc: "Sila selesaikan bayaran langganan permulaan sebanyak RM 70.00 (Akses 3 Bulan) untuk membuka Zon Belajar 3M bagi anak anda.",
+      btn_pay_simulate: "Bayar RM 70 Sekarang (Ujian Simulasi)",
+      sub_dev_note: "Mod Pembangunan: Klik butang di atas untuk mengaktifkan akaun ke Firestore secara langsung tanpa caj bank.",
+
+      // Zon Kanak-Kanak & Modul 3M
       tab_reading: "📖 Membaca",
       tab_math: "🔢 Mengira",
       tab_coloring: "🎨 Mewarna",
@@ -1106,6 +1148,29 @@ window.handleSimulatePayment = async () => {
       word_ball: "Bola",
       word_ciku: "Ciku",
       word_dice: "Dadu",
+
+      // Portal Agen
+      agent_portal_title: "Portal Rakan Niaga CilikGo",
+      agent_portal_sub: "Pantau komisen pendaftaran dan pendapatan berterusan anda.",
+      agent_active_status: "Agen Aktif",
+      agent_share_lbl: "Pautan Promosi Khas Anda:",
+      btn_copy: "Salin",
+      agent_comm_rate: "Komisen: RM 30.00 bagi langganan awal + RM 10.00/bulan secara recurring.",
+      agent_stat_subs: "Jumlah Langganan",
+      agent_stat_unpaid: "Komisen Belum Dibayar",
+      agent_stat_paid: "Jumlah Telah Diterima",
+
+      // Panel Admin
+      admin_panel_title: "Panel Pentadbir (Admin)",
+      admin_panel_sub: "Audit jualan keseluruhan dan pengurusan bayaran komisen mingguan.",
+      btn_export_weekly: "Eksport Penyata Mingguan",
+      th_agent_name: "Nama Agen",
+      th_ref_code: "Kod Rujukan",
+      th_sales: "Jualan",
+      th_unpaid_comm: "Komisen Tertunggak",
+      th_bank_acc: "Akaun Bank",
+      th_action: "Tindakan",
+      btn_mark_paid: "Tanda Selesai Bayar",
 
       // PWA Banner
       pwa_title: "Pasang CilikGo",
@@ -1135,7 +1200,7 @@ window.handleSimulatePayment = async () => {
       btn_start_learning: "🚀 Start Learning Now",
       btn_parent_login: "Parent Login",
 
-      // 3 Modul Kad
+      // 3 Modul Kad Utama
       card_reading_title: "Reading",
       card_reading_desc: "Interactive flashcards with clear and precise audio pronunciation.",
       card_math_title: "Counting",
@@ -1171,7 +1236,47 @@ window.handleSimulatePayment = async () => {
       plan2_feat3: "Cancel subscription anytime",
       btn_register_bottom: "Register Your Child Today",
 
-      // Modul 3M Dalam Zon Kanak-Kanak
+      // Borang Log Masuk Penjaga
+      login_title: "Parent Login",
+      login_sub: "Please enter your email and password.",
+      btn_google_login: "Sign in with Google",
+      or_manual_login: "Or Sign in with Email",
+      form_email: "Email Address",
+      form_password: "Password",
+      btn_login_submit: "Sign In",
+      no_account: "Don't have a CilikGo account?",
+      register_now: "Register now",
+
+      // Borang Daftar Penjaga
+      reg_title: "Create CilikGo Account",
+      reg_sub: "Register as a parent to unlock full 3R access for your child.",
+      btn_google_reg: "Quick Sign up with Google",
+      or_manual_reg: "Or Register Manually",
+      form_fname: "First Name",
+      form_lname: "Last Name",
+      form_refcode: "Agent Referral Code (Optional)",
+      btn_reg_submit: "Register & Proceed to Payment (RM70)",
+      already_have_acc: "Already have an account?",
+      login_here: "Sign in",
+
+      // Borang Daftar Agen Affiliate
+      agent_badge: "Affiliate Program",
+      agent_reg_title: "Register as CilikGo Partner",
+      agent_reg_sub: "Earn RM30 commission on initial subscriptions and RM10/month recurring.",
+      form_fullname: "Full Name",
+      form_phone: "Phone Number",
+      form_agent_code: "Custom Referral Code (Your Unique Link)",
+      form_bank_name: "Bank Name",
+      form_bank_acc: "Bank Account No.",
+      btn_agent_reg_submit: "Register as CilikGo Agent",
+
+      // Status Langganan Pending
+      sub_pending_title: "Subscription Inactive",
+      sub_pending_desc: "Please complete the initial subscription of RM 70.00 (3 Months Access) to unlock the 3R Learning Zone for your child.",
+      btn_pay_simulate: "Pay RM 70 Now (Simulation Mode)",
+      sub_dev_note: "Development Mode: Click above to activate account directly in Firestore without bank charges.",
+
+      // Zon Kanak-Kanak & Modul 3M
       tab_reading: "📖 Reading",
       tab_math: "🔢 Counting",
       tab_coloring: "🎨 Colouring",
@@ -1185,6 +1290,29 @@ window.handleSimulatePayment = async () => {
       word_ball: "Ball",
       word_ciku: "Potato",
       word_dice: "Dice",
+
+      // Portal Agen
+      agent_portal_title: "CilikGo Affiliate Partner Portal",
+      agent_portal_sub: "Track your sales commissions and recurring revenue.",
+      agent_active_status: "Active Agent",
+      agent_share_lbl: "Your Unique Promotion Link:",
+      btn_copy: "Copy",
+      agent_comm_rate: "Commission: RM 30.00 for initial sale + RM 10.00/month recurring.",
+      agent_stat_subs: "Total Subscriptions",
+      agent_stat_unpaid: "Pending Commission",
+      agent_stat_paid: "Total Commission Paid",
+
+      // Panel Admin
+      admin_panel_title: "Admin Management Panel",
+      admin_panel_sub: "Comprehensive sales audit and weekly payout management.",
+      btn_export_weekly: "Export Weekly Statement",
+      th_agent_name: "Agent Name",
+      th_ref_code: "Referral Code",
+      th_sales: "Sales",
+      th_unpaid_comm: "Pending Commission",
+      th_bank_acc: "Bank Account",
+      th_action: "Action",
+      btn_mark_paid: "Mark as Paid",
 
       // PWA Banner
       pwa_title: "Install CilikGo",
