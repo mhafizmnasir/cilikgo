@@ -13,6 +13,13 @@ if (USE_FIREBASE) {
 }
 
 const $ = s => document.querySelector(s);
+function setButtonLoading(btn,loading,label='Memproses…'){
+  if(!btn)return;
+  if(loading){btn.dataset.oldText=btn.textContent;btn.disabled=true;btn.textContent=label;btn.setAttribute('aria-busy','true');}
+  else{btn.disabled=false;btn.textContent=btn.dataset.oldText||btn.textContent;btn.removeAttribute('aria-busy');}
+}
+window.addEventListener('unhandledrejection',e=>{console.error('Unhandled promise:',e.reason);});
+
 const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 let toastTimer;
 const toast = msg => {
