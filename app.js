@@ -244,6 +244,51 @@ function renderParentSubscriptionView(p){
   $('.parent-sub-back').onclick=()=>renderUser(p);
 }
 
+
+async function renderParentLearningHub(p){
+  const root=$('#dashboard');
+  if(!activeChild){
+    const kids=await loadChildren(p.uid);
+    activeChild=kids[0]||null;
+  }
+  if(!activeChild){
+    root.innerHTML=`<section class="container learning-hub-page"><button class="btn ghost hub-back">← Kembali ke Dashboard</button><div class="empty-state"><h2>Tambah profil anak dahulu</h2><p>Profil anak diperlukan sebelum memulakan Modul 3M.</p></div></section>`;
+    $('.hub-back').onclick=()=>renderUser(p);
+    return;
+  }
+  const progress=await loadProgress(p.uid,activeChild.id);
+  const modules=[
+    {key:'read',name:'Membaca',icon:'📖',desc:'Huruf, suku kata dan bacaan mudah.'},
+    {key:'write',name:'Menulis',icon:'✏️',desc:'Bentuk huruf, ejaan dan susunan perkataan.'},
+    {key:'count',name:'Mengira',icon:'🧮',desc:'Nombor, kuantiti, tambah dan tolak asas.'}
+  ];
+  const total=modules.reduce((n,m)=>n+moduleStars(progress,gameKeyToModule[m.key]),0);
+  const rank=learningRank(total);
+  root.innerHTML=`<section class="container learning-hub-page">
+    <div class="hub-top"><button class="btn ghost hub-back">← Dashboard</button><span class="badge">Learning Hub</span></div>
+    <div class="hub-child">
+      <div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div>
+      <div><small>Sedang belajar</small><h1>${esc(activeChild.name)}</h1><p>${rank.icon} ${rank.name} · ⭐ ${total} bintang keseluruhan</p></div>
+    </div>
+    <div class="hub-heading"><div><small>MODUL 3M</small><h2>Pilih pembelajaran hari ini</h2></div><p>Setiap level memerlukan sekurang-kurangnya ⭐ 8/15 untuk membuka level seterusnya.</p></div>
+    <div class="hub-module-grid">${modules.map(m=>{
+      const stars=moduleStars(progress,gameKeyToModule[m.key]);
+      const unlocked=unlockedLevel(progress,m.key);
+      const best=levelBest(progress,m.key,unlocked);
+      return `<article class="hub-module hub-${m.key}">
+        <div class="hub-module-icon">${m.icon}</div>
+        <div class="hub-module-title"><div><h3>${m.name}</h3><p>${m.desc}</p></div><b>⭐ ${stars}</b></div>
+        <div class="hub-level-dots">${[1,2,3].map(l=>`<span class="${l<unlocked?'done':l===unlocked?'current':'locked'}">${l<unlocked?'✓':l}</span>`).join('')}</div>
+        <div class="hub-module-meta"><span>Level ${unlocked} terbuka</span><span>${best?`Rekod ⭐ ${best}/15`:'Belum dimainkan'}</span></div>
+        <button class="btn primary hub-start" data-key="${m.key}">${stars?'Teruskan Belajar':'Mula Belajar'}</button>
+      </article>`;
+    }).join('')}</div>
+    <div class="hub-note">💡 <b>Tip:</b> Galakkan anak belajar dalam sesi pendek dan konsisten. Rekod terbaik setiap level digunakan untuk kemajuan.</div>
+  </section>`;
+  $('.hub-back').onclick=()=>renderUser(p);
+  document.querySelectorAll('.hub-start').forEach(b=>b.onclick=()=>openLevelPicker(b.dataset.key,true));
+}
+
 async function renderUser(p){
   const kids=await loadChildren(p.uid);
   const progress=await loadAllProgress(p.uid);
@@ -266,7 +311,7 @@ async function renderUser(p){
     return `<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>${esc(c.age)} tahun · ⭐ ${st}</small></button>`;
   }).join('');
 
-  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 Penjaga</h3><a class="active">Perkembangan</a><a href="#modules">Modul 3M</a><a href="#" id="parentSubscriptionLink">Langganan</a><a href="#settings">Settings</a></aside>
+  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 Penjaga</h3><a class="active">Perkembangan</a><a href="#" class="parent-learning-nav">Modul 3M</a><a href="#" id="parentSubscriptionLink">Langganan</a><a href="#settings">Settings</a></aside>
   <section class="dash-main"><div class="dash-head"><div><small>Selamat datang</small><h2>${esc(p.name||'Penjaga')} 👋</h2></div><span class="badge ${active?'':'status-inactive'}">${active?'Langganan aktif':'Belum aktif'}</span></div>
   <div class="parent-overview"><div><small>Jumlah profil anak</small><b>${kids.length}</b></div><div><small>Jumlah ⭐ keluarga</small><b>${totalStars}</b></div><div><small>Aktiviti direkod</small><b>${progress.length}</b></div></div>
   <div class="child-selector-head"><div><h3>Profil Anak</h3><p>Pilih anak untuk melihat laporan perkembangannya.</p></div><button class="btn primary" id="addChildBtn">+ Tambah Anak</button></div>
@@ -865,4 +910,13 @@ document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dat
 document.addEventListener('click',e=>{
   const a=e.target.closest?.('.parent-subscription-nav,#parentSubscriptionLink');
   if(a && currentProfile?.role==='user'){e.preventDefault();renderParentSubscriptionView(currentProfile);}
+});
+
+
+document.addEventListener('click',e=>{
+  const a=e.target.closest?.('.parent-learning-nav');
+  if(a && currentProfile?.role==='user'){
+    e.preventDefault();
+    renderParentLearningHub(currentProfile);
+  }
 });
