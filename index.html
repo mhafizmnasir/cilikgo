@@ -425,53 +425,175 @@
   </div>
 </header>
 
-  <!-- Kandungan Utama Laman Web -->
-  <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-10 pb-24 md:pb-12">
-
-    ...
-</header>
-
 <!-- Kandungan Utama Laman Web -->
 <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-10 pb-24 md:pb-12">
 
-  <!-- ============================================ -->
-  <!-- TAMPALKAN KOD BARU SEKSYEN LANDING DI SINI: -->
-  <!-- ============================================ -->
+  <!-- 1. Halaman Utama (Landing Page) -->
   <section id="landing" class="block space-y-12 pb-16">
-    ... (kod baru) ...
-  </section>
+    
+    <!-- Hero Utama -->
+    <div class="text-center max-w-3xl mx-auto pt-4">
+      <div class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-pink-50 border border-indigo-100/80 px-4 py-1.5 rounded-full shadow-sm mb-5">
+        <span class="text-sm">✨</span>
+        <span class="text-xs font-bold bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">
+          Khas Untuk Kanak-Kanak 5–6 Tahun
+        </span>
+      </div>
 
-  <!-- 2. Log Masuk Penjaga (Kekalkan) -->
-  <section id="login-section" class="hidden max-w-md mx-auto">
-  ...
-</main>
-...
+      <h1 class="font-cilik text-4xl sm:text-5xl md:text-6xl text-slate-900 leading-tight mb-5 tracking-tight">
+        Belajar Membaca, Mengira & Mewarna Lebih <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">Menyeronokkan!</span>
+      </h1>
 
-    <!-- 2. Log Masuk Penjaga -->
-    <section id="login-section" class="hidden max-w-md mx-auto">
-      <div class="card-modern p-8 rounded-3xl">
-        <h2 class="font-bold text-2xl text-slate-900 mb-1">Log Masuk Penjaga</h2>
-        <p class="text-xs text-slate-500 mb-6">Sila masukkan e-mel dan kata laluan anda.</p>
+      <p class="text-slate-600 text-sm sm:text-base md:text-lg mb-8 leading-relaxed max-w-xl mx-auto">
+        Portal interaktif pintar berkonsepkan <strong>Bermain Sambil Belajar</strong> untuk mengasah kemahiran asas 3M si cilik secara santai dan berkesan.
+      </p>
 
-        <form onsubmit="handleLogin(event)" class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
-            <input type="email" id="loginEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
-            <input type="password" id="loginPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
-          </div>
-          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition">
-            Masuk ke Akaun
-          </button>
-        </form>
+      <!-- Butang Tindakan Utama (CTA) -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto mb-10">
+        <button onclick="navTo('register-section')" class="w-full sm:w-auto flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-bold text-sm sm:text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
+          🚀 Mula Belajar Sekarang
+        </button>
+        <button onclick="navTo('login-section')" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm sm:text-base py-3.5 px-6 rounded-2xl border border-slate-200 shadow-sm transition">
+          Log Masuk Penjaga
+        </button>
+      </div>
+    </div>
 
-        <p class="text-center text-xs text-slate-500 mt-6">
-          Belum ada akaun CilikGo? <span onclick="navTo('register-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Daftar sekarang</span>
+    <!-- 3 Modul Utama (3M Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+      <div class="card-modern p-5 rounded-3xl border-t-4 border-t-pink-500 text-center hover:shadow-xl transition">
+        <div class="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">
+          📖
+        </div>
+        <h3 class="font-cilik text-xl text-slate-800 mb-1">Membaca</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          Kad imbasan bergambar bersuara audio sebutan suku kata yang jelas dan betul.
         </p>
       </div>
-    </section>
+
+      <div class="card-modern p-5 rounded-3xl border-t-4 border-t-cyan-500 text-center hover:shadow-xl transition">
+        <div class="w-14 h-14 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">
+          🔢
+        </div>
+        <h3 class="font-cilik text-xl text-slate-800 mb-1">Mengira</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          Aktiviti membilang objek visual dan kuiz nombor interaktif yang mudah difahami.
+        </p>
+      </div>
+
+      <div class="card-modern p-5 rounded-3xl border-t-4 border-t-amber-500 text-center hover:shadow-xl transition">
+        <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">
+          🎨
+        </div>
+        <h3 class="font-cilik text-xl text-slate-800 mb-1">Mewarna</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          Kanvas lukis digital mesra skrin sentuh untuk merangsang kreativiti motor halus.
+        </p>
+      </div>
+    </div>
+
+    <!-- Kelebihan Platform -->
+    <div class="max-w-4xl mx-auto bg-white/70 backdrop-blur-md rounded-3xl p-6 border border-slate-100 shadow-sm">
+      <h3 class="text-center font-bold text-sm text-slate-400 uppercase tracking-widest mb-6">Mengapa Ibu Bapa Memilih CilikGo?</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+        <div class="p-2">
+          <span class="text-2xl block mb-1.5">🛡️</span>
+          <p class="font-bold text-xs text-slate-800">100% Bebas Iklan</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">Ruang selamat untuk si cilik</p>
+        </div>
+        <div class="p-2">
+          <span class="text-2xl block mb-1.5">📱</span>
+          <p class="font-bold text-xs text-slate-800">Mesra Peranti</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">Sesuai di Tablet & Telefon</p>
+        </div>
+        <div class="p-2">
+          <span class="text-2xl block mb-1.5">🔊</span>
+          <p class="font-bold text-xs text-slate-800">Sebutan Audio Baku</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">Bantu perkembangan bahasa</p>
+        </div>
+        <div class="p-2">
+          <span class="text-2xl block mb-1.5">⚡</span>
+          <p class="font-bold text-xs text-slate-800">Pantas & Ringan</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">Boleh dipasang seperti Apps</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pelan Harga & Langganan -->
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-6">
+        <h2 class="font-cilik text-2xl sm:text-3xl text-slate-800">Pakej Langganan Mampu Milik</h2>
+        <p class="text-xs text-slate-500">Satu langganan untuk akses tanpa had semua modul</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-5 text-left">
+        <div class="card-modern p-6 rounded-3xl border-2 border-indigo-200 relative shadow-md bg-white">
+          <span class="bg-indigo-600 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full absolute -top-3 right-5 shadow-sm">
+            Akses 3 Bulan Awal
+          </span>
+          <p class="text-xs font-bold text-indigo-600 uppercase tracking-wide">Pendaftaran Baharu</p>
+          <div class="flex items-baseline gap-1 my-2">
+            <span class="text-4xl font-extrabold text-slate-900">RM 70</span>
+            <span class="text-xs text-slate-500 font-bold">/ Sekali Bayar</span>
+          </div>
+          <ul class="text-xs text-slate-600 space-y-2 mt-4 pt-4 border-t border-slate-100">
+            <li class="flex items-center gap-2">✅ <span>Akses penuh 3 bulan pertama</span></li>
+            <li class="flex items-center gap-2">✅ <span>Semua modul 3M (Membaca, Mengira, Mewarna)</span></li>
+            <li class="flex items-center gap-2">✅ <span>Portal Penjaga berasingan</span></li>
+          </ul>
+        </div>
+
+        <div class="card-modern p-6 rounded-3xl border border-slate-200 relative bg-white/90">
+          <span class="bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase px-3 py-1 rounded-full absolute -top-3 right-5">
+            Bulan Ke-4 Seterusnya
+          </span>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Langganan Bulanan</p>
+          <div class="flex items-baseline gap-1 my-2">
+            <span class="text-4xl font-extrabold text-slate-900">RM 15</span>
+            <span class="text-xs text-slate-500 font-bold">/ Sebulan</span>
+          </div>
+          <ul class="text-xs text-slate-600 space-y-2 mt-4 pt-4 border-t border-slate-100">
+            <li class="flex items-center gap-2">✨ <span>Hanya ~RM0.50 sehari</span></li>
+            <li class="flex items-center gap-2">✨ <span>Kemas kini bahan pembelajaran berkala</span></li>
+            <li class="flex items-center gap-2">✨ <span>Boleh batalkan langganan pada bila-bila masa</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="text-center mt-8">
+        <button onclick="navTo('register-section')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-bold text-sm px-8 py-3.5 rounded-2xl shadow-md transition">
+          Daftar Anak Anda Hari Ini
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 2. Log Masuk Penjaga -->
+  <section id="login-section" class="hidden max-w-md mx-auto">
+    <div class="card-modern p-8 rounded-3xl">
+      <h2 class="font-bold text-2xl text-slate-900 mb-1">Log Masuk Penjaga</h2>
+      <p class="text-xs text-slate-500 mb-6">Sila masukkan e-mel dan kata laluan anda.</p>
+
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
+          <input type="email" id="loginEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
+          <input type="password" id="loginPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+        </div>
+        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition">
+          Masuk ke Akaun
+        </button>
+      </form>
+
+      <p class="text-center text-xs text-slate-500 mt-6">
+        Belum ada akaun CilikGo? <span onclick="navTo('register-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Daftar sekarang</span>
+      </p>
+    </div>
+  </section>
 
     <!-- 3. Daftar Akaun Penjaga -->
     <section id="register-section" class="hidden max-w-lg mx-auto">
