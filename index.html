@@ -608,10 +608,27 @@
 
   <!-- 2. Log Masuk Penjaga -->
   <section id="login-section" class="hidden max-w-md mx-auto">
-    <div class="card-modern p-8 rounded-3xl">
+    <div class="card-modern p-6 sm:p-8 rounded-3xl">
       <h2 class="font-bold text-2xl text-slate-900 mb-1">Log Masuk Penjaga</h2>
-      <p class="text-xs text-slate-500 mb-6">Sila masukkan e-mel dan kata laluan anda.</p>
+      <p class="text-xs text-slate-500 mb-5">Sila masukkan e-mel dan kata laluan anda.</p>
 
+      <!-- Butang Log Masuk Pantas Google -->
+      <button onclick="handleGoogleAuth()" type="button" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm py-3 rounded-2xl shadow-sm transition">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" viewBox="0 0 24 24">
+          <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"/>
+          <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+          <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z"/>
+          <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/>
+        </svg>
+        Log Masuk dengan Google
+      </button>
+
+      <div class="relative my-5">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+        <div class="relative flex justify-center text-[10px] uppercase"><span class="bg-white/80 backdrop-blur-sm px-3 text-slate-400 font-bold">Atau Log Masuk Emel</span></div>
+      </div>
+
+      <!-- Borang Manual -->
       <form onsubmit="handleLogin(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
@@ -621,7 +638,7 @@
           <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
           <input type="password" id="loginPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
         </div>
-        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition">
+        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition text-xs sm:text-sm">
           Masuk ke Akaun
         </button>
       </form>
@@ -632,45 +649,62 @@
     </div>
   </section>
 
-    <!-- 3. Daftar Akaun Penjaga -->
-    <section id="register-section" class="hidden max-w-lg mx-auto">
-      <div class="card-modern p-8 rounded-3xl">
-        <h2 class="font-bold text-2xl text-slate-900 mb-1">Cipta Akaun CilikGo</h2>
-        <p class="text-xs text-slate-500 mb-6">Daftar sebagai penjaga untuk membuka akses penuh 3M bagi anak anda.</p>
+  <!-- 3. Daftar Akaun Penjaga -->
+  <section id="register-section" class="hidden max-w-lg mx-auto">
+    <div class="card-modern p-6 sm:p-8 rounded-3xl">
+      <h2 class="font-bold text-2xl text-slate-900 mb-1">Cipta Akaun CilikGo</h2>
+      <p class="text-xs text-slate-500 mb-5">Daftar sebagai penjaga untuk membuka akses penuh 3M bagi anak anda.</p>
 
-        <form onsubmit="handleRegister(event)" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Depan</label>
-              <input type="text" id="regFirstName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Belakang</label>
-              <input type="text" id="regLastName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
-            <input type="email" id="regEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
-            <input type="password" id="regPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kod Rujukan Agen (Pilihan)</label>
-            <input type="text" id="regRefCode" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:border-indigo-500 transition" placeholder="Contoh: AGEN01">
-          </div>
-          <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-100 hover:opacity-95 transition">
-            Daftar & Teruskan Pembayaran (RM70)
-          </button>
-        </form>
+      <!-- Butang Daftar Pantas Google -->
+      <button onclick="handleGoogleAuth()" type="button" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm py-3 rounded-2xl shadow-sm transition">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" viewBox="0 0 24 24">
+          <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"/>
+          <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+          <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z"/>
+          <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/>
+        </svg>
+        Daftar Pantas dengan Google
+      </button>
 
-        <p class="text-center text-xs text-slate-500 mt-6">
-          Sudah mempunyai akaun? <span onclick="navTo('login-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Log masuk</span>
-        </p>
+      <div class="relative my-5">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+        <div class="relative flex justify-center text-[10px] uppercase"><span class="bg-white/80 backdrop-blur-sm px-3 text-slate-400 font-bold">Atau Daftar Manual</span></div>
       </div>
-    </section>
+
+      <!-- Borang Manual -->
+      <form onsubmit="handleRegister(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Depan</label>
+            <input type="text" id="regFirstName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Belakang</label>
+            <input type="text" id="regLastName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
+          <input type="email" id="regEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
+          <input type="password" id="regPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Kod Rujukan Agen (Pilihan)</label>
+          <input type="text" id="regRefCode" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:border-indigo-500 transition" placeholder="Contoh: AGEN01">
+        </div>
+        <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-100 hover:opacity-95 transition text-xs sm:text-sm">
+          Daftar & Teruskan Pembayaran (RM70)
+        </button>
+      </form>
+
+      <p class="text-center text-xs text-slate-500 mt-6">
+        Sudah mempunyai akaun? <span onclick="navTo('login-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Log masuk</span>
+      </p>
+    </div>
+  </section>
 
     <!-- 4. Daftar Rakan Niaga (Agen Affiliate) -->
     <section id="register-agent-section" class="hidden max-w-lg mx-auto">
