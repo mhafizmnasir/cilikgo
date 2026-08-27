@@ -389,12 +389,37 @@ const curriculum={
     ]}
 };
 
+let preferredMalayVoice=null;
+function chooseMalayVoice(){
+  const voices=speechSynthesis.getVoices();
+  if(!voices.length) return null;
+  const score=v=>{
+    const lang=(v.lang||'').toLowerCase(), name=(v.name||'').toLowerCase();
+    let s=0;
+    if(lang==='ms-my') s+=100;
+    else if(lang.startsWith('ms')) s+=70;
+    else if(lang==='id-id') s+=20;
+    if(name.includes('malaysia')||name.includes('malay')) s+=25;
+    if(v.localService) s+=3;
+    return s;
+  };
+  return [...voices].sort((a,b)=>score(b)-score(a))[0]||null;
+}
+function refreshMalayVoice(){ preferredMalayVoice=chooseMalayVoice(); }
+if('speechSynthesis' in window){
+  refreshMalayVoice();
+  speechSynthesis.addEventListener?.('voiceschanged',refreshMalayVoice);
+}
 function speakBM(text){
   if(!('speechSynthesis' in window)) return toast('Audio tidak disokong oleh browser ini.');
   const clean=String(text||'').replace(/[^\p{L}\p{N}\s+\-=?]/gu,' ').trim();
   if(!clean)return;
   speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(clean); u.lang='ms-MY'; u.rate=.82; u.pitch=1.08;
+  if(!preferredMalayVoice) refreshMalayVoice();
+  const u=new SpeechSynthesisUtterance(clean);
+  if(preferredMalayVoice){u.voice=preferredMalayVoice;u.lang=preferredMalayVoice.lang||'ms-MY';}
+  else u.lang='ms-MY';
+  u.rate=.65; u.pitch=1.0; u.volume=1.0;
   speechSynthesis.speak(u);
 }
 function celebrate(){
