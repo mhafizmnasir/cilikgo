@@ -14,3 +14,4 @@ dialog[open] > .toast{
   filter:none;
   backdrop-filter:none;
 }
+.level-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:18px 0}.level-card{border:2px solid var(--line);background:#fff;border-radius:16px;padding:15px;text-align:left;cursor:pointer}.level-card:hover:not(:disabled){border-color:var(--purple);background:#f8f7ff}.level-card:disabled{opacity:.55;cursor:not-allowed;background:#f4f3f7}.level-card b,.level-card span,.level-card small{display:block}.level-card b{color:var(--purple);font-size:18px}.level-card span{font-weight:800;margin:4px 0}.level-card small{color:var(--muted)}.level-total,.question-counter,.level-score{font-size:13px;font-weight:800;color:var(--muted);margin:12px 0}.level-complete{text-align:center;padding:8px}.complete-icon{font-size:64px}.big-stars{font-size:28px;font-weight:900;color:var(--purple);margin:16px}.game-prompt{word-break:break-word}.answers .answer:disabled{opacity:.7;cursor:not-allowed}

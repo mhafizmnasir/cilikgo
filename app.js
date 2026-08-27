@@ -115,8 +115,8 @@ async function renderUser(p){
   <div class="stat-grid"><div class="stat"><small>Profil anak</small><b>${userChildren.length}</b></div><div class="stat"><small>Aktiviti selesai / percubaan</small><b>${correct}/${attempts}</b></div><div class="stat"><small>Bintang</small><b>⭐ ${totalStars}</b></div></div>
   <div class="section-line"><h3>Profil Anak</h3><button class="btn primary" id="addChildBtn">+ Tambah Anak</button></div>
   ${userChildren.length?`<div class="child-grid">${userChildren.map(c=>`<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name||'Anak')}</b><small>${esc(c.age||'')} tahun</small></button>`).join('')}</div>`:'<div class="empty-state">Belum ada profil anak. Tambah profil pertama untuk mula merekod kemajuan 3M.</div>'}
-  ${activeChild?`<div class="learning-panel"><div class="section-line"><div><small>Sedang belajar sebagai</small><h3>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</h3></div><button class="btn ghost" id="deleteChildBtn">Padam Profil</button></div><div class="module-progress-grid"><div><b>📖 Membaca</b><strong>${byModule('Membaca')} ⭐</strong><button class="btn primary child-game" data-game="read">Mula</button></div><div><b>✏️ Menulis</b><strong>${byModule('Menulis')} ⭐</strong><button class="btn primary child-game" data-game="write">Mula</button></div><div><b>🧮 Mengira</b><strong>${byModule('Mengira')} ⭐</strong><button class="btn primary child-game" data-game="count">Mula</button></div></div><p class="muted-left">Setiap jawapan direkodkan ke Firestore mengikut profil anak yang dipilih.</p></div>`:''}
-  <div class="dash-note">Versi ini merekod profil anak dan percubaan aktiviti 3M sebenar dalam Firestore. Modul kandungan penuh boleh ditambah selepas aliran ini disahkan.</div></section></div>`;
+  ${activeChild?`<div class="learning-panel"><div class="section-line"><div><small>Sedang belajar sebagai</small><h3>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</h3></div><button class="btn ghost" id="deleteChildBtn">Padam Profil</button></div><div class="module-progress-grid"><div><b>📖 Membaca</b><strong>${byModule('Membaca')} ⭐</strong><button class="btn primary child-game" data-game="read">Mula</button></div><div><b>✏️ Menulis</b><strong>${byModule('Menulis')} ⭐</strong><button class="btn primary child-game" data-game="write">Mula</button></div><div><b>🧮 Mengira</b><strong>${byModule('Mengira')} ⭐</strong><button class="btn primary child-game" data-game="count">Mula</button></div></div><p class="muted-left">Setiap modul mempunyai 3 level. Kumpul ⭐ untuk membuka level seterusnya; kemajuan disimpan mengikut profil anak.</p></div>`:''}
+  <div class="dash-note">Sistem 3M kini mempunyai Level 1–3, bank soalan rawak, bintang dan pembukaan level berdasarkan pencapaian anak.</div></section></div>`;
   $('#addChildBtn').onclick=()=>$('#childModal').showModal();
   document.querySelectorAll('[data-child]').forEach(b=>b.onclick=()=>{ activeChild=userChildren.find(c=>c.id===b.dataset.child); localStorage.setItem('cilikgo_active_child',activeChild.id); renderUser(p); });
   document.querySelectorAll('.child-game').forEach(b=>b.onclick=()=>openGame(b.dataset.game,true));
@@ -164,38 +164,118 @@ $('#saveChildBtn').onclick=async()=>{
   catch(e){ console.error(e); toast('Gagal simpan profil: '+friendlyError(e)); }
 };
 
-const games={read:{title:'📖 Cari suku kata',prompt:'BA + ?',answers:['JU','KU','TU'],correct:'JU',success:'Betul! BA + JU = BAJU 🎉'},write:{title:'✏️ Pilih ejaan betul',prompt:'🐱',answers:['KUCIN','KUCING','KUSING'],correct:'KUCING',success:'Hebat! Ejaan betul ialah KUCING ⭐'},count:{title:'🧮 Kira objek',prompt:'🍎 🍎 🍎',answers:['2','3','4'],correct:'3',success:'Tepat! Ada 3 biji epal 🍎'}};
+const curriculum={
+  read:{
+    title:'📖 Membaca',
+    levels:[
+      {level:1,name:'Suku Kata Asas',unlockStars:0,questions:[
+        {prompt:'BA + ?',answers:['JU','KU','TU'],correct:'JU',success:'BA + JU = BAJU 🎉'},
+        {prompt:'BU + ?',answers:['KU','KUH','KA'],correct:'KU',success:'BU + KU = BUKU 📚'},
+        {prompt:'BO + ?',answers:['LA','LU','LI'],correct:'LA',success:'BO + LA = BOLA ⚽'},
+        {prompt:'MA + ?',answers:['TA','TI','TU'],correct:'TA',success:'MA + TA = MATA 👀'},
+        {prompt:'SU + ?',answers:['SU','SA','SI'],correct:'SU',success:'SU + SU = SUSU 🥛'}]},
+      {level:2,name:'Bina Perkataan',unlockStars:8,questions:[
+        {prompt:'KU + ?',answers:['DA','DI','DU'],correct:'DA',success:'KU + DA = KUDA 🐴'},
+        {prompt:'RO + ?',answers:['TI','TA','TU'],correct:'TI',success:'RO + TI = ROTI 🍞'},
+        {prompt:'NA + ?',answers:['SI','SA','SU'],correct:'SI',success:'NA + SI = NASI 🍚'},
+        {prompt:'TO + ?',answers:['PI','PA','PU'],correct:'PI',success:'TO + PI = TOPI 🧢'},
+        {prompt:'KA + ?',answers:['KI','KU','KO'],correct:'KI',success:'KA + KI = KAKI 🦶'}]},
+      {level:3,name:'Perkataan Lebih Panjang',unlockStars:18,questions:[
+        {prompt:'KE + RA + ?',answers:['JA','JI','JU'],correct:'JA',success:'KE + RA + JA = KERAJA 👑'},
+        {prompt:'KE + RE + ?',answers:['TA','TI','TU'],correct:'TA',success:'KE + RE + TA = KERETA 🚗'},
+        {prompt:'SE + KO + ?',answers:['LAH','LIH','LUH'],correct:'LAH',success:'SE + KO + LAH = SEKOLAH 🏫'},
+        {prompt:'KE + PA + ?',answers:['LA','LI','LU'],correct:'LA',success:'KE + PA + LA = KEPALA 🙂'},
+        {prompt:'BI + NA + ?',answers:['TANG','TING','TUNG'],correct:'TANG',success:'BI + NA + TANG = BINATANG 🐯'}]}
+    ]},
+  write:{
+    title:'✏️ Menulis',
+    levels:[
+      {level:1,name:'Pilih Ejaan',unlockStars:0,questions:[
+        {prompt:'🐱',answers:['KUCIN','KUCING','KUSING'],correct:'KUCING',success:'Ejaan betul ialah KUCING 🐱'},
+        {prompt:'🐟',answers:['IKAN','EKAN','IKON'],correct:'IKAN',success:'Ejaan betul ialah IKAN 🐟'},
+        {prompt:'🌸',answers:['BUNGA','BONGA','BUNGO'],correct:'BUNGA',success:'Ejaan betul ialah BUNGA 🌸'},
+        {prompt:'👁️',answers:['MATA','META','MITA'],correct:'MATA',success:'Ejaan betul ialah MATA 👁️'},
+        {prompt:'📚',answers:['BUKU','BOKU','BUKO'],correct:'BUKU',success:'Ejaan betul ialah BUKU 📚'}]},
+      {level:2,name:'Lengkapkan Perkataan',unlockStars:8,questions:[
+        {prompt:'B _ L A',answers:['O','U','A'],correct:'O',success:'B + O + LA = BOLA ⚽'},
+        {prompt:'R _ T I',answers:['O','A','U'],correct:'O',success:'R + O + TI = ROTI 🍞'},
+        {prompt:'K _ D A',answers:['U','O','A'],correct:'U',success:'K + U + DA = KUDA 🐴'},
+        {prompt:'N _ S I',answers:['A','E','O'],correct:'A',success:'N + A + SI = NASI 🍚'},
+        {prompt:'T _ P I',answers:['O','U','A'],correct:'O',success:'T + O + PI = TOPI 🧢'}]},
+      {level:3,name:'Ejaan Lebih Panjang',unlockStars:18,questions:[
+        {prompt:'🚗',answers:['KERETA','KARETA','KERITA'],correct:'KERETA',success:'Ejaan betul ialah KERETA 🚗'},
+        {prompt:'🏫',answers:['SEKOLAH','SIKOLAH','SEKULAH'],correct:'SEKOLAH',success:'Ejaan betul ialah SEKOLAH 🏫'},
+        {prompt:'🦋',answers:['RAMA-RAMA','REMA-REMA','RAMA-ROMA'],correct:'RAMA-RAMA',success:'Ejaan betul ialah RAMA-RAMA 🦋'},
+        {prompt:'🚲',answers:['BASIKAL','BESIKAL','BASIKEL'],correct:'BASIKAL',success:'Ejaan betul ialah BASIKAL 🚲'},
+        {prompt:'🐯',answers:['HARIMAU','HERIMAU','HARIMOU'],correct:'HARIMAU',success:'Ejaan betul ialah HARIMAU 🐯'}]}
+    ]},
+  count:{
+    title:'🧮 Mengira',
+    levels:[
+      {level:1,name:'Nombor 1–5',unlockStars:0,questions:[
+        {prompt:'🍎 🍎 🍎',answers:['2','3','4'],correct:'3',success:'Tepat! Ada 3 biji epal 🍎'},
+        {prompt:'⭐ ⭐',answers:['1','2','3'],correct:'2',success:'Tepat! Ada 2 bintang ⭐'},
+        {prompt:'🐟 🐟 🐟 🐟',answers:['3','4','5'],correct:'4',success:'Tepat! Ada 4 ekor ikan 🐟'},
+        {prompt:'🌼',answers:['1','2','3'],correct:'1',success:'Tepat! Ada 1 bunga 🌼'},
+        {prompt:'⚽ ⚽ ⚽ ⚽ ⚽',answers:['4','5','6'],correct:'5',success:'Tepat! Ada 5 bola ⚽'}]},
+      {level:2,name:'Nombor 6–10',unlockStars:8,questions:[
+        {prompt:'🍓 🍓 🍓 🍓 🍓 🍓',answers:['5','6','7'],correct:'6',success:'Bagus! Ada 6 strawberi 🍓'},
+        {prompt:'🐥 🐥 🐥 🐥 🐥 🐥 🐥',answers:['6','7','8'],correct:'7',success:'Bagus! Ada 7 anak ayam 🐥'},
+        {prompt:'🌟 🌟 🌟 🌟 🌟 🌟 🌟 🌟',answers:['7','8','9'],correct:'8',success:'Bagus! Ada 8 bintang 🌟'},
+        {prompt:'🍊 🍊 🍊 🍊 🍊 🍊 🍊 🍊 🍊',answers:['8','9','10'],correct:'9',success:'Bagus! Ada 9 oren 🍊'},
+        {prompt:'🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵',answers:['8','9','10'],correct:'10',success:'Bagus! Ada 10 bulatan 🔵'}]},
+      {level:3,name:'Tambah Mudah',unlockStars:18,questions:[
+        {prompt:'2 + 1 = ?',answers:['2','3','4'],correct:'3',success:'Betul! 2 + 1 = 3 🎉'},
+        {prompt:'3 + 2 = ?',answers:['4','5','6'],correct:'5',success:'Betul! 3 + 2 = 5 🎉'},
+        {prompt:'4 + 2 = ?',answers:['5','6','7'],correct:'6',success:'Betul! 4 + 2 = 6 🎉'},
+        {prompt:'5 + 3 = ?',answers:['7','8','9'],correct:'8',success:'Betul! 5 + 3 = 8 🎉'},
+        {prompt:'6 + 4 = ?',answers:['9','10','11'],correct:'10',success:'Betul! 6 + 4 = 10 🎉'}]}
+    ]}
+};
 
-function openGame(key,track=false){
-  const g=games[key];
-  let attemptCount=0, completed=false;
-  $('#gameContent').innerHTML=`<h2>${g.title}</h2>${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${gameKeyToModule[key]}</p>`:''}<p>Jawab soalan ini:</p><div class="game-prompt">${g.prompt}</div><div class="answers">${g.answers.map(a=>`<button class="answer">${a}</button>`).join('')}</div><p id="gameMsg"></p>`;
-  $('#gameModal').showModal();
-  document.querySelectorAll('.answer').forEach(x=>x.onclick=async()=>{
-    if(completed) return;
-    attemptCount++;
-    const isCorrect=x.textContent===g.correct;
-    if(!isCorrect){
-      $('#gameMsg').textContent=`Belum tepat. Cuba lagi 💪 (Percubaan ${attemptCount})`;
-      return; // Jawapan salah tidak lagi mengunci pilihan.
-    }
-
-    completed=true;
-    const stars=attemptCount===1?3:attemptCount===2?2:1;
-    $('#gameMsg').textContent=`${g.success} ${'⭐'.repeat(stars)}`;
-    document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
-
+const moduleStars=(progress,module)=>progress.filter(x=>x.module===module&&x.correct===true).reduce((n,x)=>n+(Number(x.stars)||0),0);
+function unlockedLevel(progress,key){
+  const levels=curriculum[key].levels, stars=moduleStars(progress,gameKeyToModule[key]);
+  let unlocked=1; levels.forEach(l=>{ if(stars>=l.unlockStars) unlocked=l.level; }); return unlocked;
+}
+function openLevelPicker(key,track=false){
+  const c=curriculum[key];
+  const render=async()=>{
+    const progress=track&&activeChild&&currentProfile?await loadProgress(currentProfile.uid,activeChild.id):[];
+    const stars=moduleStars(progress,gameKeyToModule[key]), max=track?unlockedLevel(progress,key):3;
+    $('#gameContent').innerHTML=`<h2>${c.title}</h2>${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${gameKeyToModule[key]}</p>`:''}<p>Pilih tahap pembelajaran:</p><div class="level-grid">${c.levels.map(l=>`<button class="level-card" data-level="${l.level}" ${l.level>max?'disabled':''}><b>Level ${l.level}</b><span>${esc(l.name)}</span><small>${l.level<=max?'Terbuka':'🔒 Perlukan '+l.unlockStars+' ⭐'}</small></button>`).join('')}</div>${track?`<p class="level-total">⭐ ${stars} bintang ${gameKeyToModule[key]}</p>`:''}`;
+    $('#gameModal').showModal();
+    document.querySelectorAll('.level-card:not(:disabled)').forEach(b=>b.onclick=()=>startLevel(key,Number(b.dataset.level),track));
+  }; render();
+}
+function startLevel(key,levelNo,track=false){
+  const c=curriculum[key], level=c.levels.find(x=>x.level===levelNo);
+  const questions=[...level.questions].sort(()=>Math.random()-.5);
+  let index=0, scoreStars=0, totalAttempts=0;
+  const renderQuestion=()=>{
+    const q=questions[index]; let attempts=0,completed=false;
+    $('#gameContent').innerHTML=`<h2>${c.title} · Level ${levelNo}</h2>${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${esc(level.name)}</p>`:''}<div class="question-counter">Soalan ${index+1} / ${questions.length}</div><div class="game-prompt">${q.prompt}</div><div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div><p id="gameMsg"></p><div class="level-score">⭐ ${scoreStars} dikumpul</div>`;
+    document.querySelectorAll('.answer').forEach(x=>x.onclick=async()=>{
+      if(completed)return; attempts++; totalAttempts++;
+      if(x.textContent!==q.correct){ $('#gameMsg').textContent=`Belum tepat. Cuba lagi 💪 (Percubaan ${attempts})`; return; }
+      completed=true; const stars=attempts===1?3:attempts===2?2:1; scoreStars+=stars;
+      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
+      $('#gameMsg').innerHTML=`${esc(q.success)} <strong>${'⭐'.repeat(stars)}</strong>`;
+      setTimeout(()=>{ index++; index<questions.length?renderQuestion():finishLevel(); },900);
+    });
+  };
+  const finishLevel=async()=>{
+    const passed=scoreStars>=8;
+    $('#gameContent').innerHTML=`<div class="level-complete"><div class="complete-icon">${passed?'🏆':'🌱'}</div><h2>${passed?'Level Selesai!':'Bagus Mencuba!'}</h2><p>${esc(level.name)}</p><div class="big-stars">⭐ ${scoreStars} / ${questions.length*3}</div><p>${passed?'Tahap seterusnya boleh dibuka apabila syarat bintang keseluruhan dipenuhi.':'Cuba lagi untuk kumpul sekurang-kurangnya 8 ⭐.'}</p><button class="btn primary" id="backLevels">Kembali ke Level</button></div>`;
     if(track&&activeChild&&fb?.auth.currentUser){
       try{
-        await fb.addDoc(fb.collection(fb.db,'progress'),{
-          ownerUid:fb.auth.currentUser.uid, childId:activeChild.id,
-          module:gameKeyToModule[key], activity:key, answer:x.textContent,
-          correct:true, attempts:attemptCount, stars, createdAt:fb.serverTimestamp()
-        });
-        toast(`${'⭐'.repeat(stars)} Kemajuan ${activeChild.name} direkodkan!`);
-        setTimeout(()=>renderUser(currentProfile),500);
-      }catch(e){console.error(e);toast('Jawapan betul, tetapi rekod kemajuan gagal disimpan.');}
+        await fb.addDoc(fb.collection(fb.db,'progress'),{ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,module:gameKeyToModule[key],activity:key,level:levelNo,questions:questions.length,correct:true,attempts:totalAttempts,stars:scoreStars,passed,createdAt:fb.serverTimestamp()});
+        toast(`⭐ ${scoreStars} bintang ${activeChild.name} direkodkan!`); await renderUser(currentProfile);
+      }catch(e){console.error(e);toast('Level selesai, tetapi rekod kemajuan gagal disimpan.');}
     }
-  });
+    $('#backLevels').onclick=()=>openLevelPicker(key,track);
+  };
+  renderQuestion();
 }
+function openGame(key,track=false){ openLevelPicker(key,track); }
 document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dataset.game,false));
