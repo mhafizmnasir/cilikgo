@@ -155,8 +155,8 @@ async function renderAdmin(p){
     try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
     catch(e){console.warn(name,e);return [];}
   };
-  const [users,children,progress,orders,commissions,modules]=await Promise.all([
-    safeDocs('users'),safeDocs('children'),safeDocs('progress'),safeDocs('orders'),safeDocs('commissions'),safeDocs('modules')
+  const [users,children,progress,orders,commissions,modules,questionsCms]=await Promise.all([
+    safeDocs('users'),safeDocs('children'),safeDocs('progress'),safeDocs('orders'),safeDocs('commissions'),safeDocs('modules'),safeDocs('questions')
   ]);
   const agents=users.filter(u=>u.role==='agent'), customers=users.filter(u=>u.role==='user');
   const activeSubs=customers.filter(u=>u.subscriptionStatus==='active');
@@ -195,12 +195,31 @@ async function renderAdmin(p){
 
     commissions:()=>`${head('Komisen','Rekod affiliate')}<div class="stat-grid"><div class="stat"><small>Rekod</small><b>${commissions.length}</b></div><div class="stat"><small>Jumlah</small><b>RM${commissionTotal.toFixed(2)}</b></div><div class="stat"><small>Pending</small><b>${commissions.filter(c=>c.status==='pending').length}</b></div></div>${commissions.length?`<div class="table-wrap"><table class="table"><tr><th>Agent</th><th>Jualan</th><th>Kadar</th><th>Komisen</th><th>Status</th></tr>${commissions.map(c=>{const a=users.find(u=>u.id===c.agentUid);return `<tr><td>${esc(a?.name||c.agentUid||'-')}</td><td>RM${Number(c.saleAmount||0).toFixed(2)}</td><td>${Number(c.ratePercent||0)}%</td><td>RM${Number(c.amount||0).toFixed(2)}</td><td>${statusBadge(c.status)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada komisen.')}`,
 
-    modules:()=>`${head('CMS Modul 3M','Asas pengurusan kandungan')}<div class="dash-note">Bank soalan aplikasi masih menggunakan kurikulum terbina dalam. Bahagian ini menyediakan koleksi CMS Firestore untuk kandungan baharu tanpa mengganggu modul yang sedang stabil.</div>
-      <form id="moduleForm" class="admin-form"><select id="cmsModule"><option>Membaca</option><option>Menulis</option><option>Mengira</option></select><select id="cmsLevel"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select><input id="cmsTitle" required placeholder="Nama aktiviti / tajuk"><button class="btn primary">Tambah Kandungan</button></form>
-      ${modules.length?`<div class="table-wrap"><table class="table"><tr><th>Modul</th><th>Level</th><th>Tajuk</th><th>Tindakan</th></tr>${modules.map(m=>`<tr><td>${esc(m.module||'-')}</td><td>${esc(m.level||'-')}</td><td>${esc(m.title||'-')}</td><td><button class="btn ghost admin-delete-module" data-id="${esc(m.id)}">Padam</button></td></tr>`).join('')}</table></div>`:empty('Belum ada kandungan CMS tambahan.')}`,
+    modules:()=>`${head('CMS Bank Soalan 3M','Urus soalan tanpa mengubah kod')}<div class="dash-note">Soalan aktif dalam CMS akan digunakan oleh permainan. Jika sesuatu Modul + Level belum mempunyai soalan CMS aktif, CilikGo akan menggunakan bank soalan terbina dalam sebagai fallback.</div>
+      <form id="questionForm" class="question-form">
+        <input type="hidden" id="cmsQuestionId">
+        <label>Modul<select id="cmsModule"><option>Membaca</option><option>Menulis</option><option>Mengira</option></select></label>
+        <label>Level<select id="cmsLevel"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select></label>
+        <label class="wide">Soalan / Paparan<input id="cmsPrompt" required placeholder="Contoh: BA + ? atau 🍎 🍎 🍎"></label>
+        <label>Pilihan A<input id="cmsA" required placeholder="JU"></label>
+        <label>Pilihan B<input id="cmsB" required placeholder="KU"></label>
+        <label>Pilihan C<input id="cmsC" required placeholder="TU"></label>
+        <label>Jawapan betul<select id="cmsCorrect"><option value="0">Pilihan A</option><option value="1">Pilihan B</option><option value="2">Pilihan C</option></select></label>
+        <label class="wide">Maklum balas apabila betul<input id="cmsFeedback" required placeholder="Contoh: BA + JU = BAJU 🎉"></label>
+        <label>Susunan<input id="cmsOrder" type="number" min="1" value="1"></label>
+        <label class="cms-check"><input id="cmsActive" type="checkbox" checked> Aktif</label>
+        <div class="cms-actions"><button class="btn primary" id="cmsSaveBtn">Simpan Soalan</button><button type="button" class="btn ghost hidden" id="cmsCancelEdit">Batal Edit</button></div>
+      </form>
+      <div class="admin-toolbar"><input id="questionSearch" placeholder="Cari soalan…"><span>${questionsCms.length} soalan CMS</span></div>
+      <div id="questionTable">${renderQuestionRows(questionsCms)}</div>`,
 
     settings:()=>`${head('Settings','Konfigurasi sistem')}<div class="settings-grid"><div class="setting-card"><b>Harga permulaan</b><strong>RM69</strong><small>4 bulan</small></div><div class="setting-card"><b>Pembaharuan</b><strong>RM15</strong><small>1 bulan · KIV pembayaran</small></div><div class="setting-card"><b>Komisen contoh</b><strong>15%</strong><small>Ubah sebelum production jika perlu</small></div></div><div class="dash-note">Tetapan kewangan sensitif dan secret ToyyibPay tidak disimpan atau diedit dari frontend Admin.</div>`
   };
+
+  function renderQuestionRows(list){
+    const sorted=[...list].sort((a,b)=>(a.module||'').localeCompare(b.module||'')||Number(a.level||0)-Number(b.level||0)||Number(a.order||0)-Number(b.order||0));
+    return sorted.length?`<div class="table-wrap"><table class="table"><tr><th>Modul</th><th>Level</th><th>Soalan</th><th>Jawapan</th><th>Status</th><th>Tindakan</th></tr>${sorted.map(q=>`<tr><td>${esc(q.module||'-')}</td><td>${esc(q.level||'-')}</td><td>${esc(q.prompt||'-')}</td><td><b>${esc(q.correct||'-')}</b></td><td>${statusBadge(q.active===false?'inactive':'active')}</td><td><div class="row-actions"><button class="btn ghost admin-edit-question" data-id="${esc(q.id)}">Edit</button><button class="btn ghost admin-delete-question" data-id="${esc(q.id)}">Padam</button></div></td></tr>`).join('')}</table></div>`:empty('Belum ada soalan CMS. Permainan masih menggunakan bank soalan terbina dalam.');
+  }
 
   function renderUserRows(list){
     return list.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>E-mel</th><th>Langganan</th><th>Daftar melalui</th></tr>${list.map(u=>`<tr><td>${esc(u.name||'-')}</td><td>${esc(u.email||'-')}</td><td>${statusBadge(u.subscriptionStatus||'inactive')}</td><td>${esc(u.referredByCode||'Direct')}</td></tr>`).join('')}</table></div>`:empty('Tiada pengguna ditemui.');
@@ -215,8 +234,45 @@ async function renderAdmin(p){
     if(search&&view==='users') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminUserTable').innerHTML=renderUserRows(customers.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
     if(search&&view==='agents') search.oninput=()=>{ /* jadual agent kekal ringkas; carian disediakan pada fasa seterusnya */ };
     if(view==='modules'){
-      $('#moduleForm').onsubmit=async e=>{e.preventDefault();try{await fb.addDoc(fb.collection(fb.db,'modules'),{module:$('#cmsModule').value,level:Number($('#cmsLevel').value),title:$('#cmsTitle').value.trim(),active:true,createdBy:p.uid,createdAt:fb.serverTimestamp()});toast('Kandungan CMS ditambah.');await renderAdmin(p);}catch(err){toast('Gagal tambah: '+friendlyError(err));}};
-      document.querySelectorAll('.admin-delete-module').forEach(b=>b.onclick=async()=>{if(!confirm('Padam kandungan CMS ini?'))return;try{await fb.deleteDoc(fb.doc(fb.db,'modules',b.dataset.id));toast('Kandungan dipadam.');await renderAdmin(p);}catch(err){toast('Gagal padam: '+friendlyError(err));}});
+      const resetForm=()=>{
+        $('#questionForm').reset(); $('#cmsQuestionId').value=''; $('#cmsOrder').value='1'; $('#cmsActive').checked=true;
+        $('#cmsSaveBtn').textContent='Simpan Soalan'; $('#cmsCancelEdit').classList.add('hidden');
+      };
+      const bindQuestionActions=()=>{
+        document.querySelectorAll('.admin-edit-question').forEach(b=>b.onclick=()=>{
+          const q=questionsCms.find(x=>x.id===b.dataset.id); if(!q)return;
+          $('#cmsQuestionId').value=q.id; $('#cmsModule').value=q.module; $('#cmsLevel').value=String(q.level);
+          $('#cmsPrompt').value=q.prompt||''; const ans=q.answers||['','',''];
+          $('#cmsA').value=ans[0]||''; $('#cmsB').value=ans[1]||''; $('#cmsC').value=ans[2]||'';
+          $('#cmsCorrect').value=String(Math.max(0,ans.indexOf(q.correct))); $('#cmsFeedback').value=q.success||'';
+          $('#cmsOrder').value=Number(q.order||1); $('#cmsActive').checked=q.active!==false;
+          $('#cmsSaveBtn').textContent='Simpan Perubahan'; $('#cmsCancelEdit').classList.remove('hidden');
+          $('#questionForm').scrollIntoView({behavior:'smooth',block:'start'});
+        });
+        document.querySelectorAll('.admin-delete-question').forEach(b=>b.onclick=async()=>{
+          if(!confirm('Padam soalan ini?'))return;
+          try{await fb.deleteDoc(fb.doc(fb.db,'questions',b.dataset.id));toast('Soalan dipadam.');await renderAdmin(p);}
+          catch(err){toast('Gagal padam: '+friendlyError(err));}
+        });
+      };
+      bindQuestionActions();
+      $('#cmsCancelEdit').onclick=resetForm;
+      $('#questionSearch').oninput=()=>{
+        const q=$('#questionSearch').value.toLowerCase();
+        $('#questionTable').innerHTML=renderQuestionRows(questionsCms.filter(x=>(x.prompt||'').toLowerCase().includes(q)||(x.module||'').toLowerCase().includes(q)||(x.correct||'').toLowerCase().includes(q)));
+        bindQuestionActions();
+      };
+      $('#questionForm').onsubmit=async e=>{
+        e.preventDefault();
+        const answers=[$('#cmsA').value.trim(),$('#cmsB').value.trim(),$('#cmsC').value.trim()];
+        const data={module:$('#cmsModule').value,level:Number($('#cmsLevel').value),prompt:$('#cmsPrompt').value.trim(),answers,correct:answers[Number($('#cmsCorrect').value)],success:$('#cmsFeedback').value.trim(),order:Number($('#cmsOrder').value||1),active:$('#cmsActive').checked,updatedAt:fb.serverTimestamp()};
+        try{
+          const id=$('#cmsQuestionId').value;
+          if(id) await fb.setDoc(fb.doc(fb.db,'questions',id),data,{merge:true});
+          else await fb.addDoc(fb.collection(fb.db,'questions'),{...data,createdBy:p.uid,createdAt:fb.serverTimestamp()});
+          toast(id?'Soalan berjaya dikemas kini.':'Soalan berjaya ditambah.'); await renderAdmin(p);
+        }catch(err){toast('Gagal simpan: '+friendlyError(err));}
+      };
     }
   };
   await mount('overview');
@@ -333,6 +389,16 @@ const curriculum={
     ]}
 };
 
+async function loadCmsQuestions(key,levelNo){
+  if(!fb) return [];
+  try{
+    const snap=await fb.getDocs(fb.collection(fb.db,'questions'));
+    return snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(q=>q.active!==false&&q.module===gameKeyToModule[key]&&Number(q.level)===Number(levelNo)&&Array.isArray(q.answers)&&q.answers.length>=2&&q.correct)
+      .sort((a,b)=>Number(a.order||0)-Number(b.order||0));
+  }catch(e){console.warn('CMS questions fallback:',e);return [];}
+}
+
 const moduleStars=(progress,module)=>progress.filter(x=>x.module===module&&x.correct===true).reduce((n,x)=>n+(Number(x.stars)||0),0);
 function unlockedLevel(progress,key){
   const levels=curriculum[key].levels, stars=moduleStars(progress,gameKeyToModule[key]);
@@ -348,9 +414,11 @@ function openLevelPicker(key,track=false){
     document.querySelectorAll('.level-card:not(:disabled)').forEach(b=>b.onclick=()=>startLevel(key,Number(b.dataset.level),track));
   }; render();
 }
-function startLevel(key,levelNo,track=false){
+async function startLevel(key,levelNo,track=false){
   const c=curriculum[key], level=c.levels.find(x=>x.level===levelNo);
-  const questions=[...level.questions].sort(()=>Math.random()-.5);
+  const cmsQuestions=await loadCmsQuestions(key,levelNo);
+  const sourceQuestions=cmsQuestions.length?cmsQuestions:level.questions;
+  const questions=[...sourceQuestions].sort(()=>Math.random()-.5);
   let index=0, scoreStars=0, totalAttempts=0;
   const renderQuestion=()=>{
     const q=questions[index]; let attempts=0,completed=false;
