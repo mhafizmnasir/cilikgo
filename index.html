@@ -516,7 +516,7 @@ window.handleSimulatePayment = async () => {
   </div>
 </header>
 
-<!-- Kandungan Utama Laman Web -->
+<!-- Kandungan Utama Laman Web (100% Sokongan Dwibahasa) -->
 <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-10 pb-24 md:pb-12">
 
   <!-- 1. Halaman Utama (Landing Page) -->
@@ -526,25 +526,25 @@ window.handleSimulatePayment = async () => {
     <div class="text-center max-w-3xl mx-auto pt-4">
       <div class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-pink-50 border border-indigo-100/80 px-4 py-1.5 rounded-full shadow-sm mb-5">
         <span class="text-sm">✨</span>
-        <span class="text-xs font-bold bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">
+        <span data-i18n="hero_badge" class="text-xs font-bold bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">
           Khas Untuk Kanak-Kanak 5–6 Tahun
         </span>
       </div>
 
-      <h1 class="font-cilik text-4xl sm:text-5xl md:text-6xl text-slate-900 leading-tight mb-5 tracking-tight">
+      <h1 data-i18n="hero_title" class="font-cilik text-4xl sm:text-5xl md:text-6xl text-slate-900 leading-tight mb-5 tracking-tight">
         Belajar Membaca, Mengira & Mewarna Lebih <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">Menyeronokkan!</span>
       </h1>
 
-      <p class="text-slate-600 text-sm sm:text-base md:text-lg mb-8 leading-relaxed max-w-xl mx-auto">
+      <p data-i18n="hero_desc" class="text-slate-600 text-sm sm:text-base md:text-lg mb-8 leading-relaxed max-w-xl mx-auto">
         Portal interaktif pintar berkonsepkan <strong>Bermain Sambil Belajar</strong> untuk mengasah kemahiran asas 3M si cilik secara santai dan berkesan.
       </p>
 
       <!-- Butang Tindakan Utama (CTA) -->
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto mb-10">
-        <button onclick="navTo('register-section')" class="w-full sm:w-auto flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-bold text-sm sm:text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
+        <button data-i18n="btn_start_learning" onclick="navTo('register-section')" class="w-full sm:w-auto flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-bold text-sm sm:text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
           🚀 Mula Belajar Sekarang
         </button>
-        <button onclick="navTo('login-section')" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm sm:text-base py-3.5 px-6 rounded-2xl border border-slate-200 shadow-sm transition">
+        <button data-i18n="btn_parent_login" onclick="navTo('login-section')" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm sm:text-base py-3.5 px-6 rounded-2xl border border-slate-200 shadow-sm transition">
           Log Masuk Penjaga
         </button>
       </div>
@@ -556,8 +556,8 @@ window.handleSimulatePayment = async () => {
         <div class="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">
           📖
         </div>
-        <h3 class="font-cilik text-xl text-slate-800 mb-1">Membaca</h3>
-        <p class="text-xs text-slate-500 leading-relaxed">
+        <h3 data-i18n="card_reading_title" class="font-cilik text-xl text-slate-800 mb-1">Membaca</h3>
+        <p data-i18n="card_reading_desc" class="text-xs text-slate-500 leading-relaxed">
           Kad imbasan bergambar bersuara audio sebutan suku kata yang jelas dan betul.
         </p>
       </div>
@@ -566,8 +566,8 @@ window.handleSimulatePayment = async () => {
         <div class="w-14 h-14 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">
           🔢
         </div>
-        <h3 class="font-cilik text-xl text-slate-800 mb-1">Mengira</h3>
-        <p class="text-xs text-slate-500 leading-relaxed">
+        <h3 data-i18n="card_math_title" class="font-cilik text-xl text-slate-800 mb-1">Mengira</h3>
+        <p data-i18n="card_math_desc" class="text-xs text-slate-500 leading-relaxed">
           Aktiviti membilang objek visual dan kuiz nombor interaktif yang mudah difahami.
         </p>
       </div>
@@ -576,8 +576,8 @@ window.handleSimulatePayment = async () => {
         <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">
           🎨
         </div>
-        <h3 class="font-cilik text-xl text-slate-800 mb-1">Mewarna</h3>
-        <p class="text-xs text-slate-500 leading-relaxed">
+        <h3 data-i18n="card_coloring_title" class="font-cilik text-xl text-slate-800 mb-1">Mewarna</h3>
+        <p data-i18n="card_coloring_desc" class="text-xs text-slate-500 leading-relaxed">
           Kanvas lukis digital mesra skrin sentuh untuk merangsang kreativiti motor halus.
         </p>
       </div>
@@ -585,27 +585,27 @@ window.handleSimulatePayment = async () => {
 
     <!-- Kelebihan Platform -->
     <div class="max-w-4xl mx-auto bg-white/70 backdrop-blur-md rounded-3xl p-6 border border-slate-100 shadow-sm">
-      <h3 class="text-center font-bold text-sm text-slate-400 uppercase tracking-widest mb-6">Mengapa Ibu Bapa Memilih CilikGo?</h3>
+      <h3 data-i18n="why_us_title" class="text-center font-bold text-sm text-slate-400 uppercase tracking-widest mb-6">Mengapa Ibu Bapa Memilih CilikGo?</h3>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
         <div class="p-2">
           <span class="text-2xl block mb-1.5">🛡️</span>
-          <p class="font-bold text-xs text-slate-800">100% Bebas Iklan</p>
-          <p class="text-[10px] text-slate-400 mt-0.5">Ruang selamat untuk si cilik</p>
+          <p data-i18n="feat_adfree" class="font-bold text-xs text-slate-800">100% Bebas Iklan</p>
+          <p data-i18n="feat_adfree_sub" class="text-[10px] text-slate-400 mt-0.5">Ruang selamat untuk si cilik</p>
         </div>
         <div class="p-2">
           <span class="text-2xl block mb-1.5">📱</span>
-          <p class="font-bold text-xs text-slate-800">Mesra Peranti</p>
-          <p class="text-[10px] text-slate-400 mt-0.5">Sesuai di Tablet & Telefon</p>
+          <p data-i18n="feat_device" class="font-bold text-xs text-slate-800">Mesra Peranti</p>
+          <p data-i18n="feat_device_sub" class="text-[10px] text-slate-400 mt-0.5">Sesuai di Tablet & Telefon</p>
         </div>
         <div class="p-2">
           <span class="text-2xl block mb-1.5">🔊</span>
-          <p class="font-bold text-xs text-slate-800">Sebutan Audio Baku</p>
-          <p class="text-[10px] text-slate-400 mt-0.5">Bantu perkembangan bahasa</p>
+          <p data-i18n="feat_audio" class="font-bold text-xs text-slate-800">Sebutan Audio Baku</p>
+          <p data-i18n="feat_audio_sub" class="text-[10px] text-slate-400 mt-0.5">Bantu perkembangan bahasa</p>
         </div>
         <div class="p-2">
           <span class="text-2xl block mb-1.5">⚡</span>
-          <p class="font-bold text-xs text-slate-800">Pantas & Ringan</p>
-          <p class="text-[10px] text-slate-400 mt-0.5">Boleh dipasang seperti Apps</p>
+          <p data-i18n="feat_fast" class="font-bold text-xs text-slate-800">Pantas & Ringan</p>
+          <p data-i18n="feat_fast_sub" class="text-[10px] text-slate-400 mt-0.5">Boleh dipasang seperti Apps</p>
         </div>
       </div>
     </div>
@@ -613,46 +613,46 @@ window.handleSimulatePayment = async () => {
     <!-- Pelan Harga & Langganan -->
     <div class="max-w-3xl mx-auto">
       <div class="text-center mb-6">
-        <h2 class="font-cilik text-2xl sm:text-3xl text-slate-800">Pakej Langganan Mampu Milik</h2>
-        <p class="text-xs text-slate-500">Satu langganan untuk akses tanpa had semua modul</p>
+        <h2 data-i18n="pricing_title" class="font-cilik text-2xl sm:text-3xl text-slate-800">Pakej Langganan Mampu Milik</h2>
+        <p data-i18n="pricing_subtitle" class="text-xs text-slate-500">Satu langganan untuk akses tanpa had semua modul</p>
       </div>
 
       <div class="grid md:grid-cols-2 gap-5 text-left">
         <div class="card-modern p-6 rounded-3xl border-2 border-indigo-200 relative shadow-md bg-white">
-          <span class="bg-indigo-600 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full absolute -top-3 right-5 shadow-sm">
+          <span data-i18n="plan1_badge" class="bg-indigo-600 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full absolute -top-3 right-5 shadow-sm">
             Akses 3 Bulan Awal
           </span>
-          <p class="text-xs font-bold text-indigo-600 uppercase tracking-wide">Pendaftaran Baharu</p>
+          <p data-i18n="plan1_name" class="text-xs font-bold text-indigo-600 uppercase tracking-wide">Pendaftaran Baharu</p>
           <div class="flex items-baseline gap-1 my-2">
             <span class="text-4xl font-extrabold text-slate-900">RM 70</span>
-            <span class="text-xs text-slate-500 font-bold">/ Sekali Bayar</span>
+            <span data-i18n="plan1_duration" class="text-xs text-slate-500 font-bold">/ Sekali Bayar</span>
           </div>
           <ul class="text-xs text-slate-600 space-y-2 mt-4 pt-4 border-t border-slate-100">
-            <li class="flex items-center gap-2">✅ <span>Akses penuh 3 bulan pertama</span></li>
-            <li class="flex items-center gap-2">✅ <span>Semua modul 3M (Membaca, Mengira, Mewarna)</span></li>
-            <li class="flex items-center gap-2">✅ <span>Portal Penjaga berasingan</span></li>
+            <li class="flex items-center gap-2">✅ <span data-i18n="plan1_feat1">Akses penuh 3 bulan pertama</span></li>
+            <li class="flex items-center gap-2">✅ <span data-i18n="plan1_feat2">Semua modul 3M (Membaca, Mengira, Mewarna)</span></li>
+            <li class="flex items-center gap-2">✅ <span data-i18n="plan1_feat3">Portal Penjaga berasingan</span></li>
           </ul>
         </div>
 
         <div class="card-modern p-6 rounded-3xl border border-slate-200 relative bg-white/90">
-          <span class="bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase px-3 py-1 rounded-full absolute -top-3 right-5">
+          <span data-i18n="plan2_badge" class="bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase px-3 py-1 rounded-full absolute -top-3 right-5">
             Bulan Ke-4 Seterusnya
           </span>
-          <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Langganan Bulanan</p>
+          <p data-i18n="plan2_name" class="text-xs font-bold text-slate-500 uppercase tracking-wide">Langganan Bulanan</p>
           <div class="flex items-baseline gap-1 my-2">
             <span class="text-4xl font-extrabold text-slate-900">RM 15</span>
-            <span class="text-xs text-slate-500 font-bold">/ Sebulan</span>
+            <span data-i18n="plan2_duration" class="text-xs text-slate-500 font-bold">/ Sebulan</span>
           </div>
           <ul class="text-xs text-slate-600 space-y-2 mt-4 pt-4 border-t border-slate-100">
-            <li class="flex items-center gap-2">✨ <span>Hanya ~RM0.50 sehari</span></li>
-            <li class="flex items-center gap-2">✨ <span>Kemas kini bahan pembelajaran berkala</span></li>
-            <li class="flex items-center gap-2">✨ <span>Boleh batalkan langganan pada bila-bila masa</span></li>
+            <li class="flex items-center gap-2">✨ <span data-i18n="plan2_feat1">Hanya ~RM0.50 sehari</span></li>
+            <li class="flex items-center gap-2">✨ <span data-i18n="plan2_feat2">Kemas kini bahan pembelajaran berkala</span></li>
+            <li class="flex items-center gap-2">✨ <span data-i18n="plan2_feat3">Boleh batalkan langganan pada bila-bila masa</span></li>
           </ul>
         </div>
       </div>
 
       <div class="text-center mt-8">
-        <button onclick="navTo('register-section')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-bold text-sm px-8 py-3.5 rounded-2xl shadow-md transition">
+        <button data-i18n="btn_register_bottom" onclick="navTo('register-section')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-bold text-sm px-8 py-3.5 rounded-2xl shadow-md transition">
           Daftar Anak Anda Hari Ini
         </button>
       </div>
@@ -663,8 +663,8 @@ window.handleSimulatePayment = async () => {
   <!-- 2. Log Masuk Penjaga -->
   <section id="login-section" class="hidden max-w-md mx-auto">
     <div class="card-modern p-6 sm:p-8 rounded-3xl">
-      <h2 class="font-bold text-2xl text-slate-900 mb-1">Log Masuk Penjaga</h2>
-      <p class="text-xs text-slate-500 mb-5">Sila masukkan e-mel dan kata laluan anda.</p>
+      <h2 data-i18n="login_title" class="font-bold text-2xl text-slate-900 mb-1">Log Masuk Penjaga</h2>
+      <p data-i18n="login_sub" class="text-xs text-slate-500 mb-5">Sila masukkan e-mel dan kata laluan anda.</p>
 
       <!-- Butang Log Masuk Pantas Google -->
       <button onclick="handleGoogleAuth()" type="button" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm py-3 rounded-2xl shadow-sm transition">
@@ -674,31 +674,31 @@ window.handleSimulatePayment = async () => {
           <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z"/>
           <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/>
         </svg>
-        Log Masuk dengan Google
+        <span data-i18n="btn_google_login">Log Masuk dengan Google</span>
       </button>
 
       <div class="relative my-5">
         <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-        <div class="relative flex justify-center text-[10px] uppercase"><span class="bg-white/80 backdrop-blur-sm px-3 text-slate-400 font-bold">Atau Log Masuk Emel</span></div>
+        <div class="relative flex justify-center text-[10px] uppercase"><span data-i18n="or_manual_login" class="bg-white/80 backdrop-blur-sm px-3 text-slate-400 font-bold">Atau Log Masuk Emel</span></div>
       </div>
 
       <!-- Borang Manual -->
       <form onsubmit="handleLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
+          <label data-i18n="form_email" class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
           <input type="email" id="loginEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
+          <label data-i18n="form_password" class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
           <input type="password" id="loginPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
         </div>
-        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition text-xs sm:text-sm">
+        <button data-i18n="btn_login_submit" type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition text-xs sm:text-sm">
           Masuk ke Akaun
         </button>
       </form>
 
       <p class="text-center text-xs text-slate-500 mt-6">
-        Belum ada akaun CilikGo? <span onclick="navTo('register-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Daftar sekarang</span>
+        <span data-i18n="no_account">Belum ada akaun CilikGo?</span> <span data-i18n="register_now" onclick="navTo('register-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Daftar sekarang</span>
       </p>
     </div>
   </section>
@@ -706,8 +706,8 @@ window.handleSimulatePayment = async () => {
   <!-- 3. Daftar Akaun Penjaga -->
   <section id="register-section" class="hidden max-w-lg mx-auto">
     <div class="card-modern p-6 sm:p-8 rounded-3xl">
-      <h2 class="font-bold text-2xl text-slate-900 mb-1">Cipta Akaun CilikGo</h2>
-      <p class="text-xs text-slate-500 mb-5">Daftar sebagai penjaga untuk membuka akses penuh 3M bagi anak anda.</p>
+      <h2 data-i18n="reg_title" class="font-bold text-2xl text-slate-900 mb-1">Cipta Akaun CilikGo</h2>
+      <p data-i18n="reg_sub" class="text-xs text-slate-500 mb-5">Daftar sebagai penjaga untuk membuka akses penuh 3M bagi anak anda.</p>
 
       <!-- Butang Daftar Pantas Google -->
       <button onclick="handleGoogleAuth()" type="button" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm py-3 rounded-2xl shadow-sm transition">
@@ -717,296 +717,296 @@ window.handleSimulatePayment = async () => {
           <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z"/>
           <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/>
         </svg>
-        Daftar Pantas dengan Google
+        <span data-i18n="btn_google_reg">Daftar Pantas dengan Google</span>
       </button>
 
       <div class="relative my-5">
         <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-        <div class="relative flex justify-center text-[10px] uppercase"><span class="bg-white/80 backdrop-blur-sm px-3 text-slate-400 font-bold">Atau Daftar Manual</span></div>
+        <div class="relative flex justify-center text-[10px] uppercase"><span data-i18n="or_manual_reg" class="bg-white/80 backdrop-blur-sm px-3 text-slate-400 font-bold">Atau Daftar Manual</span></div>
       </div>
 
       <!-- Borang Manual -->
       <form onsubmit="handleRegister(event)" class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Depan</label>
+            <label data-i18n="form_fname" class="block text-xs font-bold text-slate-700 mb-1.5">Nama Depan</label>
             <input type="text" id="regFirstName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Belakang</label>
+            <label data-i18n="form_lname" class="block text-xs font-bold text-slate-700 mb-1.5">Nama Belakang</label>
             <input type="text" id="regLastName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
           </div>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
+          <label data-i18n="form_email" class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
           <input type="email" id="regEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
+          <label data-i18n="form_password" class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
           <input type="password" id="regPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">Kod Rujukan Agen (Pilihan)</label>
+          <label data-i18n="form_refcode" class="block text-xs font-bold text-slate-700 mb-1.5">Kod Rujukan Agen (Pilihan)</label>
           <input type="text" id="regRefCode" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:border-indigo-500 transition" placeholder="Contoh: AGEN01">
         </div>
-        <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-100 hover:opacity-95 transition text-xs sm:text-sm">
+        <button data-i18n="btn_reg_submit" type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-100 hover:opacity-95 transition text-xs sm:text-sm">
           Daftar & Teruskan Pembayaran (RM70)
         </button>
       </form>
 
       <p class="text-center text-xs text-slate-500 mt-6">
-        Sudah mempunyai akaun? <span onclick="navTo('login-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Log masuk</span>
+        <span data-i18n="already_have_acc">Sudah mempunyai akaun?</span> <span data-i18n="login_here" onclick="navTo('login-section')" class="text-indigo-600 font-bold cursor-pointer hover:underline">Log masuk</span>
       </p>
     </div>
   </section>
 
-    <!-- 4. Daftar Rakan Niaga (Agen Affiliate) -->
-    <section id="register-agent-section" class="hidden max-w-lg mx-auto">
-      <div class="card-modern p-8 rounded-3xl">
-        <span class="text-[10px] font-extrabold uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full">Program Affiliate</span>
-        <h2 class="font-bold text-2xl text-slate-900 mt-2 mb-1">Daftar Rakan Niaga CilikGo</h2>
-        <p class="text-xs text-slate-500 mb-6">Dapatkan komisen <strong>RM30</strong> bagi setiap langganan awal dan <strong>RM10/bulan</strong> secara recurring.</p>
+  <!-- 4. Daftar Rakan Niaga (Agen Affiliate) -->
+  <section id="register-agent-section" class="hidden max-w-lg mx-auto">
+    <div class="card-modern p-6 sm:p-8 rounded-3xl">
+      <span data-i18n="agent_badge" class="text-[10px] font-extrabold uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full">Program Affiliate</span>
+      <h2 data-i18n="agent_reg_title" class="font-bold text-2xl text-slate-900 mt-2 mb-1">Daftar Rakan Niaga CilikGo</h2>
+      <p data-i18n="agent_reg_sub" class="text-xs text-slate-500 mb-6">Dapatkan komisen <strong>RM30</strong> bagi setiap langganan awal dan <strong>RM10/bulan</strong> secara recurring.</p>
 
-        <form onsubmit="handleAgentRegister(event)" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Penuh</label>
-              <input type="text" id="agentName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">No. Telefon</label>
-              <input type="tel" id="agentPhone" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
-            </div>
+      <form onsubmit="handleAgentRegister(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label data-i18n="form_fullname" class="block text-xs font-bold text-slate-700 mb-1.5">Nama Penuh</label>
+            <input type="text" id="agentName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
-            <input type="email" id="agentEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+            <label data-i18n="form_phone" class="block text-xs font-bold text-slate-700 mb-1.5">No. Telefon</label>
+            <input type="tel" id="agentPhone" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+          </div>
+        </div>
+        <div>
+          <label data-i18n="form_email" class="block text-xs font-bold text-slate-700 mb-1.5">Alamat E-mel</label>
+          <input type="email" id="agentEmail" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+        </div>
+        <div>
+          <label data-i18n="form_password" class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
+          <input type="password" id="agentPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+        </div>
+        <div>
+          <label data-i18n="form_agent_code" class="block text-xs font-bold text-purple-900 mb-1.5">Pilihan Kod Rujukan (Link Unik Anda)</label>
+          <div class="flex items-center">
+            <span class="bg-slate-100 border border-r-0 border-slate-200 text-slate-500 text-xs px-3 py-2.5 rounded-l-xl">cilikgo.my/?ref=</span>
+            <input type="text" id="agentCustomCode" required placeholder="NAMA-ANDA" class="w-full bg-white border border-slate-200 rounded-r-xl px-3 py-2.5 text-sm font-mono uppercase outline-none focus:border-purple-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 pt-2">
+          <div>
+            <label data-i18n="form_bank_name" class="block text-xs font-bold text-slate-700 mb-1.5">Nama Bank</label>
+            <select id="agentBankName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none">
+              <option value="Maybank">Maybank</option>
+              <option value="CIMB Bank">CIMB Bank</option>
+              <option value="Bank Islam">Bank Islam</option>
+              <option value="RHB Bank">RHB Bank</option>
+              <option value="Public Bank">Public Bank</option>
+            </select>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Laluan</label>
-            <input type="password" id="agentPassword" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
+            <label data-i18n="form_bank_acc" class="block text-xs font-bold text-slate-700 mb-1.5">No. Akaun Bank</label>
+            <input type="text" id="agentAccountNo" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
           </div>
-          <div>
-            <label class="block text-xs font-bold text-purple-900 mb-1.5">Pilihan Kod Rujukan (Link Unik Anda)</label>
-            <div class="flex items-center">
-              <span class="bg-slate-100 border border-r-0 border-slate-200 text-slate-500 text-xs px-3 py-2.5 rounded-l-xl">cilikgo.my/?ref=</span>
-              <input type="text" id="agentCustomCode" required placeholder="NAMA-ANDA" class="w-full bg-white border border-slate-200 rounded-r-xl px-3 py-2.5 text-sm font-mono uppercase outline-none focus:border-purple-500">
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4 pt-2">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Bank</label>
-              <select id="agentBankName" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none">
-                <option value="Maybank">Maybank</option>
-                <option value="CIMB Bank">CIMB Bank</option>
-                <option value="Bank Islam">Bank Islam</option>
-                <option value="RHB Bank">RHB Bank</option>
-                <option value="Public Bank">Public Bank</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">No. Akaun Bank</label>
-              <input type="text" id="agentAccountNo" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500">
-            </div>
-          </div>
-          <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-purple-100 transition">
-            Daftar Sebagai Agen CilikGo
-          </button>
-        </form>
-      </div>
-    </section>
+        </div>
+        <button data-i18n="btn_agent_reg_submit" type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-purple-100 transition">
+          Daftar Sebagai Agen CilikGo
+        </button>
+      </form>
+    </div>
+  </section>
 
-   <!-- 5. Status Langganan Belum Aktif -->
+  <!-- 5. Status Langganan Belum Aktif -->
   <section id="subscription-pending" class="hidden max-w-md mx-auto text-center">
     <div class="card-modern p-6 sm:p-8 rounded-3xl">
       <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
         🔒
       </div>
-      <h2 class="font-bold text-2xl text-slate-900 mb-2">Langganan Belum Aktif</h2>
-      <p class="text-xs sm:text-sm text-slate-500 mb-6">
+      <h2 data-i18n="sub_pending_title" class="font-bold text-2xl text-slate-900 mb-2">Langganan Belum Aktif</h2>
+      <p data-i18n="sub_pending_desc" class="text-xs sm:text-sm text-slate-500 mb-6">
         Sila selesaikan bayaran langganan permulaan sebanyak <strong>RM 70.00</strong> (Akses 3 Bulan) untuk membuka Zon Belajar 3M bagi anak anda.
       </p>
 
       <!-- Butang Simulasi Ujian Bayaran -->
-      <button onclick="handleSimulatePayment()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-100 transition text-xs sm:text-sm">
+      <button data-i18n="btn_pay_simulate" onclick="handleSimulatePayment()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-100 transition text-xs sm:text-sm">
         Bayar RM 70 Sekarang (Ujian Simulasi)
       </button>
 
-      <p class="text-[11px] text-slate-400 mt-4">
+      <p data-i18n="sub_dev_note" class="text-[11px] text-slate-400 mt-4">
         Mod Pembangunan: Klik butang di atas untuk mengaktifkan akaun ke Firestore secara langsung tanpa caj bank.
       </p>
     </div>
   </section>
 
- <!-- 6. Zon Kanak-Kanak (3M Interaktif) -->
-    <section id="kids-zone" class="hidden space-y-8">
-      <div class="flex justify-center gap-3 sm:gap-4 flex-wrap">
-        <button data-i18n="tab_reading" onclick="switch3MTab('membaca')" id="tab-membaca" class="tab-btn bg-pink-500 text-white font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-lg shadow-pink-200 transform transition">
-          📖 Membaca
-        </button>
-        <button data-i18n="tab_math" onclick="switch3MTab('mengira')" id="tab-mengira" class="tab-btn bg-white text-slate-700 font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-sm hover:shadow-md transform transition">
-          🔢 Mengira
-        </button>
-        <button data-i18n="tab_coloring" onclick="switch3MTab('mewarna')" id="tab-mewarna" class="tab-btn bg-white text-slate-700 font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-sm hover:shadow-md transform transition">
-          🎨 Mewarna
-        </button>
-      </div>
+  <!-- 6. Zon Kanak-Kanak (3M Interaktif) -->
+  <section id="kids-zone" class="hidden space-y-8">
+    <div class="flex justify-center gap-3 sm:gap-4 flex-wrap">
+      <button data-i18n="tab_reading" onclick="switch3MTab('membaca')" id="tab-membaca" class="tab-btn bg-pink-500 text-white font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-lg shadow-pink-200 transform transition">
+        📖 Membaca
+      </button>
+      <button data-i18n="tab_math" onclick="switch3MTab('mengira')" id="tab-mengira" class="tab-btn bg-white text-slate-700 font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-sm hover:shadow-md transform transition">
+        🔢 Mengira
+      </button>
+      <button data-i18n="tab_coloring" onclick="switch3MTab('mewarna')" id="tab-mewarna" class="tab-btn bg-white text-slate-700 font-cilik text-xl sm:text-2xl px-6 sm:px-8 py-3 rounded-2xl shadow-sm hover:shadow-md transform transition">
+        🎨 Mewarna
+      </button>
+    </div>
 
-     <!-- Tab Membaca (Dwibahasa & Audio Dinamik) -->
-      <div id="content-membaca" class="module-content card-modern p-6 sm:p-8 rounded-3xl text-center">
-        <span class="text-xs font-extrabold uppercase tracking-widest text-pink-500 bg-pink-50 px-3 py-1 rounded-full">3M</span>
-        <h3 data-i18n="reading_title" class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-8">
-          Tekan & Dengar Sebutan!
-        </h3>
-        
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
-          <!-- Kad 1: Ayam / Chicken -->
-          <div onclick="speakCard('word_chicken')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
-            <span class="text-5xl sm:text-6xl block mb-2">🐔</span>
-            <p data-i18n="word_chicken" class="font-cilik text-2xl sm:text-3xl text-slate-800">Ayam</p>
-          </div>
+    <!-- Tab Membaca (Dwibahasa & Audio Dinamik) -->
+    <div id="content-membaca" class="module-content card-modern p-6 sm:p-8 rounded-3xl text-center">
+      <span class="text-xs font-extrabold uppercase tracking-widest text-pink-500 bg-pink-50 px-3 py-1 rounded-full">3M</span>
+      <h3 data-i18n="reading_title" class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-8">
+        Tekan & Dengar Sebutan!
+      </h3>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
+        <!-- Kad 1: Ayam / Chicken -->
+        <div onclick="speakCard('word_chicken')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+          <span class="text-5xl sm:text-6xl block mb-2">🐔</span>
+          <p data-i18n="word_chicken" class="font-cilik text-2xl sm:text-3xl text-slate-800">Ayam</p>
+        </div>
 
-          <!-- Kad 2: Bola / Ball -->
-          <div onclick="speakCard('word_ball')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
-            <span class="text-5xl sm:text-6xl block mb-2">⚽</span>
-            <p data-i18n="word_ball" class="font-cilik text-2xl sm:text-3xl text-slate-800">Bola</p>
-          </div>
+        <!-- Kad 2: Bola / Ball -->
+        <div onclick="speakCard('word_ball')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+          <span class="text-5xl sm:text-6xl block mb-2">⚽</span>
+          <p data-i18n="word_ball" class="font-cilik text-2xl sm:text-3xl text-slate-800">Bola</p>
+        </div>
 
-          <!-- Kad 3: Ciku / Sapodilla (atau Carrot / Lobak) -->
-          <div onclick="speakCard('word_ciku')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
-            <span class="text-5xl sm:text-6xl block mb-2">🥔</span>
-            <p data-i18n="word_ciku" class="font-cilik text-2xl sm:text-3xl text-slate-800">Ciku</p>
-          </div>
+        <!-- Kad 3: Ciku / Potato -->
+        <div onclick="speakCard('word_ciku')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+          <span class="text-5xl sm:text-6xl block mb-2">🥔</span>
+          <p data-i18n="word_ciku" class="font-cilik text-2xl sm:text-3xl text-slate-800">Ciku</p>
+        </div>
 
-          <!-- Kad 4: Dadu / Dice -->
-          <div onclick="speakCard('word_dice')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
-            <span class="text-5xl sm:text-6xl block mb-2">🎲</span>
-            <p data-i18n="word_dice" class="font-cilik text-2xl sm:text-3xl text-slate-800">Dadu</p>
-          </div>
+        <!-- Kad 4: Dadu / Dice -->
+        <div onclick="speakCard('word_dice')" class="bg-white border-2 border-pink-100 hover:border-pink-300 p-4 sm:p-6 rounded-3xl cursor-pointer transform hover:-translate-y-1 hover:shadow-xl transition">
+          <span class="text-5xl sm:text-6xl block mb-2">🎲</span>
+          <p data-i18n="word_dice" class="font-cilik text-2xl sm:text-3xl text-slate-800">Dadu</p>
         </div>
       </div>
+    </div>
 
-      <!-- Tab Mengira -->
-      <div id="content-mengira" class="module-content hidden card-modern p-6 sm:p-8 rounded-3xl text-center">
-        <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-500 bg-cyan-50 px-3 py-1 rounded-full">3M</span>
-        <h3 data-i18n="math_title" class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-6">
-          Berapakah bilangan epal ini?
-        </h3>
-        
-        <div class="flex justify-center gap-3 text-4xl sm:text-5xl my-6">
-          🍎 🍎 🍎
-        </div>
-
-        <div class="flex justify-center gap-4">
-          <button onclick="checkMath(2)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">2</button>
-          <button onclick="checkMath(3)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">3</button>
-          <button onclick="checkMath(4)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">4</button>
-        </div>
-        <p id="mathFeedback" class="font-cilik text-xl sm:text-2xl mt-6 font-bold"></p>
+    <!-- Tab Mengira -->
+    <div id="content-mengira" class="module-content hidden card-modern p-6 sm:p-8 rounded-3xl text-center">
+      <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-500 bg-cyan-50 px-3 py-1 rounded-full">3M</span>
+      <h3 data-i18n="math_title" class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-6">
+        Berapakah bilangan epal ini?
+      </h3>
+      
+      <div class="flex justify-center gap-3 text-4xl sm:text-5xl my-6">
+        🍎 🍎 🍎
       </div>
 
-      <!-- Tab Mewarna -->
-      <div id="content-mewarna" class="module-content hidden card-modern p-6 sm:p-8 rounded-3xl text-center">
-        <span class="text-xs font-extrabold uppercase tracking-widest text-amber-500 bg-amber-50 px-3 py-1 rounded-full">3M</span>
-        <h3 data-i18n="canvas_title" class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-6">
-          Kanvas CilikGo
-        </h3>
-
-        <div class="flex justify-center items-center gap-3 mb-6 flex-wrap">
-          <button onclick="setBrushColor('#f43f5e')" class="w-8 h-8 rounded-full bg-rose-500 border-2 border-white shadow-md"></button>
-          <button onclick="setBrushColor('#3b82f6')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow-md"></button>
-          <button onclick="setBrushColor('#10b981')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow-md"></button>
-          <button onclick="setBrushColor('#f59e0b')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white shadow-md"></button>
-          <button onclick="setBrushColor('#8b5cf6')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white shadow-md"></button>
-          <button data-i18n="btn_clear" onclick="clearCanvas()" class="ml-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs transition">
-            Padam Semula
-          </button>
-        </div>
-
-        <div class="w-full flex justify-center px-2">
-          <canvas id="paintCanvas" class="w-full max-w-[360px] h-[220px] sm:h-[260px] border border-slate-200 rounded-3xl bg-white shadow-inner cursor-crosshair touch-none"></canvas>
-        </div>
+      <div class="flex justify-center gap-4">
+        <button onclick="checkMath(2)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">2</button>
+        <button onclick="checkMath(3)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">3</button>
+        <button onclick="checkMath(4)" class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-50 hover:bg-cyan-100 border-2 border-cyan-200 text-cyan-800 font-cilik text-2xl sm:text-3xl rounded-2xl transition">4</button>
       </div>
-    </section>
+      <p id="mathFeedback" class="font-cilik text-xl sm:text-2xl mt-6 font-bold"></p>
+    </div>
 
-    <!-- 7. Portal Rakan Niaga (Agen) -->
-    <section id="agent-portal" class="hidden card-modern p-6 sm:p-8 rounded-3xl border border-purple-100">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-purple-900">Portal Rakan Niaga CilikGo</h2>
-          <p class="text-xs text-slate-500">Pantau komisen pendaftaran dan pendapatan berterusan anda.</p>
-        </div>
-        <span class="bg-purple-100 text-purple-800 font-bold text-xs px-3 py-1 rounded-full">Agen Aktif</span>
-      </div>
+    <!-- Tab Mewarna -->
+    <div id="content-mewarna" class="module-content hidden card-modern p-6 sm:p-8 rounded-3xl text-center">
+      <span class="text-xs font-extrabold uppercase tracking-widest text-amber-500 bg-amber-50 px-3 py-1 rounded-full">3M</span>
+      <h3 data-i18n="canvas_title" class="font-cilik text-2xl sm:text-3xl text-slate-800 mt-2 mb-6">
+        Kanvas CilikGo
+      </h3>
 
-      <div class="bg-purple-50 p-4 rounded-2xl border border-purple-200 mb-6">
-        <label class="block text-xs font-bold text-purple-900 mb-1">Pautan Promosi Khas Anda:</label>
-        <div class="flex gap-2">
-          <input type="text" readonly id="agentShareLink" value="https://cilikgo.my/?ref=AGEN" class="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-sm text-slate-700 font-mono outline-none">
-          <button onclick="alert('Pautan telah disalin!')" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">Salin</button>
-        </div>
-        <p class="text-[11px] text-purple-700 mt-2">Komisen: <strong>RM 30.00</strong> bagi langganan awal + <strong>RM 10.00/bulan</strong> secara recurring.</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white p-4 rounded-2xl border">
-          <p class="text-xs text-slate-500 font-bold">Jumlah Langganan</p>
-          <p class="text-2xl font-extrabold text-slate-800 mt-1">12 Pelajar</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border">
-          <p class="text-xs text-slate-500 font-bold">Komisen Belum Dibayar</p>
-          <p class="text-2xl font-extrabold text-rose-600 mt-1">RM 440.00</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border">
-          <p class="text-xs text-slate-500 font-bold">Jumlah Telah Diterima</p>
-          <p class="text-2xl font-extrabold text-emerald-600 mt-1">RM 1,200.00</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 8. Panel Pentadbir (Admin) -->
-    <section id="admin-portal" class="hidden card-modern p-6 sm:p-8 rounded-3xl border border-slate-200">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900">Panel Pentadbir (Admin)</h2>
-          <p class="text-xs text-slate-500">Audit jualan keseluruhan dan pengurusan bayaran komisen mingguan.</p>
-        </div>
-        <button onclick="alert('Penyata bayaran mingguan dieksport.')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
-          Eksport Penyata Mingguan
+      <div class="flex justify-center items-center gap-3 mb-6 flex-wrap">
+        <button onclick="setBrushColor('#f43f5e')" class="w-8 h-8 rounded-full bg-rose-500 border-2 border-white shadow-md"></button>
+        <button onclick="setBrushColor('#3b82f6')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow-md"></button>
+        <button onclick="setBrushColor('#10b981')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow-md"></button>
+        <button onclick="setBrushColor('#f59e0b')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white shadow-md"></button>
+        <button onclick="setBrushColor('#8b5cf6')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white shadow-md"></button>
+        <button data-i18n="btn_clear" onclick="clearCanvas()" class="ml-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs transition">
+          Padam Semula
         </button>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs text-slate-600">
-          <thead class="bg-slate-100 text-slate-800">
-            <tr>
-              <th class="p-3 rounded-l-lg">Nama Agen</th>
-              <th class="p-3">Kod Rujukan</th>
-              <th class="p-3">Jualan</th>
-              <th class="p-3">Komisen Tertunggak</th>
-              <th class="p-3">Akaun Bank</th>
-              <th class="p-3 rounded-r-lg">Tindakan</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr>
-              <td class="p-3 font-bold text-slate-800">Hafizul Ardi</td>
-              <td class="p-3 font-mono">AGEN-PINTAR</td>
-              <td class="p-3">12 Transaksi</td>
-              <td class="p-3 text-rose-600 font-bold text-sm">RM 440.00</td>
-              <td class="p-3">Maybank - 514012345678</td>
-              <td class="p-3">
-                <button onclick="alert('Komisen ditandakan sebagai SELESAI')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-[11px]">
-                  Tanda Selesai Bayar
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="w-full flex justify-center px-2">
+        <canvas id="paintCanvas" class="w-full max-w-[360px] h-[220px] sm:h-[260px] border border-slate-200 rounded-3xl bg-white shadow-inner cursor-crosshair touch-none"></canvas>
       </div>
-    </section>
+    </div>
+  </section>
 
-  </main>
+  <!-- 7. Portal Rakan Niaga (Agen) -->
+  <section id="agent-portal" class="hidden card-modern p-6 sm:p-8 rounded-3xl border border-purple-100">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h2 data-i18n="agent_portal_title" class="text-2xl font-bold text-purple-900">Portal Rakan Niaga CilikGo</h2>
+        <p data-i18n="agent_portal_sub" class="text-xs text-slate-500">Pantau komisen pendaftaran dan pendapatan berterusan anda.</p>
+      </div>
+      <span data-i18n="agent_active_status" class="bg-purple-100 text-purple-800 font-bold text-xs px-3 py-1 rounded-full">Agen Aktif</span>
+    </div>
+
+    <div class="bg-purple-50 p-4 rounded-2xl border border-purple-200 mb-6">
+      <label data-i18n="agent_share_lbl" class="block text-xs font-bold text-purple-900 mb-1">Pautan Promosi Khas Anda:</label>
+      <div class="flex gap-2">
+        <input type="text" readonly id="agentShareLink" value="https://cilikgo.my/?ref=AGEN" class="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-sm text-slate-700 font-mono outline-none">
+        <button data-i18n="btn_copy" onclick="alert('Pautan telah disalin!')" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">Salin</button>
+      </div>
+      <p data-i18n="agent_comm_rate" class="text-[11px] text-purple-700 mt-2">Komisen: <strong>RM 30.00</strong> bagi langganan awal + <strong>RM 10.00/bulan</strong> secara recurring.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white p-4 rounded-2xl border">
+        <p data-i18n="agent_stat_subs" class="text-xs text-slate-500 font-bold">Jumlah Langganan</p>
+        <p class="text-2xl font-extrabold text-slate-800 mt-1">12 Pelajar</p>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border">
+        <p data-i18n="agent_stat_unpaid" class="text-xs text-slate-500 font-bold">Komisen Belum Dibayar</p>
+        <p class="text-2xl font-extrabold text-rose-600 mt-1">RM 440.00</p>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border">
+        <p data-i18n="agent_stat_paid" class="text-xs text-slate-500 font-bold">Jumlah Telah Diterima</p>
+        <p class="text-2xl font-extrabold text-emerald-600 mt-1">RM 1,200.00</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Panel Pentadbir (Admin) -->
+  <section id="admin-portal" class="hidden card-modern p-6 sm:p-8 rounded-3xl border border-slate-200">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h2 data-i18n="admin_panel_title" class="text-2xl font-bold text-slate-900">Panel Pentadbir (Admin)</h2>
+        <p data-i18n="admin_panel_sub" class="text-xs text-slate-500">Audit jualan keseluruhan dan pengurusan bayaran komisen mingguan.</p>
+      </div>
+      <button data-i18n="btn_export_weekly" onclick="alert('Penyata bayaran mingguan dieksport.')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+        Eksport Penyata Mingguan
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-600">
+        <thead class="bg-slate-100 text-slate-800">
+          <tr>
+            <th data-i18n="th_agent_name" class="p-3 rounded-l-lg">Nama Agen</th>
+            <th data-i18n="th_ref_code" class="p-3">Kod Rujukan</th>
+            <th data-i18n="th_sales" class="p-3">Jualan</th>
+            <th data-i18n="th_unpaid_comm" class="p-3">Komisen Tertunggak</th>
+            <th data-i18n="th_bank_acc" class="p-3">Akaun Bank</th>
+            <th data-i18n="th_action" class="p-3 rounded-r-lg">Tindakan</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="p-3 font-bold text-slate-800">Hafizul Ardi</td>
+            <td class="p-3 font-mono">AGEN-PINTAR</td>
+            <td class="p-3">12 Transaksi</td>
+            <td class="p-3 text-rose-600 font-bold text-sm">RM 440.00</td>
+            <td class="p-3">Maybank - 514012345678</td>
+            <td class="p-3">
+              <button data-i18n="btn_mark_paid" onclick="alert('Komisen ditandakan sebagai SELESAI')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-[11px]">
+                Tanda Selesai Bayar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
 
   <!-- PWA Install Popup Banner (Kemaskini) -->
 <div id="pwa-install-banner" class="hidden fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-xs bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-slate-700/80 z-50 flex items-center justify-between gap-2.5">
@@ -1034,7 +1034,8 @@ window.handleSimulatePayment = async () => {
  // 1. Tambah Perkataan Kad ke dalam Kamus Terjemahan
   const translations = {
     ms: {
-      // Navbar
+      // Navbar & Logo
+      logo_tagline: "Pintar 3M",
       nav_agent: "Jadi Agen",
       nav_login: "Log Masuk",
       nav_register: "Daftar Penjaga",
@@ -1047,7 +1048,51 @@ window.handleSimulatePayment = async () => {
       nav_agent_program: "Program Rakan Niaga / Agen",
       nav_active_acc: "Akaun Aktif",
       nav_enter_kids: "Masuk Zon Belajar 3M",
-      // Modul 3M
+
+      // Hero Utama
+      hero_badge: "Khas Untuk Kanak-Kanak 5–6 Tahun",
+      hero_title: "Belajar Membaca, Mengira & Mewarna Lebih <span class=\"bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent\">Menyeronokkan!</span>",
+      hero_desc: "Portal interaktif pintar berkonsepkan <strong>Bermain Sambil Belajar</strong> untuk mengasah kemahiran asas 3M si cilik secara santai dan berkesan.",
+      btn_start_learning: "🚀 Mula Belajar Sekarang",
+      btn_parent_login: "Log Masuk Penjaga",
+
+      // 3 Modul Kad
+      card_reading_title: "Membaca",
+      card_reading_desc: "Kad imbasan bergambar bersuara audio sebutan suku kata yang jelas dan betul.",
+      card_math_title: "Mengira",
+      card_math_desc: "Aktiviti membilang objek visual dan kuiz nombor interaktif yang mudah difahami.",
+      card_coloring_title: "Mewarna",
+      card_coloring_desc: "Kanvas lukis digital mesra skrin sentuh untuk merangsang kreativiti motor halus.",
+
+      // Kelebihan Platform
+      why_us_title: "Mengapa Ibu Bapa Memilih CilikGo?",
+      feat_adfree: "100% Bebas Iklan",
+      feat_adfree_sub: "Ruang selamat untuk si cilik",
+      feat_device: "Mesra Peranti",
+      feat_device_sub: "Sesuai di Tablet & Telefon",
+      feat_audio: "Sebutan Audio Baku",
+      feat_audio_sub: "Bantu perkembangan bahasa",
+      feat_fast: "Pantas & Ringan",
+      feat_fast_sub: "Boleh dipasang seperti Apps",
+
+      // Pakej & Harga
+      pricing_title: "Pakej Langganan Mampu Milik",
+      pricing_subtitle: "Satu langganan untuk akses tanpa had semua modul",
+      plan1_badge: "Akses 3 Bulan Awal",
+      plan1_name: "Pendaftaran Baharu",
+      plan1_duration: "/ Sekali Bayar",
+      plan1_feat1: "Akses penuh 3 bulan pertama",
+      plan1_feat2: "Semua modul 3M (Membaca, Mengira, Mewarna)",
+      plan1_feat3: "Portal Penjaga berasingan",
+      plan2_badge: "Bulan Ke-4 Seterusnya",
+      plan2_name: "Langganan Bulanan",
+      plan2_duration: "/ Sebulan",
+      plan2_feat1: "Hanya ~RM0.50 sehari",
+      plan2_feat2: "Kemas kini bahan pembelajaran berkala",
+      plan2_feat3: "Boleh batalkan langganan pada bila-bila masa",
+      btn_register_bottom: "Daftar Anak Anda Hari Ini",
+
+      // Modul 3M Dalam Zon Kanak-Kanak
       tab_reading: "📖 Membaca",
       tab_math: "🔢 Mengira",
       tab_coloring: "🎨 Mewarna",
@@ -1057,14 +1102,19 @@ window.handleSimulatePayment = async () => {
       btn_clear: "Padam Semula",
       math_correct: "🌟 Hebat! Jawapan tepat (3 biji epal)!",
       math_wrong: "✨ Cuba kira sekali lagi ya!",
-      // Perkataan Kad Membaca (BM)
       word_chicken: "Ayam",
       word_ball: "Bola",
       word_ciku: "Ciku",
-      word_dice: "Dadu"
+      word_dice: "Dadu",
+
+      // PWA Banner
+      pwa_title: "Pasang CilikGo",
+      pwa_desc: "Main di skrin utama",
+      pwa_btn: "Pasang"
     },
     en: {
-      // Navbar
+      // Navbar & Logo
+      logo_tagline: "Smart 3R",
       nav_agent: "Become Agent",
       nav_login: "Login",
       nav_register: "Register",
@@ -1077,7 +1127,51 @@ window.handleSimulatePayment = async () => {
       nav_agent_program: "Affiliate Partner Program",
       nav_active_acc: "Active Account",
       nav_enter_kids: "Enter 3R Learning Zone",
-      // Modul 3M
+
+      // Hero Utama
+      hero_badge: "Specially for Kids Aged 5–6 Years",
+      hero_title: "Learn Reading, Counting & Colouring the <span class=\"bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent\">Fun Way!</span>",
+      hero_desc: "A smart interactive platform designed for <strong>Play-Based Learning</strong> to nurture fundamental 3R skills effectively.",
+      btn_start_learning: "🚀 Start Learning Now",
+      btn_parent_login: "Parent Login",
+
+      // 3 Modul Kad
+      card_reading_title: "Reading",
+      card_reading_desc: "Interactive flashcards with clear and precise audio pronunciation.",
+      card_math_title: "Counting",
+      card_math_desc: "Visual object counting activities and easy interactive number quizzes.",
+      card_coloring_title: "Colouring",
+      card_coloring_desc: "Touch-friendly digital canvas to spark fine motor skills and creativity.",
+
+      // Kelebihan Platform
+      why_us_title: "Why Parents Choose CilikGo?",
+      feat_adfree: "100% Ad-Free",
+      feat_adfree_sub: "Safe space for kids",
+      feat_device: "Device Friendly",
+      feat_device_sub: "Great on Tablets & Phones",
+      feat_audio: "Standard Audio Voice",
+      feat_audio_sub: "Enhances language mastery",
+      feat_fast: "Fast & Lightweight",
+      feat_fast_sub: "Installable like a Native App",
+
+      // Pakej & Harga
+      pricing_title: "Affordable Subscription Plans",
+      pricing_subtitle: "One subscription for unlimited access to all modules",
+      plan1_badge: "First 3 Months Access",
+      plan1_name: "New Registration",
+      plan1_duration: "/ One-time Pay",
+      plan1_feat1: "Full access for the first 3 months",
+      plan1_feat2: "All 3R modules (Reading, Counting, Colouring)",
+      plan1_feat3: "Dedicated Parent Portal",
+      plan2_badge: "From Month 4 Onwards",
+      plan2_name: "Monthly Subscription",
+      plan2_duration: "/ Month",
+      plan2_feat1: "Only ~RM0.50 per day",
+      plan2_feat2: "Regular learning material updates",
+      plan2_feat3: "Cancel subscription anytime",
+      btn_register_bottom: "Register Your Child Today",
+
+      // Modul 3M Dalam Zon Kanak-Kanak
       tab_reading: "📖 Reading",
       tab_math: "🔢 Counting",
       tab_coloring: "🎨 Colouring",
@@ -1087,14 +1181,17 @@ window.handleSimulatePayment = async () => {
       btn_clear: "Clear Canvas",
       math_correct: "🌟 Awesome! Correct answer (3 apples)!",
       math_wrong: "✨ Try counting again!",
-      // Perkataan Kad Membaca (EN)
       word_chicken: "Chicken",
       word_ball: "Ball",
       word_ciku: "Potato",
-      word_dice: "Dice"
+      word_dice: "Dice",
+
+      // PWA Banner
+      pwa_title: "Install CilikGo",
+      pwa_desc: "Play on home screen",
+      pwa_btn: "Install"
     }
   };
-
   // 2. Fungsi Sebutan Suara Automatik Mengikut Bahasa Terpilih
   window.speakCard = (wordKey) => {
     const currentLang = localStorage.getItem('cilikgo_lang') || 'ms';
