@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return get(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function isAdmin() { return signedIn() && me().data.role == 'admin'; }
+
+    match /users/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid && request.resource.data.role in ['user','agent'];
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow update: if signedIn() && (request.auth.uid == uid || isAdmin())
+        && (isAdmin() || request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin();
+    }
+
+    match /children/{childId} {
+      allow read, write: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /progress/{progressId} {
+      allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+      allow create, update: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    match /modules/{moduleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if signedIn() && (resource.data.userUid == request.auth.uid || resource.data.agentUid == request.auth.uid || isAdmin());
+      allow write: if false; // server/Admin SDK sahaja
+    }
+
+    match /commissions/{id} {
+      allow read: if signedIn() && (resource.data.agentUid == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /settings/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
