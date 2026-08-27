@@ -57,7 +57,7 @@
     }
 
     /* ========================================================
-       SEMBUNYIKAN TOP BAR & ELEMEN GOOGLE TRANSLATE
+       SEMBUNYIKAN SEMUA ELEMEN & LOGO GOOGLE TRANSLATE
        ======================================================== */
     .goog-te-banner-frame.skiptranslate,
     iframe.goog-te-banner-frame,
@@ -66,17 +66,28 @@
     #goog-gt-tt,
     .goog-te-balloon-frame,
     .goog-tooltip,
-    .goog-tooltip:hover {
+    .goog-tooltip:hover,
+    .VIpgJd-ZVi9od-ORHb-OEVmcd,
+    .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+    .VIpgJd-ZVi9od-aZ2wEe-OZiNm,
+    .VIpgJd-yAWNEb-VIpgJd,
+    .VIpgJd-yAWNEb-hvhgNd,
+    .VIpgJd-yAWNEb-L7lbMb,
+    [class*="VIpgJd"] {
       display: none !important;
       visibility: hidden !important;
       height: 0 !important;
       width: 0 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
     }
 
     body {
       top: 0px !important;
+      position: static !important;
     }
 
+    .skiptranslate,
     .skiptranslate iframe {
       display: none !important;
     }
