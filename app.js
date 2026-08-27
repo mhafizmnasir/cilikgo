@@ -735,22 +735,72 @@ async function loadCmsQuestions(key,levelNo){
   }catch(e){console.warn('CMS questions fallback:',e);return [];}
 }
 
-const moduleStars=(progress,module)=>progress.filter(x=>x.module===module&&x.correct===true).reduce((n,x)=>n+(Number(x.stars)||0),0);
-function unlockedLevel(progress,key){
-  const levels=curriculum[key].levels, stars=moduleStars(progress,gameKeyToModule[key]);
-  let unlocked=1; levels.forEach(l=>{ if(stars>=l.unlockStars) unlocked=l.level; }); return unlocked;
+function bestLevelScores(progress,module){
+  const best={};
+  progress.filter(x=>x.module===module&&x.correct===true).forEach(x=>{
+    const level=Number(x.level||0),stars=Number(x.stars||0);
+    if(level) best[level]=Math.max(best[level]||0,stars);
+  });
+  return best;
 }
+const moduleStars=(progress,module)=>Object.values(bestLevelScores(progress,module)).reduce((n,x)=>n+Number(x||0),0);
+function unlockedLevel(progress,key){
+  const levels=curriculum[key].levels, best=bestLevelScores(progress,gameKeyToModule[key]);
+  let unlocked=1;
+  for(let i=1;i<levels.length;i++){
+    const prev=levels[i-1];
+    if((best[prev.level]||0)>=8) unlocked=levels[i].level;
+    else break;
+  }
+  return unlocked;
+}
+function levelBest(progress,key,levelNo){return bestLevelScores(progress,gameKeyToModule[key])[levelNo]||0;}
+function learningRank(stars){
+  if(stars>=24)return {icon:'👑',name:'Juara 3M'};
+  if(stars>=16)return {icon:'🏆',name:'Bintang Hebat'};
+  if(stars>=8)return {icon:'🌟',name:'Pelajar Ceria'};
+  return {icon:'🌱',name:'Mula Belajar'};
+}
+function showSubscriptionGate(profile,key){
+  const sub=subscriptionState(profile),c=curriculum[key],expired=sub.expired;
+  $('#gameContent').innerHTML=`<div class="subscription-gate"><div class="gate-icon">🔒</div><small>Akses Premium CilikGo</small>
+  <h2>${expired?'Langganan telah tamat':'Langganan diperlukan'}</h2>
+  <p>${expired?`Untuk teruskan ${c?.title||'modul 3M'}, perbaharui langganan RM15 untuk 1 bulan.`:`Akses penuh ${c?.title||'modul 3M'} tersedia dengan Pakej Permulaan RM69 untuk 4 bulan.`}</p>
+  <div class="gate-plan"><span>${expired?'Renewal':'Pakej Permulaan'}</span><b>${expired?'RM15':'RM69'}</b><small>${expired?'1 bulan':'4 bulan'}</small></div>
+  <div class="gate-actions"><button class="btn primary" disabled>${expired?'Renew RM15':'Langgan RM69'}</button><button class="btn ghost" id="gateBack">Kembali</button></div>
+  <p class="gate-note">ToyyibPay masih KIV.</p></div>`;
+  if(!$('#gameModal').open) $('#gameModal').showModal();
+  $('#gateBack').onclick=()=>$('#gameModal').close();
+}
+
 function openLevelPicker(key,track=false){
   const c=curriculum[key];
   const render=async()=>{
+    if(track){
+      if(!fb?.auth.currentUser){openAuth('login');return;}
+      const profile=currentProfile||await getProfile(fb.auth.currentUser);
+      if(!subscriptionState(profile).active){showSubscriptionGate(profile,key);return;}
+      if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+    }
     const progress=track&&activeChild&&currentProfile?await loadProgress(currentProfile.uid,activeChild.id):[];
-    const stars=moduleStars(progress,gameKeyToModule[key]), max=track?unlockedLevel(progress,key):3;
-    $('#gameContent').innerHTML=`<h2>${c.title}</h2>${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${gameKeyToModule[key]}</p>`:''}<p>Pilih tahap pembelajaran:</p><div class="level-grid">${c.levels.map(l=>`<button class="level-card" data-level="${l.level}" ${l.level>max?'disabled':''}><b>Level ${l.level}</b><span>${esc(l.name)}</span><small>${l.level<=max?'Terbuka':'🔒 Perlukan '+l.unlockStars+' ⭐'}</small></button>`).join('')}</div>${track?`<p class="level-total">⭐ ${stars} bintang ${gameKeyToModule[key]}</p>`:''}`;
-    $('#gameModal').showModal();
+    const stars=moduleStars(progress,gameKeyToModule[key]), max=track?unlockedLevel(progress,key):3,rank=learningRank(stars);
+    $('#gameContent').innerHTML=`<div class="learning-picker"><h2>${c.title}</h2>${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${rank.icon} ${rank.name}</p>`:''}
+      <div class="learning-summary"><div><small>Bintang terbaik</small><b>⭐ ${stars}/45</b></div><div><small>Level terbuka</small><b>${max}/3</b></div></div>
+      <p>Pilih tahap pembelajaran:</p><div class="level-grid">${c.levels.map(l=>{const best=levelBest(progress,key,l.level),locked=l.level>max;return `<button class="level-card ${best>=8?'level-passed':''}" data-level="${l.level}" ${locked?'disabled':''}><b>Level ${l.level}</b><span>${esc(l.name)}</span><small>${locked?'🔒 Selesaikan level sebelumnya':best?`Rekod terbaik ⭐ ${best}/15`:'Terbuka · Belum dimainkan'}</small>${best>=8?'<em>✓ Lulus</em>':''}</button>`}).join('')}</div>
+      ${track?`<p class="level-total">Selesaikan setiap level dengan sekurang-kurangnya ⭐ 8/15 untuk membuka level seterusnya.</p>`:''}</div>`;
+    if(!$('#gameModal').open) $('#gameModal').showModal();
     document.querySelectorAll('.level-card:not(:disabled)').forEach(b=>b.onclick=()=>startLevel(key,Number(b.dataset.level),track));
   }; render();
 }
 async function startLevel(key,levelNo,track=false){
+  if(track){
+    if(!fb?.auth.currentUser){openAuth('login');return;}
+    const profile=currentProfile||await getProfile(fb.auth.currentUser);
+    if(!subscriptionState(profile).active){showSubscriptionGate(profile,key);return;}
+    if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+    const progress=await loadProgress(profile.uid,activeChild.id);
+    if(levelNo>unlockedLevel(progress,key)){toast('Level ini belum terbuka. Selesaikan level sebelumnya dahulu.');openLevelPicker(key,true);return;}
+  }
   const c=curriculum[key], level=c.levels.find(x=>x.level===levelNo);
   const cmsQuestions=await loadCmsQuestions(key,levelNo);
   const sourceQuestions=cmsQuestions.length?cmsQuestions:level.questions;
@@ -793,7 +843,8 @@ async function startLevel(key,levelNo,track=false){
       <div class="result-stars">⭐ ${scoreStars} / ${maxStars}</div>
       <div class="result-grid"><div><b>${scoreStars}</b><small>Bintang</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Pencapaian</small></div></div>
       ${badge?`<div class="badge-earned"><span>${badge.split(' ')[0]}</span><b>${badge.substring(badge.indexOf(' ')+1)}</b><small>Badge baharu!</small></div>`:''}
-      <div class="result-actions"><button class="btn primary" id="playAgain">Main Lagi</button><button class="btn ghost" id="backLevels">Pilih Level</button></div></div>`;
+      <div class="result-actions"><button class="btn primary" id="playAgain">${passed?'Main Lagi':'Cuba Lagi'}</button>${passed&&levelNo<3?'<button class="btn success" id="nextLevel">Level Seterusnya →</button>':''}<button class="btn ghost" id="backLevels">Pilih Level</button></div>
+      <p class="result-tip">${passed?'⭐ Level seterusnya kini boleh dibuka. Rekod terbaik digunakan untuk kemajuan.':'Dapatkan sekurang-kurangnya ⭐ 8 untuk membuka level seterusnya.'}</p></div>`;
     celebrate(); speakBM(passed?'Syabas, hebat!':'Bagus kerana mencuba');
     if(track&&activeChild&&fb?.auth.currentUser){
       try{
@@ -802,6 +853,7 @@ async function startLevel(key,levelNo,track=false){
       }catch(e){console.error(e);toast('Level selesai, tetapi rekod kemajuan gagal disimpan.');}
     }
     $('#playAgain').onclick=()=>startLevel(key,levelNo,track);
+    if($('#nextLevel')) $('#nextLevel').onclick=()=>startLevel(key,levelNo+1,track);
     $('#backLevels').onclick=()=>openLevelPicker(key,track);
   };
   renderQuestion();
