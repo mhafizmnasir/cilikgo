@@ -63,7 +63,9 @@
       createUserWithEmailAndPassword, 
       signInWithEmailAndPassword, 
       signOut, 
-      onAuthStateChanged 
+      onAuthStateChanged,
+      GoogleAuthProvider,
+      signInWithPopup
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { 
       getFirestore, 
@@ -73,15 +75,15 @@
       serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Konfigurasi Firebase Anda (Gantikan dengan data config projek anda)
+    // Konfigurasi Firebase Anda
     const firebaseConfig = {
-  apiKey: "AIzaSyDbNrWdINvduQjH6fFfj2dC5t34NKQY7_E",
-  authDomain: "cilikgo-web.firebaseapp.com",
-  projectId: "cilikgo-web",
-  storageBucket: "cilikgo-web.firebasestorage.app",
-  messagingSenderId: "276181979080",
-  appId: "1:276181979080:web:26e2cc59ff9215ff7bfafd"
-};
+      apiKey: "AIzaSyDbNrWdINvduQjH6fFfj2dC5t34NKQY7_E",
+      authDomain: "cilikgo-web.firebaseapp.com",
+      projectId: "cilikgo-web",
+      storageBucket: "cilikgo-web.firebasestorage.app",
+      messagingSenderId: "276181979080",
+      appId: "1:276181979080:web:26e2cc59ff9215ff7bfafd"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -109,7 +111,7 @@
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const userData = userDoc.exists() ? userDoc.data() : {};
         const role = userData.role || "parent";
-        const displayName = userData.firstName || userData.fullName || user.email.split('@')[0];
+        const displayName = userData.firstName || userData.fullName || (user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0]);
 
         if (dGuestNav) dGuestNav.classList.add("hidden");
         if (mGuestNav) mGuestNav.classList.add("hidden");
@@ -150,7 +152,42 @@
       }
     });
 
-    // Pendaftaran Penjaga
+    // Log Masuk / Pendaftaran Menggunakan Google
+    window.handleGoogleAuth = async () => {
+      const provider = new GoogleAuthProvider();
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        const refInput = document.getElementById("regRefCode");
+        const agentRefCode = refInput ? refInput.value.trim() : null;
+
+        if (!userDocSnap.exists()) {
+          const names = (user.displayName || "Pengguna Baru").split(' ');
+          const firstName = names[0] || "Pengguna";
+          const lastName = names.slice(1).join(' ') || "";
+
+          await setDoc(userDocRef, {
+            firstName,
+            lastName,
+            email: user.email,
+            role: "parent",
+            subscriptionStatus: "pending",
+            agentRefCode: agentRefCode || null,
+            createdAt: serverTimestamp()
+          });
+        }
+      } catch (error) {
+        if (error.code !== 'auth/popup-closed-by-user') {
+          alert("Ralat Log Masuk Google: " + error.message);
+        }
+      }
+    };
+
+    // Pendaftaran Manual Penjaga
     window.handleRegister = async (e) => {
       e.preventDefault();
       const firstName = document.getElementById("regFirstName").value.trim();
@@ -230,7 +267,7 @@
       }
     };
 
-    // Log Masuk
+    // Log Masuk Manual
     window.handleLogin = async (e) => {
       e.preventDefault();
       const email = document.getElementById("loginEmail").value.trim();
