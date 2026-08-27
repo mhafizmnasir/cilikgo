@@ -163,12 +163,53 @@ function parentRecommendation(summary){
   return {title:`Latih ${weakest} seterusnya`,text:`${strongest} menunjukkan prestasi yang baik. Beri sedikit latihan tambahan pada ${weakest} untuk seimbangkan perkembangan 3M.`,module:weakest,strongest};
 }
 
+
+const SUBSCRIPTION_PLANS={
+  starter:{id:'starter',name:'Pakej Permulaan',amount:69,durationMonths:4},
+  renewal:{id:'renewal',name:'Renewal Bulanan',amount:15,durationMonths:1}
+};
+function subscriptionState(p){
+  const raw=p?.subscriptionEndsAt?.toDate?.()||p?.subscriptionEndsAt||null;
+  const end=raw?new Date(raw):null;
+  const active=p?.subscriptionStatus==='active'&&end&&end.getTime()>Date.now();
+  const expired=!!end&&end.getTime()<=Date.now();
+  return {active,expired,end,status:active?'active':expired?'expired':(p?.subscriptionStatus||'inactive')};
+}
+function subscriptionDaysLeft(p){
+  const s=subscriptionState(p);
+  return s.active?Math.max(0,Math.ceil((s.end-Date.now())/86400000)):0;
+}
+async function createPendingSubscriptionOrder(planId){
+  if(!fb?.auth.currentUser) throw new Error('Sila log masuk semula.');
+  const plan=SUBSCRIPTION_PLANS[planId];
+  if(!plan) throw new Error('Pelan tidak sah.');
+  const profile=await loadProfile(fb.auth.currentUser);
+  const order={
+    userUid:fb.auth.currentUser.uid,
+    plan:plan.id,
+    planName:plan.name,
+    amount:plan.amount,
+    durationMonths:plan.durationMonths,
+    currency:'MYR',
+    status:'pending',
+    paymentGateway:'toyyibpay',
+    paymentStatus:'not_started',
+    agentRef:profile?.referredByCode||null,
+    createdAt:fb.serverTimestamp(),
+    updatedAt:fb.serverTimestamp()
+  };
+  const ref=await fb.addDoc(fb.collection(fb.db,'orders'),order);
+  return {id:ref.id,...order};
+}
+
 async function renderUser(p){
   const kids=await loadChildren(p.uid);
   const progress=await loadAllProgress(p.uid);
   if(!activeChild&&kids.length) activeChild=kids[0];
   const totalStars=progress.reduce((s,x)=>s+Number(x.stars||0),0);
-  const active=p.subscriptionStatus==='active';
+  const sub=subscriptionState(p);
+  const active=sub.active;
+  const daysLeft=subscriptionDaysLeft(p);
   const selectedRows=activeChild?progress.filter(x=>x.childId===activeChild.id):[];
   const summary=childProgressSummary(selectedRows);
   const rec=parentRecommendation(summary);
@@ -195,11 +236,10 @@ async function renderUser(p){
   <div class="strength-card"><small>Pemerhatian ringkas</small><h3>${selectedRows.length?'Corak pembelajaran':'Belum cukup data'}</h3><p>${selectedRows.length?(rec.strongest?`${rec.strongest} ialah bahagian yang paling lancar setakat rekod semasa. Teruskan sesi pendek dan konsisten.`:'Teruskan beberapa aktiviti untuk mendapatkan gambaran perkembangan yang lebih jelas.'):'Lengkapkan beberapa aktiviti dahulu supaya CilikGo boleh memberikan cadangan yang lebih berguna.'}</p></div></div>
   <div class="recent-learning"><div class="section-title"><div><h3>Aktiviti Terkini</h3><p>Rekod terbaru ${esc(activeChild.name)}.</p></div></div>${recent.length?`<div class="recent-list">${recent.map(x=>`<div class="recent-item"><span>${moduleIcon[x.module]||'🎯'}</span><div><b>${esc(x.module||'Aktiviti')} · Level ${esc(x.level||'-')}</b><small>${Number(x.attempts||0)} percubaan</small></div><strong>⭐ ${Number(x.stars||0)}</strong></div>`).join('')}</div>`:'<div class="empty-state">Belum ada aktiviti direkod untuk anak ini.</div>'}</div>`:''}
 
-  <div class="subscription-box"><div><small>Status langganan</small><h3>${active?'Aktif hingga '+formatDate(p.subscriptionEndsAt):'Belum aktif'}</h3><p>${active?'Akses penuh CilikGo sedang aktif.':'ToyyibPay masih KIV. Langganan boleh diaktifkan kemudian.'}</p></div><button class="btn primary" id="dashboardSubscribeBtn" ${active?'':'disabled'}>${active?'Sambung RM15 / bulan':'Pembayaran KIV'}</button></div>
+  <div class="subscription-box"><div><small>Status langganan</small><h3>${active?'Aktif hingga '+formatDate(p.subscriptionEndsAt):sub.expired?'Langganan telah tamat':'Belum aktif'}</h3><p>${active?`${daysLeft} hari lagi · Renewal RM15 untuk 1 bulan.`:'Pakej permulaan RM69 memberikan akses selama 4 bulan. ToyyibPay masih KIV.'}</p></div><div class="subscription-actions"><button class="btn primary" id="dashboardSubscribeBtn" disabled>${active?'Renew RM15 / bulan':'Langgan RM69 / 4 bulan'}</button><small>Gateway pembayaran belum diaktifkan</small></div></div>
   </section></div>`;
 
   $('#addChildBtn').onclick=()=>$('#childModal').showModal();
-  if($('#dashboardSubscribeBtn')&&active) $('#dashboardSubscribeBtn').onclick=()=>startPayment('renewal');
   document.querySelectorAll('[data-child]').forEach(b=>b.onclick=async()=>{activeChild=kids.find(c=>c.id===b.dataset.child);await renderUser(p);});
   if($('#recommendedActivity')) $('#recommendedActivity').onclick=()=>openLevelPicker(({Membaca:'read',Menulis:'write',Mengira:'count'})[rec.module],true);
 }
