@@ -119,28 +119,67 @@ function formatDate(value){
   return d.toLocaleDateString('ms-MY',{day:'2-digit',month:'short',year:'numeric'});
 }
 
-async function renderUser(p){
-  try{ await loadChildren(p.uid); }catch(e){ console.warn(e); userChildren=[]; activeChild=null; }
-  const progress=await loadProgress(p.uid,activeChild?.id);
-  const correct=progress.filter(x=>x.correct===true).length;
-  const attempts=progress.reduce((n,x)=>n+(Number(x.attempts)||1),0);
-  const totalStars=progress.reduce((n,x)=>n+(Number(x.stars)||0),0);
-  const byModule=k=>progress.filter(x=>x.module===k&&x.correct===true).reduce((n,x)=>n+(Number(x.stars)||0),0);
-  const active=p.subscriptionStatus==='active';
-  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 CilikGo</h3><a class="active">Ringkasan</a><a>Profil Anak</a><a>Modul 3M</a><a>Kemajuan</a><a>Langganan</a><a>Tetapan</a></aside><section class="dash-main"><div class="dash-head"><div><small>Selamat kembali,</small><h2>${esc(p.name)} 👋</h2></div><span class="badge ${active?'':'status-inactive'}">${active?'Langganan Aktif':'Mod Ujian'}</span></div>
-  <div class="stat-grid"><div class="stat"><small>Profil anak</small><b>${userChildren.length}</b></div><div class="stat"><small>Aktiviti selesai / percubaan</small><b>${correct}/${attempts}</b></div><div class="stat"><small>Bintang</small><b>⭐ ${totalStars}</b></div></div>
-  <div class="section-line"><h3>Profil Anak</h3><button class="btn primary" id="addChildBtn">+ Tambah Anak</button></div>
-  ${userChildren.length?`<div class="child-grid">${userChildren.map(c=>`<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name||'Anak')}</b><small>${esc(c.age||'')} tahun</small></button>`).join('')}</div>`:'<div class="empty-state">Belum ada profil anak. Tambah profil pertama untuk mula merekod kemajuan 3M.</div>'}
-  ${activeChild?`<div class="learning-panel"><div class="section-line"><div><small>Sedang belajar sebagai</small><h3>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</h3></div><button class="btn ghost" id="deleteChildBtn">Padam Profil</button></div><div class="module-progress-grid"><div><b>📖 Membaca</b><strong>${byModule('Membaca')} ⭐</strong><button class="btn primary child-game" data-game="read">Mula</button></div><div><b>✏️ Menulis</b><strong>${byModule('Menulis')} ⭐</strong><button class="btn primary child-game" data-game="write">Mula</button></div><div><b>🧮 Mengira</b><strong>${byModule('Mengira')} ⭐</strong><button class="btn primary child-game" data-game="count">Mula</button></div></div><p class="muted-left">Setiap modul mempunyai 3 level. Kumpul ⭐ untuk membuka level seterusnya; kemajuan disimpan mengikut profil anak.</p></div>`:''}
-  <div class="subscription-box"><div><small>Status langganan</small><h3>${active?'Aktif hingga '+formatDate(p.subscriptionEndsAt):'Belum aktif'}</h3><p>${active?'Akses penuh CilikGo sedang aktif.':'Aktifkan pakej permulaan RM69 untuk 4 bulan akses penuh.'}</p></div><button class="btn primary" id="dashboardSubscribeBtn">${active?'Sambung RM15 / bulan':'Langgan RM69 / 4 bulan'}</button></div>
-  <div class="dash-note">Sistem 3M kini mempunyai Level 1–3, bank soalan rawak, bintang dan pembukaan level berdasarkan pencapaian anak.</div></section></div>`;
-  $('#addChildBtn').onclick=()=>$('#childModal').showModal();
-  if($('#dashboardSubscribeBtn')) $('#dashboardSubscribeBtn').onclick=()=>startPayment(active?'renewal':'starter');
-  document.querySelectorAll('[data-child]').forEach(b=>b.onclick=()=>{ activeChild=userChildren.find(c=>c.id===b.dataset.child); localStorage.setItem('cilikgo_active_child',activeChild.id); renderUser(p); });
-  document.querySelectorAll('.child-game').forEach(b=>b.onclick=()=>openGame(b.dataset.game,true));
-  if($('#deleteChildBtn')) $('#deleteChildBtn').onclick=async()=>{ if(!activeChild||!confirm(`Padam profil ${activeChild.name}? Rekod kemajuan sedia ada akan kekal untuk audit.`)) return; try{ await fb.deleteDoc(fb.doc(fb.db,'children',activeChild.id)); localStorage.removeItem('cilikgo_active_child'); toast('Profil anak dipadam.'); await renderUser(p); }catch(e){toast('Gagal padam profil: '+friendlyError(e));} };
+function childProgressSummary(rows){
+  const modules=['Membaca','Menulis','Mengira'];
+  const byModule={};
+  modules.forEach(m=>{
+    const r=rows.filter(x=>x.module===m);
+    const stars=r.reduce((s,x)=>s+Number(x.stars||0),0);
+    const attempts=r.reduce((s,x)=>s+Number(x.attempts||0),0);
+    const levels=r.map(x=>Number(x.level||0)).filter(Boolean);
+    byModule[m]={rows:r.length,stars,attempts,level:levels.length?Math.max(...levels):1,efficiency:attempts?Math.round(stars/(attempts*3)*100):0};
+  });
+  return byModule;
+}
+function parentRecommendation(summary){
+  const names=Object.keys(summary);
+  const practiced=names.filter(n=>summary[n].rows>0);
+  if(!practiced.length) return {title:'Mulakan dengan aktiviti ringkas',text:'Pilih satu modul 3M dan lengkapkan Level 1 bersama anak.',module:'Membaca'};
+  const weakest=[...practiced].sort((a,b)=>(summary[a].efficiency||0)-(summary[b].efficiency||0))[0];
+  const strongest=[...practiced].sort((a,b)=>(summary[b].efficiency||0)-(summary[a].efficiency||0))[0];
+  return {title:`Latih ${weakest} seterusnya`,text:`${strongest} menunjukkan prestasi yang baik. Beri sedikit latihan tambahan pada ${weakest} untuk seimbangkan perkembangan 3M.`,module:weakest,strongest};
 }
 
+async function renderUser(p){
+  const kids=await getMyChildren();
+  const progress=await getMyProgress();
+  if(!activeChild&&kids.length) activeChild=kids[0];
+  const totalStars=progress.reduce((s,x)=>s+Number(x.stars||0),0);
+  const active=p.subscriptionStatus==='active';
+  const selectedRows=activeChild?progress.filter(x=>x.childId===activeChild.id):[];
+  const summary=childProgressSummary(selectedRows);
+  const rec=parentRecommendation(summary);
+  const recent=[...selectedRows].sort((a,b)=>{
+    const ad=a.createdAt?.toDate?.()?.getTime?.()||0, bd=b.createdAt?.toDate?.()?.getTime?.()||0;
+    return bd-ad;
+  }).slice(0,6);
+  const moduleIcon={Membaca:'📖',Menulis:'✏️',Mengira:'🧮'};
+  const childCards=kids.map(c=>{
+    const cp=progress.filter(x=>x.childId===c.id);
+    const st=cp.reduce((s,x)=>s+Number(x.stars||0),0);
+    return `<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>${esc(c.age)} tahun · ⭐ ${st}</small></button>`;
+  }).join('');
+
+  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 Penjaga</h3><a class="active">Perkembangan</a><a href="#modules">Modul 3M</a><a href="#pricing">Langganan</a><a href="#settings">Settings</a></aside>
+  <section class="dash-main"><div class="dash-head"><div><small>Selamat datang</small><h2>${esc(p.name||'Penjaga')} 👋</h2></div><span class="badge ${active?'':'status-inactive'}">${active?'Langganan aktif':'Belum aktif'}</span></div>
+  <div class="parent-overview"><div><small>Jumlah profil anak</small><b>${kids.length}</b></div><div><small>Jumlah ⭐ keluarga</small><b>${totalStars}</b></div><div><small>Aktiviti direkod</small><b>${progress.length}</b></div></div>
+  <div class="child-selector-head"><div><h3>Profil Anak</h3><p>Pilih anak untuk melihat laporan perkembangannya.</p></div><button class="btn primary" id="addChildBtn">+ Tambah Anak</button></div>
+  <div class="child-list">${childCards||'<div class="empty-state">Belum ada profil anak. Tambah anak untuk mula merekod kemajuan 3M.</div>'}</div>
+
+  ${activeChild?`<div class="report-header"><div><span class="report-avatar">${esc(activeChild.avatar||'🧒')}</span><div><small>Laporan perkembangan</small><h2>${esc(activeChild.name)}</h2><p>${esc(activeChild.age)} tahun · Kemajuan berdasarkan aktiviti yang telah diselesaikan.</p></div></div><span class="report-stars">⭐ ${selectedRows.reduce((s,x)=>s+Number(x.stars||0),0)}</span></div>
+  <div class="module-progress-grid">${['Membaca','Menulis','Mengira'].map(m=>{const x=summary[m],pct=Math.min(100,x.rows?Math.max(12,x.efficiency):0);return `<div class="module-report"><div class="module-report-head"><span>${moduleIcon[m]}</span><div><b>${m}</b><small>Level tertinggi ${x.level}</small></div><strong>${x.stars} ⭐</strong></div><div class="parent-progress"><span style="width:${pct}%"></span></div><div class="module-meta"><span>${x.rows} aktiviti</span><span>${x.attempts} percubaan</span><span>${x.rows?x.efficiency+'% ketepatan':'Belum mula'}</span></div></div>`}).join('')}</div>
+  <div class="parent-report-grid"><div class="recommend-card"><span class="recommend-icon">💡</span><div><small>Cadangan CilikGo</small><h3>${rec.title}</h3><p>${rec.text}</p><button class="btn primary" id="recommendedActivity">Mulakan ${rec.module}</button></div></div>
+  <div class="strength-card"><small>Pemerhatian ringkas</small><h3>${selectedRows.length?'Corak pembelajaran':'Belum cukup data'}</h3><p>${selectedRows.length?(rec.strongest?`${rec.strongest} ialah bahagian yang paling lancar setakat rekod semasa. Teruskan sesi pendek dan konsisten.`:'Teruskan beberapa aktiviti untuk mendapatkan gambaran perkembangan yang lebih jelas.'):'Lengkapkan beberapa aktiviti dahulu supaya CilikGo boleh memberikan cadangan yang lebih berguna.'}</p></div></div>
+  <div class="recent-learning"><div class="section-title"><div><h3>Aktiviti Terkini</h3><p>Rekod terbaru ${esc(activeChild.name)}.</p></div></div>${recent.length?`<div class="recent-list">${recent.map(x=>`<div class="recent-item"><span>${moduleIcon[x.module]||'🎯'}</span><div><b>${esc(x.module||'Aktiviti')} · Level ${esc(x.level||'-')}</b><small>${Number(x.attempts||0)} percubaan</small></div><strong>⭐ ${Number(x.stars||0)}</strong></div>`).join('')}</div>`:'<div class="empty-state">Belum ada aktiviti direkod untuk anak ini.</div>'}</div>`:''}
+
+  <div class="subscription-box"><div><small>Status langganan</small><h3>${active?'Aktif hingga '+formatDate(p.subscriptionEndsAt):'Belum aktif'}</h3><p>${active?'Akses penuh CilikGo sedang aktif.':'ToyyibPay masih KIV. Langganan boleh diaktifkan kemudian.'}</p></div><button class="btn primary" id="dashboardSubscribeBtn" ${active?'':'disabled'}>${active?'Sambung RM15 / bulan':'Pembayaran KIV'}</button></div>
+  </section></div>`;
+
+  $('#addChildBtn').onclick=()=>$('#childModal').showModal();
+  if($('#dashboardSubscribeBtn')&&active) $('#dashboardSubscribeBtn').onclick=()=>startPayment('renewal');
+  document.querySelectorAll('[data-child]').forEach(b=>b.onclick=async()=>{activeChild=kids.find(c=>c.id===b.dataset.child);await renderUser(p);});
+  if($('#recommendedActivity')) $('#recommendedActivity').onclick=()=>openLevelPicker(({Membaca:'read',Menulis:'write',Mengira:'count'})[rec.module],true);
+}
 async function renderAgent(p){
   let orders=[], commissions=[];
   try{ const oq=fb.query(fb.collection(fb.db,'orders'),fb.where('agentUid','==',p.uid)); orders=(await fb.getDocs(oq)).docs.map(d=>({id:d.id,...d.data()})); }catch(e){console.warn('orders',e)}
