@@ -1,4 +1,4 @@
-import { firebaseConfig, USE_FIREBASE } from './firebase.js';
+import { firebaseConfig, USE_FIREBASE, FUNCTIONS_BASE_URL } from './firebase.js';
 
 let fb = null, firebaseInitError = null, currentProfile = null, activeChild = null, userChildren = [];
 const gameKeyToModule={read:'Membaca',write:'Menulis',count:'Mengira'};
@@ -45,6 +45,14 @@ const toast = msg => {
 
 document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>$('#'+b.dataset.open).showModal());
 document.querySelectorAll('dialog .x').forEach(b=>b.onclick=()=>b.closest('dialog').close());
+const paymentParams = new URLSearchParams(location.search);
+const paymentStatus = paymentParams.get('status_id');
+if(paymentParams.has('payment') || paymentStatus){
+  if(paymentStatus==='1') toast('Pembayaran diterima. Status langganan akan dikemas kini sebentar lagi.');
+  else if(paymentStatus==='2') toast('Pembayaran masih diproses.');
+  else if(paymentStatus==='3') toast('Pembayaran tidak berjaya. Anda boleh cuba semula.');
+}
+
 const ref = new URLSearchParams(location.search).get('ref');
 if(ref){ localStorage.setItem('cilikgo_ref',ref); toast('Kod agent '+ref+' telah direkodkan.'); }
 $('#agentSignupBtn').onclick=()=>{ $('#regRole').value='agent'; $('#registerModal').showModal(); };
@@ -60,7 +68,8 @@ $('#registerBtn').onclick=async()=>{
   try{
     const cred=await fb.createUserWithEmailAndPassword(fb.auth,email,pass);
     const agentCode=role==='agent'?'CG-'+cred.user.uid.slice(0,7).toUpperCase():null;
-    await fb.setDoc(fb.doc(fb.db,'users',cred.user.uid),{name,email,role,agentCode,createdAt:fb.serverTimestamp(),subscriptionStatus:'inactive'});
+    const referredByCode=role==='user'?(localStorage.getItem('cilikgo_ref')||null):null;
+    await fb.setDoc(fb.doc(fb.db,'users',cred.user.uid),{name,email,role,agentCode,referredByCode,createdAt:fb.serverTimestamp(),subscriptionStatus:'inactive'});
     $('#registerModal').close(); toast('Akaun berjaya didaftarkan.');
   }catch(e){ console.error(e); toast(friendlyError(e)); }
 };
@@ -103,6 +112,13 @@ async function loadProgress(uid,childId){
   }catch(e){ console.warn('progress',e); return []; }
 }
 
+function formatDate(value){
+  if(!value) return '-';
+  const d=value?.toDate?value.toDate():new Date(value);
+  if(Number.isNaN(d.getTime())) return '-';
+  return d.toLocaleDateString('ms-MY',{day:'2-digit',month:'short',year:'numeric'});
+}
+
 async function renderUser(p){
   try{ await loadChildren(p.uid); }catch(e){ console.warn(e); userChildren=[]; activeChild=null; }
   const progress=await loadProgress(p.uid,activeChild?.id);
@@ -116,8 +132,10 @@ async function renderUser(p){
   <div class="section-line"><h3>Profil Anak</h3><button class="btn primary" id="addChildBtn">+ Tambah Anak</button></div>
   ${userChildren.length?`<div class="child-grid">${userChildren.map(c=>`<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name||'Anak')}</b><small>${esc(c.age||'')} tahun</small></button>`).join('')}</div>`:'<div class="empty-state">Belum ada profil anak. Tambah profil pertama untuk mula merekod kemajuan 3M.</div>'}
   ${activeChild?`<div class="learning-panel"><div class="section-line"><div><small>Sedang belajar sebagai</small><h3>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</h3></div><button class="btn ghost" id="deleteChildBtn">Padam Profil</button></div><div class="module-progress-grid"><div><b>📖 Membaca</b><strong>${byModule('Membaca')} ⭐</strong><button class="btn primary child-game" data-game="read">Mula</button></div><div><b>✏️ Menulis</b><strong>${byModule('Menulis')} ⭐</strong><button class="btn primary child-game" data-game="write">Mula</button></div><div><b>🧮 Mengira</b><strong>${byModule('Mengira')} ⭐</strong><button class="btn primary child-game" data-game="count">Mula</button></div></div><p class="muted-left">Setiap modul mempunyai 3 level. Kumpul ⭐ untuk membuka level seterusnya; kemajuan disimpan mengikut profil anak.</p></div>`:''}
+  <div class="subscription-box"><div><small>Status langganan</small><h3>${active?'Aktif hingga '+formatDate(p.subscriptionEndsAt):'Belum aktif'}</h3><p>${active?'Akses penuh CilikGo sedang aktif.':'Aktifkan pakej permulaan RM69 untuk 4 bulan akses penuh.'}</p></div><button class="btn primary" id="dashboardSubscribeBtn">${active?'Sambung RM15 / bulan':'Langgan RM69 / 4 bulan'}</button></div>
   <div class="dash-note">Sistem 3M kini mempunyai Level 1–3, bank soalan rawak, bintang dan pembukaan level berdasarkan pencapaian anak.</div></section></div>`;
   $('#addChildBtn').onclick=()=>$('#childModal').showModal();
+  if($('#dashboardSubscribeBtn')) $('#dashboardSubscribeBtn').onclick=()=>startPayment(active?'renewal':'starter');
   document.querySelectorAll('[data-child]').forEach(b=>b.onclick=()=>{ activeChild=userChildren.find(c=>c.id===b.dataset.child); localStorage.setItem('cilikgo_active_child',activeChild.id); renderUser(p); });
   document.querySelectorAll('.child-game').forEach(b=>b.onclick=()=>openGame(b.dataset.game,true));
   if($('#deleteChildBtn')) $('#deleteChildBtn').onclick=async()=>{ if(!activeChild||!confirm(`Padam profil ${activeChild.name}? Rekod kemajuan sedia ada akan kekal untuk audit.`)) return; try{ await fb.deleteDoc(fb.doc(fb.db,'children',activeChild.id)); localStorage.removeItem('cilikgo_active_child'); toast('Profil anak dipadam.'); await renderUser(p); }catch(e){toast('Gagal padam profil: '+friendlyError(e));} };
@@ -150,11 +168,27 @@ if(fb) fb.onAuthStateChanged(fb.auth, async user=>{
   catch(e){ console.error(e); toast('Gagal membaca profil Firestore: '+e.message); }
 });
 
-$('#buyBtn').onclick=async()=>{
+async function startPayment(plan='starter'){
   if(!fb?.auth.currentUser) return toast('Sila log masuk dahulu.');
-  try{ const token=await fb.auth.currentUser.getIdToken(); const res=await fetch('/api/createBill',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({plan:'starter',agentRef:localStorage.getItem('cilikgo_ref')||null})}); const data=await res.json(); if(!res.ok) throw new Error(data.error||'Gagal cipta bil'); location.href=data.paymentUrl; }
-  catch(e){ toast('Pembayaran belum tersedia di GitHub Pages. Integrasi Firebase Functions/ToyyibPay diperlukan.'); console.warn(e); }
-};
+  if(currentProfile?.role!=='user') return toast('Langganan adalah untuk akaun Penjaga.');
+  try{
+    toast('Menyediakan pembayaran selamat…');
+    const token=await fb.auth.currentUser.getIdToken();
+    const res=await fetch(`${FUNCTIONS_BASE_URL}/createBill`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({plan})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Gagal cipta bil');
+    if(!data.paymentUrl) throw new Error('URL pembayaran tidak diterima.');
+    location.href=data.paymentUrl;
+  }catch(e){
+    console.error(e);
+    toast('Pembayaran belum aktif. Deploy Firebase Functions dan tetapkan ToyyibPay terlebih dahulu.');
+  }
+}
+$('#buyBtn').onclick=()=>startPayment(currentProfile?.subscriptionStatus==='active'?'renewal':'starter');
 
 $('#saveChildBtn').onclick=async()=>{
   if(!fb?.auth.currentUser||currentProfile?.role!=='user') return toast('Fungsi ini untuk akaun Penjaga.');

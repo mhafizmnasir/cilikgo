@@ -10,3 +10,9 @@ export const firebaseConfig = {
 };
 
 export const USE_FIREBASE = true;
+
+
+// Backend pembayaran CilikGo. GitHub Pages memanggil Firebase Functions melalui URL penuh.
+export const FUNCTIONS_REGION = "asia-southeast1";
+export const FUNCTIONS_BASE_URL =
+  `https://${FUNCTIONS_REGION}-${firebaseConfig.projectId}.cloudfunctions.net`;
