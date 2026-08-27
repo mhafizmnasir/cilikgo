@@ -738,19 +738,26 @@
 
   </main>
 
-  <!-- PWA Install Popup Banner -->
-  <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-sm bg-slate-900 text-white p-4 rounded-3xl shadow-2xl border border-slate-700 z-50 flex items-center justify-between gap-3 animate-bounce">
-    <div class="flex items-center gap-3">
-      <span class="text-3xl">📱</span>
-      <div>
-        <p class="font-bold text-xs">Pasang Aplikasi CilikGo</p>
-        <p class="text-[10px] text-slate-400">Akses pantas terus dari skrin utama telefon!</p>
-      </div>
+  <!-- PWA Install Popup Banner (Kemaskini) -->
+<div id="pwa-install-banner" class="hidden fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-xs bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-slate-700/80 z-50 flex items-center justify-between gap-2.5">
+  <div class="flex items-center gap-2.5 overflow-hidden">
+    <span class="text-2xl flex-shrink-0">📱</span>
+    <div class="truncate">
+      <p class="font-bold text-xs leading-tight truncate">Pasang CilikGo</p>
+      <p class="text-[10px] text-slate-400 leading-tight">Main di skrin utama</p>
     </div>
-    <button id="pwa-install-btn" class="bg-gradient-to-r from-indigo-500 to-pink-500 hover:opacity-90 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow">
+  </div>
+  
+  <div class="flex items-center gap-1.5 flex-shrink-0">
+    <button id="pwa-install-btn" class="bg-gradient-to-r from-indigo-500 to-pink-500 hover:opacity-90 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition shadow">
       Pasang
     </button>
+    <!-- Butang Tutup (X) -->
+    <button onclick="document.getElementById('pwa-install-banner').classList.add('hidden')" class="text-slate-400 hover:text-white p-1 rounded-lg text-xs" aria-label="Tutup">
+      ✕
+    </button>
   </div>
+</div>
 
   <!-- Skrip Modul Interaktif 3M & Logik PWA -->
   <script>
