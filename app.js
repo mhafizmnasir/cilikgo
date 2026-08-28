@@ -1063,13 +1063,20 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
       });
 
       $('#gameMsg').innerHTML=`<div class="quiz-feedback-box correct"><b>✓ ${cfg.correct}</b><span>${esc(q.success||cfg.correct)}</span><strong>+${earned} ⭐</strong></div>`;
-      $('.quiz-score-box b').textContent=scoreStars;
-      $('.quiz-progress-track span').style.width=`${Math.round((index+1)/questions.length*100)}%`;
+      const scoreEl=$('.quiz-score-box b');
+      if(scoreEl) scoreEl.textContent=scoreStars;
+
+      // Aktifkan Seterusnya dahulu supaya apa-apa isu visual lain tidak boleh
+      // menyebabkan butang kekal kelabu selepas jawapan betul.
       nextBtn.disabled=false;
       nextBtn.removeAttribute('disabled');
       nextBtn.classList.remove('locked');
       nextBtn.classList.add('ready');
       nextBtn.setAttribute('aria-disabled','false');
+
+      const progressEl=$('.quiz-ref-progress-track span')||$('.quiz-progress-track span');
+      if(progressEl) progressEl.style.width=`${Math.round((index+1)/questions.length*100)}%`;
+
       quizScreenEffect('correct');
       celebrate();
       setTimeout(()=>nextBtn.scrollIntoView({behavior:'smooth',block:'nearest'}),120);

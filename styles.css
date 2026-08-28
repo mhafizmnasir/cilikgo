@@ -2273,3 +2273,32 @@ body{
   25%{opacity:1}
   100%{opacity:0;transform:translateY(-65px) scale(1.25) rotate(12deg)}
 }
+
+/* =========================================================
+   Active Next Button visual fix
+   ========================================================= */
+.reference-quiz .quiz-next-btn.ready,
+.reference-quiz .quiz-next-btn[aria-disabled="false"]{
+  background:linear-gradient(135deg,#7047f1 0%,#8d5bf7 55%,#a06cf8 100%)!important;
+  border-color:#ddd2ff!important;
+  color:#ffffff!important;
+  opacity:1!important;
+  filter:none!important;
+  cursor:pointer!important;
+  box-shadow:
+    0 10px 24px rgba(100,67,218,.30),
+    inset 0 1px 0 rgba(255,255,255,.28)!important;
+  text-shadow:0 1px 2px rgba(54,34,128,.24);
+}
+.reference-quiz .quiz-next-btn.ready span,
+.reference-quiz .quiz-next-btn[aria-disabled="false"] span{
+  color:#fff!important;
+  opacity:1!important;
+}
+.reference-quiz .quiz-next-btn.locked[aria-disabled="true"]{
+  background:#d8dae6!important;
+  border-color:#ececf2!important;
+  color:#9295a3!important;
+  opacity:.92!important;
+  box-shadow:none!important;
+}
