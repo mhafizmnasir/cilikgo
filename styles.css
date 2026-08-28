@@ -169,7 +169,10 @@ body.app-mode #dashboard{height:calc(100dvh - 64px);overflow:hidden}
 .app-brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:#25253b;font-weight:900}.app-user{display:flex;align-items:center;gap:9px}.app-user>span{font-size:13px;font-weight:800;color:#565a6c}
 .btn.small{padding:8px 12px;font-size:12px}
 body.student-mode .app-topbar{display:none}
-body.student-mode #dashboard{height:100dvh}
+body.student-mode #dashboard{
+  height:100dvh;
+  overflow:hidden!important;
+}
 
 .clean-shell{height:100%;display:grid!important;grid-template-columns:230px 1fr;background:#f5f7fb}
 .clean-side{height:100%;padding:20px 14px!important;background:#fff!important;border-right:1px solid #e8eaf1;overflow:hidden}
@@ -230,8 +233,17 @@ body.app-mode .dash-shell:not(.clean-shell) .dash-main{height:100%;overflow:auto
 /* =========================================================
    Student Interactive UI — Gamified learning home
    ========================================================= */
-.interactive-student{position:relative;overflow:auto!important;min-height:100dvh;background:
-  linear-gradient(180deg,#f7f7ff 0%,#f5f8ff 48%,#f8fbff 100%)}
+.interactive-student{
+  position:relative;
+  height:100dvh;
+  min-height:0;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  box-sizing:border-box;
+  background:linear-gradient(180deg,#f7f7ff 0%,#f5f8ff 48%,#f8fbff 100%);
+}
 .student-bg-orb{position:fixed;border-radius:999px;filter:blur(2px);pointer-events:none;opacity:.55;z-index:0}
 .orb-one{width:280px;height:280px;left:-100px;top:120px;background:radial-gradient(circle,#dcd6ff,transparent 70%)}
 .orb-two{width:360px;height:360px;right:-120px;top:300px;background:radial-gradient(circle,#ccefff,transparent 70%)}
@@ -299,9 +311,9 @@ body.app-mode .dash-shell:not(.clean-shell) .dash-main{height:100%;overflow:auto
 /* Student Portal blank-screen fix */
 body.app-mode.student-mode #portal #dashboard .student-portal .student-main{
   display:block!important;
-  min-height:calc(100dvh - 72px)!important;
+  min-height:0!important;
   height:auto!important;
-  padding:28px 28px 42px!important;
+  padding:28px 28px 56px!important;
   margin:0 auto!important;
 }
 body.app-mode.student-mode #portal #dashboard .student-portal .student-main>section{
@@ -319,5 +331,29 @@ body.app-mode.student-mode #portal #dashboard .student-tip-card{
 @media(max-width:680px){
   body.app-mode.student-mode #portal #dashboard .student-portal .student-main{
     padding:18px 14px 34px!important;
+  }
+}
+
+/* Student page vertical-scroll fix */
+body.app-mode.student-mode #portal{
+  overflow:hidden!important;
+}
+body.app-mode.student-mode #dashboard{
+  position:relative;
+  overflow:hidden!important;
+}
+body.app-mode.student-mode .interactive-student{
+  max-height:100dvh;
+  scrollbar-gutter:stable;
+}
+body.app-mode.student-mode .interactive-main{
+  padding-bottom:72px!important;
+}
+body.app-mode.student-mode .student-tip-card{
+  margin-bottom:8px;
+}
+@media(max-width:680px){
+  body.app-mode.student-mode .interactive-main{
+    padding-bottom:52px!important;
   }
 }
