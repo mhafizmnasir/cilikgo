@@ -570,6 +570,326 @@ async function renderStudentPortal(p){
   animateIn(root);
 }
 
+
+/* =========================================================
+   CilikGo Full-Screen Quiz Engine
+   Tahun 1: BM / BI / Matematik / Sains
+   ========================================================= */
+let cgSpeechVoices=[];
+function refreshCgSpeechVoices(){
+  if('speechSynthesis' in window) cgSpeechVoices=window.speechSynthesis.getVoices()||[];
+}
+refreshCgSpeechVoices();
+if('speechSynthesis' in window){
+  window.speechSynthesis.addEventListener?.('voiceschanged',refreshCgSpeechVoices);
+}
+
+function pickCgVoice(lang){
+  refreshCgSpeechVoices();
+  const target=String(lang||'ms-MY').toLowerCase();
+  if(target.startsWith('ms')){
+    return cgSpeechVoices.find(v=>String(v.lang).toLowerCase()==='ms-my')
+      ||cgSpeechVoices.find(v=>String(v.lang).toLowerCase().startsWith('ms-'))
+      ||cgSpeechVoices.find(v=>/malay|malaysia/i.test(`${v.name} ${v.lang}`))
+      ||null;
+  }
+  return cgSpeechVoices.find(v=>String(v.lang).toLowerCase()==='en-my')
+    ||cgSpeechVoices.find(v=>String(v.lang).toLowerCase()==='en-gb')
+    ||cgSpeechVoices.find(v=>String(v.lang).toLowerCase().startsWith('en-'))
+    ||null;
+}
+
+function speakCilikGo(text,lang='ms-MY',button=null){
+  if(!('speechSynthesis' in window)||!window.SpeechSynthesisUtterance){
+    toast('Fungsi suara tidak disokong oleh browser ini.');
+    return;
+  }
+  const synth=window.speechSynthesis;
+  synth.cancel();
+
+  const utterance=new SpeechSynthesisUtterance(String(text||''));
+  const voice=pickCgVoice(lang);
+  if(voice) utterance.voice=voice;
+  utterance.lang=lang;
+  utterance.rate=1;
+  utterance.pitch=1;
+  utterance.volume=1;
+
+  let resumeMusic=false;
+  if(typeof cgMusicOn!=='undefined'&&cgMusicOn&&typeof cgAudioCtx!=='undefined'&&cgAudioCtx?.state==='running'){
+    resumeMusic=true;
+    cgAudioCtx.suspend().catch(()=>{});
+  }
+
+  const original=button?.innerHTML||'';
+  if(button){
+    button.disabled=true;
+    button.innerHTML=lang.startsWith('en')?'🔊 Playing…':'🔊 Sedang membaca…';
+    button.classList.add('speaking');
+  }
+  const cleanup=()=>{
+    if(button){
+      button.disabled=false;
+      button.innerHTML=original;
+      button.classList.remove('speaking');
+    }
+    if(resumeMusic&&typeof cgMusicOn!=='undefined'&&cgMusicOn&&cgAudioCtx?.state==='suspended'){
+      cgAudioCtx.resume().catch(()=>{});
+    }
+  };
+  utterance.onend=cleanup;
+  utterance.onerror=e=>{
+    console.warn('speech synthesis',e);
+    cleanup();
+    toast(lang.startsWith('en')?'Audio could not be played.':'Audio tidak dapat dimainkan. Cuba tekan Dengar sekali lagi.');
+  };
+
+  // Chrome/mobile lebih stabil selepas cancel() diberi sedikit masa.
+  setTimeout(()=>{
+    try{
+      synth.resume();
+      synth.speak(utterance);
+    }catch(e){
+      console.error(e);
+      cleanup();
+      toast('Audio tidak dapat dimainkan pada browser ini.');
+    }
+  },60);
+}
+
+function quizScreenEffect(type){
+  const stage=$('#gameContent .quiz-fullscreen-shell');
+  if(!stage)return;
+  stage.classList.remove('quiz-effect-wrong','quiz-effect-correct');
+  void stage.offsetWidth;
+  const cls=type==='correct'?'quiz-effect-correct':'quiz-effect-wrong';
+  stage.classList.add(cls);
+  if(navigator.vibrate){
+    navigator.vibrate(type==='correct'?[35]:[70,40,70]);
+  }
+  setTimeout(()=>stage.classList.remove(cls),650);
+}
+
+function fourQuizChoices(question,isEnglish=false){
+  const choices=[...(question.answers||[])].map(String);
+  const fillers=isEnglish
+    ?['Not sure','Another answer','None of these']
+    :['Tidak pasti','Jawapan lain','Tiada jawapan di atas'];
+  for(const filler of fillers){
+    if(choices.length>=4)break;
+    if(!choices.includes(filler)&&String(question.correct)!==filler)choices.push(filler);
+  }
+  while(choices.length<4) choices.push(isEnglish?`Choice ${choices.length+1}`:`Pilihan ${choices.length+1}`);
+  // Susunan A-D berubah setiap soalan supaya satu huruf tidak sentiasa menjadi jawapan.
+  return choices.slice(0,4).sort(()=>Math.random()-.5);
+}
+
+function year1QuizRuntimeConfig(subjectKey){
+  const configs={
+    bm:{
+      key:'bm',name:'Bahasa Melayu',icon:'🇲🇾',bank:bmYear1Bank,
+      module:'KSSR Bahasa Melayu Tahun 1',activity:'kssr_bm_y1_',lang:'ms-MY',
+      question:'Soalan',complete:'selesai',listen:'Dengar',
+      hint:'Dengar soalan atau baca sendiri, kemudian pilih jawapan A, B, C atau D.',
+      wrong:'Belum tepat. Cuba lagi!',correct:'Betul!',next:'Seterusnya',
+      done:'Syabas!',keep:'Teruskan latihan!',again:'Latih Lagi',topics:'Pilih Topik',
+      questionsDone:'Soalan selesai',attempts:'Percubaan',score:'Skor bintang',
+      hub:renderBmYear1Hub
+    },
+    bi:{
+      key:'bi',name:'Bahasa Inggeris',icon:'🔤',bank:biYear1Bank,
+      module:'KSSR Bahasa Inggeris Tahun 1',activity:'kssr_bi_y1_',lang:'en-GB',
+      question:'Question',complete:'complete',listen:'Listen',
+      hint:'Listen or read the question, then choose answer A, B, C or D.',
+      wrong:'Not quite. Try again!',correct:'Correct!',next:'Next',
+      done:'Well done!',keep:'Keep practising!',again:'Practise Again',topics:'Choose Topic',
+      questionsDone:'Questions completed',attempts:'Attempts',score:'Star score',
+      hub:renderBiYear1Hub
+    },
+    math:{
+      key:'math',name:'Matematik',icon:'➗',bank:mathYear1Bank,
+      module:'KSSR Matematik Tahun 1',activity:'kssr_math_y1_',lang:'ms-MY',
+      question:'Soalan',complete:'selesai',listen:'Dengar',
+      hint:'Dengar soalan atau baca sendiri, kemudian pilih jawapan A, B, C atau D.',
+      wrong:'Belum tepat. Cuba lagi!',correct:'Betul!',next:'Seterusnya',
+      done:'Syabas!',keep:'Teruskan latihan!',again:'Latih Lagi',topics:'Pilih Topik',
+      questionsDone:'Soalan selesai',attempts:'Percubaan',score:'Skor bintang',
+      hub:renderMathYear1Hub
+    },
+    science:{
+      key:'science',name:'Sains',icon:'🔬',bank:scienceYear1Bank,
+      module:'KSSR Sains Tahun 1',activity:'kssr_science_y1_',lang:'ms-MY',
+      question:'Soalan',complete:'selesai',listen:'Dengar',
+      hint:'Dengar soalan atau baca sendiri, kemudian pilih jawapan A, B, C atau D.',
+      wrong:'Belum tepat. Cuba lagi!',correct:'Betul!',next:'Seterusnya',
+      done:'Syabas!',keep:'Teruskan latihan!',again:'Latih Lagi',topics:'Pilih Topik',
+      questionsDone:'Soalan selesai',attempts:'Percubaan',score:'Skor bintang',
+      hub:renderScienceYear1Hub
+    }
+  };
+  return configs[subjectKey];
+}
+
+async function startYear1FullscreenQuiz(subjectKey,topicKey){
+  if(!fb?.auth.currentUser){showAuthPage('login');return;}
+  const p=currentProfile||await getProfile(fb.auth.currentUser);
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'latihan');return;}
+  if(!activeChild){toast('Pilih profil pelajar dahulu.');return;}
+
+  const cfg=year1QuizRuntimeConfig(subjectKey);
+  const topic=cfg?.bank?.[topicKey];
+  if(!cfg||!topic){toast('Topik tidak dijumpai.');return;}
+
+  const childYear=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
+  if(childYear!==1){toast(`Latihan ini untuk Tahun 1. Profil ini ialah Tahun ${childYear}.`);return;}
+
+  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
+  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
+
+  const renderQuestion=()=>{
+    const q=questions[index];
+    let attemptsThisQuestion=0;
+    let answeredCorrectly=false;
+    const pct=Math.round(index/questions.length*100);
+    const isEnglish=cfg.lang.startsWith('en');
+    const choices=fourQuizChoices(q,isEnglish);
+    const letters=['A','B','C','D'];
+
+    $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell subject-${cfg.key}">
+      <header class="quiz-full-header">
+        <div class="quiz-full-brand"><span class="brand-badge">CG</span><div><small>CILIKGO PELAJAR</small><b>${cfg.name} · Tahun 1</b></div></div>
+        <div class="quiz-child-pill">${esc(activeChild.avatar||'🧒')} <span>${esc(activeChild.name)}</span></div>
+      </header>
+
+      <main class="quiz-full-main">
+        <div class="quiz-topline">
+          <div><span class="quiz-subject-chip">${cfg.icon} ${cfg.name} · Tahun 1</span><h1>${topic.icon} ${esc(topic.title)}</h1></div>
+          <div class="quiz-score-box"><span>⭐</span><b>${scoreStars}</b></div>
+        </div>
+
+        <div class="quiz-progress-row">
+          <div><b>${cfg.question} ${index+1}/${questions.length}</b><small>${pct}% ${cfg.complete}</small></div>
+          <div class="quiz-progress-track"><span style="width:${pct}%"></span></div>
+        </div>
+
+        <section class="quiz-question-panel">
+          <button class="quiz-listen-btn" id="speakQuestion">🔊 ${cfg.listen}</button>
+          <p class="quiz-audio-hint">${cfg.hint}</p>
+          <h2 class="quiz-question-text">${esc(q.prompt)}</h2>
+
+          <div class="quiz-answer-grid">
+            ${choices.map((answer,i)=>`<button class="quiz-answer" data-answer="${esc(answer)}">
+              <span class="quiz-answer-letter">${letters[i]}</span>
+              <span class="quiz-answer-text">${esc(answer)}</span>
+            </button>`).join('')}
+          </div>
+
+          <div class="quiz-feedback" id="gameMsg" aria-live="polite"></div>
+
+          <div class="quiz-next-row">
+            <button class="quiz-next-btn" id="quizNextBtn" disabled>${cfg.next}<span>→</span></button>
+          </div>
+        </section>
+      </main>
+    </section>`;
+
+    if(!$('#gameModal').open) $('#gameModal').showModal();
+
+    const speakBtn=$('#speakQuestion');
+    speakBtn.onclick=()=>speakCilikGo(q.prompt,cfg.lang,speakBtn);
+
+    const nextBtn=$('#quizNextBtn');
+    document.querySelectorAll('.quiz-answer').forEach(btn=>btn.onclick=()=>{
+      if(answeredCorrectly)return;
+      attemptsThisQuestion++;
+      totalAttempts++;
+
+      const answer=btn.dataset.answer;
+      if(answer!==String(q.correct)){
+        btn.classList.remove('answer-correct');
+        btn.classList.add('answer-wrong');
+        setTimeout(()=>btn.classList.remove('answer-wrong'),650);
+        $('#gameMsg').innerHTML=`<div class="quiz-feedback-box wrong"><b>✕ ${cfg.wrong}</b><span>${isEnglish?`Attempt ${attemptsThisQuestion}`:`Percubaan ${attemptsThisQuestion}`}</span></div>`;
+        quizScreenEffect('wrong');
+        return;
+      }
+
+      answeredCorrectly=true;
+      correctCount++;
+      const earned=attemptsThisQuestion===1?3:attemptsThisQuestion===2?2:1;
+      scoreStars+=earned;
+
+      btn.classList.add('answer-correct');
+      document.querySelectorAll('.quiz-answer').forEach(a=>{
+        a.disabled=true;
+        if(a.dataset.answer===String(q.correct))a.classList.add('answer-correct');
+      });
+
+      $('#gameMsg').innerHTML=`<div class="quiz-feedback-box correct"><b>✓ ${cfg.correct}</b><span>${esc(q.success||cfg.correct)}</span><strong>+${earned} ⭐</strong></div>`;
+      $('.quiz-score-box b').textContent=scoreStars;
+      $('.quiz-progress-track span').style.width=`${Math.round((index+1)/questions.length*100)}%`;
+      nextBtn.disabled=false;
+      quizScreenEffect('correct');
+      celebrate();
+    });
+
+    nextBtn.onclick=()=>{
+      if(!answeredCorrectly)return;
+      index++;
+      if(index<questions.length)renderQuestion();
+      else finishQuiz();
+    };
+  };
+
+  const finishQuiz=async()=>{
+    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100),isEnglish=cfg.lang.startsWith('en');
+    $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell quiz-result-screen subject-${cfg.key}">
+      <main class="quiz-result-main">
+        <div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
+        <span class="quiz-subject-chip">${cfg.icon} ${cfg.name} · Tahun 1</span>
+        <h1>${passed?cfg.done:cfg.keep}</h1>
+        <p>${esc(activeChild.name)} ${isEnglish?'has completed':'telah menamatkan'} <b>${esc(topic.title)}</b>.</p>
+        <div class="result-stars">⭐ ${scoreStars} / 15</div>
+        <div class="result-grid">
+          <div><b>${correctCount}/5</b><small>${cfg.questionsDone}</small></div>
+          <div><b>${totalAttempts}</b><small>${cfg.attempts}</small></div>
+          <div><b>${pct}%</b><small>${cfg.score}</small></div>
+        </div>
+        <div class="result-actions">
+          <button class="btn primary" id="quizAgain">${cfg.again}</button>
+          <button class="btn ghost" id="quizTopics">${cfg.topics}</button>
+        </div>
+        <p class="result-tip">${passed?(isEnglish?'⭐ This topic is marked as mastered based on the best score.':'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik.'):(isEnglish?'Aim for at least ⭐ 8/15.':'Sasarkan sekurang-kurangnya ⭐ 8/15.')}</p>
+      </main>
+    </section>`;
+    celebrate();
+
+    try{
+      await fb.addDoc(fb.collection(fb.db,'progress'),{
+        ownerUid:fb.auth.currentUser.uid,
+        childId:activeChild.id,
+        module:cfg.module,
+        activity:`${cfg.activity}${topicKey}`,
+        level:1,year:1,subject:cfg.key,topic:topicKey,questions:5,
+        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
+        createdAt:fb.serverTimestamp()
+      });
+      toast(`⭐ Rekod ${topic.title} disimpan.`);
+    }catch(e){
+      console.error(e);
+      toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');
+    }
+
+    $('#quizAgain').onclick=()=>startYear1FullscreenQuiz(subjectKey,topicKey);
+    $('#quizTopics').onclick=()=>{
+      $('#gameModal').close();
+      cfg.hub(p);
+    };
+  };
+
+  renderQuestion();
+}
+
 function year1SubjectConfig(key){
   return {
     bm:{name:'Bahasa Melayu',short:'BM',icon:'🇲🇾',theme:'bm',bank:bmYear1Bank,activity:'kssr_bm_y1_',start:startBmYear1Topic,back:'Semua Subjek',kicker:'BAHASA MELAYU TAHUN 1',heading:'Pilih topik Bahasa Melayu',intro:'Pilih satu topik dan lengkapkan 5 soalan. Rekod terbaik digunakan untuk menunjukkan penguasaan.',startLabel:'Mula Latihan',againLabel:'Latih Lagi',notStarted:'Belum dimainkan',bestLabel:'Rekod terbaik'},
@@ -666,290 +986,19 @@ async function renderYear1SubjectHub(p,key){
 
 async function renderScienceYear1Hub(p){ return renderYear1SubjectHub(p,'science'); }
 
-async function startScienceYear1Topic(topicKey){
-  if(!fb?.auth.currentUser){openAuth('login');return;}
-  const p=currentProfile||await getProfile(fb.auth.currentUser);
-  if(!subscriptionState(p).active){showSubscriptionGate(p,'count');return;}
-  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-  const topic=scienceYear1Bank[topicKey];
-  if(!topic){toast('Topik tidak dijumpai.');return;}
-  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
-  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
-
-  const render=()=>{
-    const q=questions[index]; let attempts=0,completed=false;
-    const pct=Math.round(index/questions.length*100);
-    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="quiz-subject-chip">🔬 Sains · Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
-      <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
-      <div class="level-progress"><span style="width:${pct}%"></span></div>
-      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Baca atau dengar soalan, kemudian pilih jawapan terbaik.</span></div>
-      <div class="game-prompt">${esc(q.prompt)}</div>
-      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
-      <div id="gameMsg"></div>`;
-    if(!$('#gameModal').open) $('#gameModal').showModal();
-    $('#speakQuestion').onclick=()=>speakBM(q.prompt);
-    document.querySelectorAll('.answer').forEach(btn=>btn.onclick=()=>{
-      if(completed)return;
-      attempts++; totalAttempts++;
-      if(btn.textContent!==q.correct){
-        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),450);
-        $('#gameMsg').innerHTML=`<div class="try-again">💪 Belum tepat. Cuba lagi! <small>Percubaan ${attempts}</small></div>`;
-        speakBM('Cuba lagi'); return;
-      }
-      completed=true; correctCount++;
-      const earned=attempts===1?3:attempts===2?2:1;
-      scoreStars+=earned;
-      btn.classList.add('correct');
-      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
-      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Betul!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(earned)}</strong></div>`;
-      celebrate(); speakBM(q.success||'Betul');
-      setTimeout(()=>{index++;index<questions.length?render():finish();},1200);
-    });
-  };
-
-  const finish=async()=>{
-    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
-    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <span class="quiz-subject-chip">🔬 Sains · Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
-      <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
-      <div class="result-stars">⭐ ${scoreStars} / 15</div>
-      <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
-      <div class="result-actions"><button class="btn primary" id="scienceAgain">Latih Lagi</button><button class="btn ghost" id="scienceTopics">Pilih Topik</button></div>
-      <p class="result-tip">${passed?'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik.':'Sasarkan sekurang-kurangnya ⭐ 8/15.'}</p></div>`;
-    celebrate(); speakBM(passed?'Syabas, hebat!':'Teruskan latihan');
-    try{
-      await fb.addDoc(fb.collection(fb.db,'progress'),{
-        ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,
-        module:'KSSR Sains Tahun 1',activity:`kssr_science_y1_${topicKey}`,
-        level:1,year:1,subject:'science',topic:topicKey,questions:5,
-        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
-        createdAt:fb.serverTimestamp()
-      });
-      toast(`⭐ Rekod ${topic.title} disimpan.`);
-    }catch(e){console.error(e);toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');}
-    $('#scienceAgain').onclick=()=>startScienceYear1Topic(topicKey);
-    $('#scienceTopics').onclick=()=>{$('#gameModal').close();renderScienceYear1Hub(p);};
-  };
-  render();
-}
+async function startScienceYear1Topic(topicKey){ return startYear1FullscreenQuiz('science',topicKey); }
 
 async function renderBiYear1Hub(p){ return renderYear1SubjectHub(p,'bi'); }
 
-async function startBiYear1Topic(topicKey){
-  if(!fb?.auth.currentUser){openAuth('login');return;}
-  const p=currentProfile||await getProfile(fb.auth.currentUser);
-  if(!subscriptionState(p).active){showSubscriptionGate(p,'read');return;}
-  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-  const topic=biYear1Bank[topicKey];
-  if(!topic){toast('Topik tidak dijumpai.');return;}
-  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
-  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
-
-  const speakEnglish=text=>{
-    if(!('speechSynthesis' in window)) return;
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    const voices=speechSynthesis.getVoices();
-    u.voice=voices.find(v=>/^en-MY/i.test(v.lang))||voices.find(v=>/^en-GB/i.test(v.lang))||voices.find(v=>/^en/i.test(v.lang))||null;
-    u.lang=u.voice?.lang||'en-GB';
-    u.rate=.86; u.pitch=1.02;
-    speechSynthesis.speak(u);
-  };
-
-  const render=()=>{
-    const q=questions[index]; let attempts=0,completed=false;
-    const pct=Math.round(index/questions.length*100);
-    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="quiz-subject-chip">🔤 Bahasa Inggeris · Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
-      <div class="learning-hud"><div><b>Question ${index+1}/${questions.length}</b><small>${pct}% complete</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
-      <div class="level-progress"><span style="width:${pct}%"></span></div>
-      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Listen</button><span>Read or listen, then choose the best answer.</span></div>
-      <div class="game-prompt">${esc(q.prompt)}</div>
-      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
-      <div id="gameMsg"></div>`;
-    if(!$('#gameModal').open) $('#gameModal').showModal();
-    $('#speakQuestion').onclick=()=>speakEnglish(q.prompt);
-    document.querySelectorAll('.answer').forEach(btn=>btn.onclick=()=>{
-      if(completed)return;
-      attempts++; totalAttempts++;
-      if(btn.textContent!==q.correct){
-        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),450);
-        $('#gameMsg').innerHTML=`<div class="try-again">💪 Not quite. Try again! <small>Attempt ${attempts}</small></div>`;
-        speakEnglish('Try again'); return;
-      }
-      completed=true; correctCount++;
-      const earned=attempts===1?3:attempts===2?2:1;
-      scoreStars+=earned;
-      btn.classList.add('correct');
-      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
-      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Correct!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(earned)}</strong></div>`;
-      celebrate(); speakEnglish(q.success||'Correct');
-      setTimeout(()=>{index++;index<questions.length?render():finish();},1200);
-    });
-  };
-
-  const finish=async()=>{
-    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
-    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <span class="quiz-subject-chip">🔤 Bahasa Inggeris · Tahun 1</span><h2>${passed?'Well done!':'Keep practising!'}</h2>
-      <p>${esc(activeChild.name)} has completed <b>${esc(topic.title)}</b>.</p>
-      <div class="result-stars">⭐ ${scoreStars} / 15</div>
-      <div class="result-grid"><div><b>${correctCount}/5</b><small>Questions completed</small></div><div><b>${totalAttempts}</b><small>Attempts</small></div><div><b>${pct}%</b><small>Star score</small></div></div>
-      <div class="result-actions"><button class="btn primary" id="biAgain">Practise Again</button><button class="btn ghost" id="biTopics">Choose Topic</button></div>
-      <p class="result-tip">${passed?'⭐ This topic is marked as mastered based on the best score.':'Aim for at least ⭐ 8/15.'}</p></div>`;
-    celebrate(); speakEnglish(passed?'Well done!':'Keep practising');
-    try{
-      await fb.addDoc(fb.collection(fb.db,'progress'),{
-        ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,
-        module:'KSSR Bahasa Inggeris Tahun 1',activity:`kssr_bi_y1_${topicKey}`,
-        level:1,year:1,subject:'bi',topic:topicKey,questions:5,
-        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
-        createdAt:fb.serverTimestamp()
-      });
-      toast(`⭐ Rekod ${topic.title} disimpan.`);
-    }catch(e){console.error(e);toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');}
-    $('#biAgain').onclick=()=>startBiYear1Topic(topicKey);
-    $('#biTopics').onclick=()=>{$('#gameModal').close();renderBiYear1Hub(p);};
-  };
-  render();
-}
+async function startBiYear1Topic(topicKey){ return startYear1FullscreenQuiz('bi',topicKey); }
 
 async function renderBmYear1Hub(p){ return renderYear1SubjectHub(p,'bm'); }
 
-async function startBmYear1Topic(topicKey){
-  if(!fb?.auth.currentUser){openAuth('login');return;}
-  const p=currentProfile||await getProfile(fb.auth.currentUser);
-  if(!subscriptionState(p).active){showSubscriptionGate(p,'read');return;}
-  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-  const topic=bmYear1Bank[topicKey];
-  if(!topic){toast('Topik tidak dijumpai.');return;}
-  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
-  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
-
-  const render=()=>{
-    const q=questions[index]; let attempts=0,completed=false;
-    const pct=Math.round(index/questions.length*100);
-    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="quiz-subject-chip">🇲🇾 Bahasa Melayu · Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
-      <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
-      <div class="level-progress"><span style="width:${pct}%"></span></div>
-      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Baca atau dengar soalan, kemudian pilih jawapan.</span></div>
-      <div class="game-prompt">${esc(q.prompt)}</div>
-      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
-      <div id="gameMsg"></div>`;
-    if(!$('#gameModal').open) $('#gameModal').showModal();
-    $('#speakQuestion').onclick=()=>speakBM(q.prompt);
-    document.querySelectorAll('.answer').forEach(btn=>btn.onclick=()=>{
-      if(completed)return;
-      attempts++; totalAttempts++;
-      if(btn.textContent!==q.correct){
-        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),450);
-        $('#gameMsg').innerHTML=`<div class="try-again">💪 Belum tepat. Cuba lagi! <small>Percubaan ${attempts}</small></div>`;
-        speakBM('Cuba lagi'); return;
-      }
-      completed=true; correctCount++;
-      const earned=attempts===1?3:attempts===2?2:1;
-      scoreStars+=earned;
-      btn.classList.add('correct');
-      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
-      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Betul!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(earned)}</strong></div>`;
-      celebrate(); speakBM(q.success||'Betul');
-      setTimeout(()=>{index++;index<questions.length?render():finish();},1200);
-    });
-  };
-
-  const finish=async()=>{
-    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
-    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <span class="quiz-subject-chip">🇲🇾 Bahasa Melayu · Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
-      <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
-      <div class="result-stars">⭐ ${scoreStars} / 15</div>
-      <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
-      <div class="result-actions"><button class="btn primary" id="bmAgain">Latih Lagi</button><button class="btn ghost" id="bmTopics">Pilih Topik</button></div>
-      <p class="result-tip">${passed?'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik.':'Sasarkan sekurang-kurangnya ⭐ 8/15.'}</p></div>`;
-    celebrate(); speakBM(passed?'Syabas, hebat!':'Teruskan latihan');
-    try{
-      await fb.addDoc(fb.collection(fb.db,'progress'),{
-        ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,
-        module:'KSSR Bahasa Melayu Tahun 1',activity:`kssr_bm_y1_${topicKey}`,
-        level:1,year:1,subject:'bm',topic:topicKey,questions:5,
-        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
-        createdAt:fb.serverTimestamp()
-      });
-      toast(`⭐ Rekod ${topic.title} disimpan.`);
-    }catch(e){console.error(e);toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');}
-    $('#bmAgain').onclick=()=>startBmYear1Topic(topicKey);
-    $('#bmTopics').onclick=()=>{$('#gameModal').close();renderBmYear1Hub(p);};
-  };
-  render();
-}
+async function startBmYear1Topic(topicKey){ return startYear1FullscreenQuiz('bm',topicKey); }
 
 async function renderMathYear1Hub(p){ return renderYear1SubjectHub(p,'math'); }
 
-async function startMathYear1Topic(topicKey){
-  if(!fb?.auth.currentUser){openAuth('login');return;}
-  const p=currentProfile||await getProfile(fb.auth.currentUser);
-  if(!subscriptionState(p).active){showSubscriptionGate(p,'count');return;}
-  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-  const topic=mathYear1Bank[topicKey];
-  if(!topic){toast('Topik tidak dijumpai.');return;}
-  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
-  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
-
-  const render=()=>{
-    const q=questions[index]; let attempts=0,completed=false;
-    const pct=Math.round(index/questions.length*100);
-    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="quiz-subject-chip">➗ Matematik · Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
-      <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
-      <div class="level-progress"><span style="width:${pct}%"></span></div>
-      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Cuba sehingga mendapat jawapan yang betul.</span></div>
-      <div class="game-prompt">${esc(q.prompt)}</div>
-      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
-      <div id="gameMsg"></div>`;
-    if(!$('#gameModal').open) $('#gameModal').showModal();
-    $('#speakQuestion').onclick=()=>speakBM(q.prompt);
-    document.querySelectorAll('.answer').forEach(btn=>btn.onclick=()=>{
-      if(completed)return;
-      attempts++; totalAttempts++;
-      if(btn.textContent!==q.correct){
-        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),450);
-        $('#gameMsg').innerHTML=`<div class="try-again">💪 Belum tepat. Cuba lagi! <small>Percubaan ${attempts}</small></div>`;
-        speakBM('Cuba lagi'); return;
-      }
-      completed=true; correctCount++;
-      const earned=attempts===1?3:attempts===2?2:1;
-      scoreStars+=earned;
-      btn.classList.add('correct');
-      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
-      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Betul!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(earned)}</strong></div>`;
-      celebrate(); speakBM(q.success||'Betul');
-      setTimeout(()=>{index++;index<questions.length?render():finish();},1200);
-    });
-  };
-
-  const finish=async()=>{
-    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
-    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <span class="quiz-subject-chip">➗ Matematik · Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
-      <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
-      <div class="result-stars">⭐ ${scoreStars} / 15</div>
-      <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
-      <div class="result-actions"><button class="btn primary" id="mathAgain">Latih Lagi</button><button class="btn ghost" id="mathTopics">Pilih Topik</button></div>
-      <p class="result-tip">${passed?'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik.':'Sasarkan sekurang-kurangnya ⭐ 8/15.'}</p></div>`;
-    celebrate(); speakBM(passed?'Syabas, hebat!':'Teruskan latihan');
-    try{
-      await fb.addDoc(fb.collection(fb.db,'progress'),{
-        ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,
-        module:'KSSR Matematik Tahun 1',activity:`kssr_math_y1_${topicKey}`,
-        level:1,year:1,subject:'math',topic:topicKey,questions:5,
-        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
-        createdAt:fb.serverTimestamp()
-      });
-      toast(`⭐ Rekod ${topic.title} disimpan.`);
-    }catch(e){console.error(e);toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');}
-    $('#mathAgain').onclick=()=>startMathYear1Topic(topicKey);
-    $('#mathTopics').onclick=()=>{$('#gameModal').close();renderMathYear1Hub(p);};
-  };
-  render();
-}
+async function startMathYear1Topic(topicKey){ return startYear1FullscreenQuiz('math',topicKey); }
 
 async function renderUser(p){
   setRoleNav(false);
