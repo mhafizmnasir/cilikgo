@@ -987,7 +987,8 @@ async function renderUser(p){
       <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
       <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
       <nav class="parent-role-menu">
-        <a class="active" data-parent-view="overview">⌂ <span>Ringkasan</span></a>
+        <a class="active" data-parent-view="overview">⌂ <span>Utama</span></a>
+        <a href="#report-card" id="parentReportCardLink">📊 <span>Report Kad</span></a>
         <a href="#" id="enterStudentNav">🎒 <span>Ruang Pelajar</span></a>
         <a href="#" id="parentSubscriptionLink">💳 <span>Langganan</span></a>
         <a href="#settings" id="parentSettingsLink">⚙️ <span>Tetapan</span></a>
@@ -996,11 +997,6 @@ async function renderUser(p){
     </aside>
     <section class="dash-main clean-main">
       <div class="clean-dash-head"><div><span class="dash-kicker">DASHBOARD PENJAGA</span><h1>Selamat datang, ${esc(p.name||'Penjaga')} 👋</h1><p>Pilih profil anak dan masuk terus ke Ruang Pelajar.</p></div><span class="subscription-chip ${active?'active':''}">${active?`✓ Aktif · ${daysLeft} hari`:'Langganan belum aktif'}</span></div>
-      <div class="parent-quick-grid">
-        <div class="quick-stat"><span>👧</span><div><b>${kids.length}</b><small>Profil pelajar</small></div></div>
-        <div class="quick-stat"><span>⭐</span><div><b>${totalStars}</b><small>Bintang anak dipilih</small></div></div>
-        <div class="quick-stat"><span>📝</span><div><b>${selected.length}</b><small>Sesi direkodkan</small></div></div>
-      </div>
       <div class="clean-section-head"><div><h2>Profil Pelajar</h2><p>Pilih anak yang ingin menggunakan CilikGo.</p></div><button class="btn ghost small" id="addChildBtn">+ Tambah Anak</button></div>
       <div class="child-list compact-list">${childCards||'<div class="empty-state compact-empty">Belum ada profil anak. Tambah profil untuk bermula.</div>'}</div>
       ${activeChild?`<div class="parent-focus-card">
@@ -1024,6 +1020,7 @@ async function renderUser(p){
   };
   $('#enterStudentBtn')?.addEventListener('click',enterStudent);
   $('#enterStudentNav')?.addEventListener('click',enterStudent);
+  $('#parentReportCardLink')?.addEventListener('click',e=>{e.preventDefault();setRoleNav(false);history.pushState(null,'','#report-card');renderParentReportCard(p);});
   $('#parentSettingsLink')?.addEventListener('click',e=>{e.preventDefault();setRoleNav(false);history.pushState(null,'','#settings');renderParentSettingsView(p);});
   document.querySelector('[data-parent-view="overview"]')?.addEventListener('click',e=>{e.preventDefault();setRoleNav(false);});
   animateIn($('#dashboard'));
@@ -1035,6 +1032,106 @@ async function renderUser(p){
     await renderUser(p);
   });
 
+}
+
+
+async function renderParentReportCard(p){
+  setRoleNav(false);
+  document.body.classList.remove('student-mode');
+  showDashboardPage();
+
+  const kids=await loadChildren(p.uid);
+  const allProgress=await loadAllProgress(p.uid);
+  const progress=allProgress.filter(r=>Number(r.year)>=1&&r.subject);
+  if(!activeChild&&kids.length) activeChild=kids[0];
+
+  const selected=activeChild?progress.filter(r=>r.childId===activeChild.id):[];
+  const totalStars=selected.reduce((n,r)=>n+Number(r.stars||0),0);
+  const subjectMeta=[
+    ['bm','Bahasa Melayu','🇲🇾'],
+    ['bi','Bahasa Inggeris','🔤'],
+    ['math','Matematik','➗'],
+    ['science','Sains','🔬']
+  ];
+
+  const subjectRows=subjectMeta.map(([key,name,icon])=>{
+    const rows=selected.filter(r=>r.subject===key);
+    const bestByTopic={};
+    rows.forEach(r=>{
+      const topic=r.topic||'topik';
+      bestByTopic[topic]=Math.max(bestByTopic[topic]||0,Number(r.stars||0));
+    });
+    const mastered=Object.values(bestByTopic).filter(v=>v>=8).length;
+    const best=rows.length?Math.max(...rows.map(r=>Number(r.stars||0))):0;
+    const stars=rows.reduce((n,r)=>n+Number(r.stars||0),0);
+    return `<article class="report-subject-card">
+      <span class="report-subject-icon">${icon}</span>
+      <div><small>SUBJEK</small><h3>${name}</h3><p>${rows.length?`${rows.length} sesi · ${mastered}/6 topik dikuasai`:'Belum ada latihan direkodkan'}</p></div>
+      <div class="report-subject-score"><b>${best?`⭐ ${best}/15`:'—'}</b><small>${stars} jumlah bintang</small></div>
+    </article>`;
+  }).join('');
+
+  const childSelector=kids.map(c=>{
+    const year=Number(c.year||Math.max(1,Number(c.age||7)-6));
+    return `<button class="report-child-chip ${activeChild?.id===c.id?'active':''}" data-report-child="${c.id}">
+      <span>${esc(c.avatar||'🧒')}</span><div><b>${esc(c.name||'-')}</b><small>Tahun ${year}</small></div>
+    </button>`;
+  }).join('');
+
+  $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
+    <aside class="dash-side clean-side role-drawer">
+      <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
+      <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
+      <nav class="parent-role-menu">
+        <a href="#dashboard" id="reportOverviewLink">⌂ <span>Utama</span></a>
+        <a class="active" href="#report-card">📊 <span>Report Kad</span></a>
+        <a href="#student" id="reportStudentLink">🎒 <span>Ruang Pelajar</span></a>
+        <a href="#" id="reportSubscriptionLink">💳 <span>Langganan</span></a>
+        <a href="#settings" id="reportSettingsLink">⚙️ <span>Tetapan</span></a>
+      </nav>
+      <div class="side-foot"><small>Akaun</small><b>${esc(p.name||p.email||'Penjaga')}</b></div>
+    </aside>
+
+    <section class="dash-main clean-main">
+      <div class="clean-dash-head report-page-head">
+        <div><span class="dash-kicker">REPORT KAD</span><h1>Prestasi Pelajar</h1><p>Lihat ringkasan penggunaan dan prestasi pembelajaran pelajar yang dipilih.</p></div>
+      </div>
+
+      ${kids.length?`
+        <div class="report-child-selector">${childSelector}</div>
+
+        <div class="report-student-hero">
+          <div class="report-student-profile"><span>${esc(activeChild?.avatar||'🧒')}</span><div><small>PELAJAR DIPILIH</small><h2>${esc(activeChild?.name||'-')}</h2><p>Tahun ${Number(activeChild?.year||Math.max(1,Number(activeChild?.age||7)-6))}${activeChild?.gender?` · ${activeChild.gender==='female'?'Perempuan':'Lelaki'}`:''}</p></div></div>
+          <span class="report-status-badge">${selected.length?'Aktif belajar':'Belum mula'}</span>
+        </div>
+
+        <div class="parent-quick-grid report-quick-grid">
+          <div class="quick-stat"><span>👧</span><div><b>${kids.length}</b><small>Profil pelajar</small></div></div>
+          <div class="quick-stat"><span>⭐</span><div><b>${totalStars}</b><small>Bintang anak dipilih</small></div></div>
+          <div class="quick-stat"><span>📝</span><div><b>${selected.length}</b><small>Sesi direkodkan</small></div></div>
+        </div>
+
+        <div class="report-section-head"><div><small>PRESTASI SUBJEK</small><h2>Ringkasan mengikut subjek</h2></div></div>
+        <div class="report-subject-grid">${subjectRows}</div>
+      `:`<div class="empty-state settings-empty"><h3>Belum ada profil pelajar</h3><p>Tambah profil terlebih dahulu untuk melihat Report Kad.</p><button class="btn primary" id="reportAddProfile">Tambah Profil</button></div>`}
+    </section>
+  </div>`;
+
+  $('#reportOverviewLink')?.addEventListener('click',e=>{e.preventDefault();history.pushState(null,'','#dashboard');renderUser(p);});
+  $('#reportStudentLink')?.addEventListener('click',e=>{e.preventDefault();renderStudentPortal(p);});
+  $('#reportSubscriptionLink')?.addEventListener('click',e=>{e.preventDefault();renderParentSubscriptionView(p);});
+  $('#reportSettingsLink')?.addEventListener('click',e=>{e.preventDefault();history.pushState(null,'','#settings');renderParentSettingsView(p);});
+  $('#reportAddProfile')?.addEventListener('click',()=>prepareChildModal(null));
+
+  document.querySelectorAll('[data-report-child]').forEach(btn=>btn.onclick=async()=>{
+    const child=kids.find(c=>c.id===btn.dataset.reportChild);
+    if(!child)return;
+    activeChild=child;
+    localStorage.setItem('cilikgo_active_child',child.id);
+    await renderParentReportCard(p);
+  });
+
+  animateIn($('#dashboard'));
 }
 
 async function renderParentSettingsView(p){
@@ -1066,7 +1163,8 @@ async function renderParentSettingsView(p){
       <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
       <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
       <nav class="parent-role-menu">
-        <a href="#dashboard" id="settingsOverviewLink">⌂ <span>Ringkasan</span></a>
+        <a href="#dashboard" id="settingsOverviewLink">⌂ <span>Utama</span></a>
+        <a href="#report-card" id="settingsReportCardLink">📊 <span>Report Kad</span></a>
         <a href="#student" id="settingsStudentLink">🎒 <span>Ruang Pelajar</span></a>
         <a href="#" id="settingsSubscriptionLink">💳 <span>Langganan</span></a>
         <a class="active" href="#settings">⚙️ <span>Tetapan</span></a>
@@ -1084,6 +1182,7 @@ async function renderParentSettingsView(p){
   </div>`;
 
   $('#settingsOverviewLink')?.addEventListener('click',e=>{e.preventDefault();history.pushState(null,'','#dashboard');renderUser(p);});
+  $('#settingsReportCardLink')?.addEventListener('click',e=>{e.preventDefault();history.pushState(null,'','#report-card');renderParentReportCard(p);});
   $('#settingsStudentLink')?.addEventListener('click',e=>{e.preventDefault();renderStudentPortal(p);});
   $('#settingsSubscriptionLink')?.addEventListener('click',e=>{e.preventDefault();renderParentSubscriptionView(p);});
   $('#settingsAddProfile')?.addEventListener('click',()=>prepareChildModal(null));
@@ -1443,6 +1542,7 @@ window.addEventListener('hashchange',async()=>{
   }
   if(!currentProfile)return;
   if(hash==='#student'&&currentProfile.role==='user'){await renderStudentPortal(currentProfile);return;}
+  if(hash==='#report-card'&&currentProfile.role==='user'){await renderParentReportCard(currentProfile);return;}
   if(hash==='#settings'&&currentProfile.role==='user'){await renderParentSettingsView(currentProfile);return;}
   if(hash==='#dashboard'){await renderPortal(currentProfile);return;}
   if(hash==='#home')showPublicPage();
@@ -1487,6 +1587,12 @@ syncAvatarPreview();
 
 function prepareChildModal(child=null){
   const isEdit=!!child;
+  const saveBtn=$('#saveChildBtn');
+  if(saveBtn){
+    saveBtn.disabled=false;
+    saveBtn.removeAttribute('aria-busy');
+    delete saveBtn.dataset.oldText;
+  }
   $('#childEditId').value=child?.id||'';
   $('#childModalTitle').textContent=isEdit?'Edit Profil Pelajar':'Tambah Profil Pelajar';
   $('#childModalDesc').textContent=isEdit?'Kemaskini maklumat profil pelajar.':'Maklumat ini membantu CilikGo memaparkan ruang belajar yang sesuai.';
@@ -1501,6 +1607,12 @@ function prepareChildModal(child=null){
   setTimeout(()=>$('#childName')?.focus(),50);
 }
 function resetChildModal(){
+  const saveBtn=$('#saveChildBtn');
+  if(saveBtn){
+    saveBtn.disabled=false;
+    saveBtn.removeAttribute('aria-busy');
+    delete saveBtn.dataset.oldText;
+  }
   $('#childEditId').value='';
   $('#childModalTitle').textContent='Tambah Profil Pelajar';
   $('#childModalDesc').textContent='Maklumat ini membantu CilikGo memaparkan ruang belajar yang sesuai.';
@@ -1529,9 +1641,9 @@ $('#saveChildBtn').onclick=async()=>{
     if(editId){
       const existing=userChildren.find(c=>c.id===editId);
       if(!existing||existing.ownerUid!==fb.auth.currentUser.uid) throw new Error('Profil pelajar tidak ditemui.');
-      await fb.updateDoc(fb.doc(fb.db,'children',editId),{
+      await fb.setDoc(fb.doc(fb.db,'children',editId),{
         name,gender,age,year,avatar,updatedAt:fb.serverTimestamp()
-      });
+      },{merge:true});
       if(activeChild?.id===editId) activeChild={...activeChild,name,gender,age,year,avatar};
       toast('Profil pelajar berjaya dikemaskini.');
     }else{

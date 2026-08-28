@@ -95,7 +95,7 @@ service cloud.firestore {
         && request.resource.data.attempts >= 1
         && request.resource.data.attempts <= 100;
       allow update: if false;
-      allow delete: if isAdmin();
+      allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
     }
 
     match /modules/{moduleId} {

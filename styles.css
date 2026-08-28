@@ -1221,3 +1221,25 @@ body{
   .settings-page-head{display:block!important}.settings-page-head .btn{margin-top:10px}
   .settings-profile-card{grid-template-columns:auto 1fr}.settings-profile-actions{grid-column:1/3;display:grid;grid-template-columns:1fr 1fr}.settings-profile-actions .btn{width:100%}
 }
+
+/* =========================================================
+   Penjaga — Utama + Report Kad
+   ========================================================= */
+.report-page-head{margin-bottom:14px!important}
+.report-child-selector{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 10px;margin-bottom:8px}
+.report-child-chip{min-width:145px;border:1px solid #e5e7ef;background:#fff;border-radius:13px;padding:9px 11px;display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer}
+.report-child-chip>span{font-size:24px}.report-child-chip b{display:block;font-size:11px}.report-child-chip small{font-size:8px;color:var(--muted)}
+.report-child-chip.active{border-color:#7563ef;background:#f7f5ff;box-shadow:0 0 0 2px rgba(107,92,246,.08)}
+.report-student-hero{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(100deg,#fff,#f8f6ff);border:1px solid #dfdbfb;border-radius:18px;padding:14px 16px;margin-bottom:12px}
+.report-student-profile{display:flex;align-items:center;gap:11px}.report-student-profile>span{width:50px;height:50px;border-radius:14px;background:#f0edff;display:grid;place-items:center;font-size:28px}.report-student-profile small{font-size:8px;letter-spacing:.09em;font-weight:900;color:#7767e8}.report-student-profile h2{font-size:18px;margin:2px 0}.report-student-profile p{margin:0;font-size:9px;color:var(--muted)}
+.report-status-badge{font-size:9px;font-weight:900;padding:6px 9px;border-radius:999px;background:#eaf8ef;color:#25834d}
+.report-quick-grid{margin:0 0 18px!important}
+.report-section-head{margin:6px 0 10px}.report-section-head small{font-size:8px;letter-spacing:.1em;font-weight:900;color:#7a6ae5}.report-section-head h2{font-size:18px;margin:3px 0}
+.report-subject-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.report-subject-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:11px;background:#fff;border:1px solid #e7e9f2;border-radius:15px;padding:13px 14px;box-shadow:0 7px 20px rgba(55,50,100,.035)}
+.report-subject-icon{width:42px;height:42px;border-radius:12px;background:#f2efff;display:grid;place-items:center;font-size:22px}.report-subject-card small{font-size:8px;color:#8a8e9e}.report-subject-card h3{font-size:13px;margin:2px 0}.report-subject-card p{font-size:9px;color:var(--muted);margin:0}
+.report-subject-score{text-align:right}.report-subject-score b{display:block;font-size:11px}.report-subject-score small{display:block;margin-top:3px}
+@media(max-width:650px){
+  .report-subject-grid{grid-template-columns:1fr}
+  .report-student-hero{align-items:flex-start}.report-status-badge{white-space:nowrap}
+}
