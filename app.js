@@ -284,10 +284,108 @@ async function renderParentLearningHub(p){
   document.querySelectorAll('.kssr-subject').forEach(b=>b.onclick=()=>{
     const names={bm:'Bahasa Melayu',bi:'Bahasa Inggeris',math:'Matematik',science:'Sains'};
     const key=b.dataset.subject;
+    if(year===1&&key==='bm'){ renderBmYear1Hub(p); return; }
     if(year===1&&key==='math'){ renderMathYear1Hub(p); return; }
-    root.querySelector('.hub-note').innerHTML=`🚧 <b>${names[key]} Tahun 1:</b> kandungan pilot belum diaktifkan. Matematik Tahun 1 tersedia untuk diuji sekarang.`;
+    root.querySelector('.hub-note').innerHTML=`🚧 <b>${names[key]} Tahun 1:</b> kandungan pilot belum diaktifkan. Bahasa Melayu dan Matematik Tahun 1 tersedia untuk diuji sekarang.`;
     root.querySelector('.hub-note').scrollIntoView({behavior:'smooth',block:'center'});
   });
+}
+
+
+async function renderBmYear1Hub(p){
+  if(!fb?.auth.currentUser){openAuth('login');return;}
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'read');return;}
+  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+  const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
+  if(year!==1){toast('Pilot Bahasa Melayu ini untuk murid Tahun 1.');return;}
+  const root=$('#dashboard'), rows=await loadProgress(p.uid,activeChild.id);
+  const keys=Object.keys(bmYear1Bank);
+  const bestFor=k=>{
+    const vals=rows.filter(r=>r.activity===`kssr_bm_y1_${k}`).map(r=>Number(r.stars||0));
+    return vals.length?Math.max(...vals):0;
+  };
+  const completed=keys.filter(k=>bestFor(k)>=8).length;
+  root.innerHTML=`<section class="container learning-hub-page">
+    <div class="hub-top"><button class="btn ghost bm-back">← Semua Subjek</button><span class="badge">Bahasa Melayu Tahun 1 · Pilot</span></div>
+    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>BAHASA MELAYU TAHUN 1</small><h1>${esc(activeChild.name)}</h1><p>📚 ${completed}/${keys.length} topik mencapai sekurang-kurangnya ⭐ 8/15</p></div></div>
+    <div class="kssr-progress-summary"><div><b>${completed}</b><span>Topik dikuasai</span></div><div><b>${keys.length}</b><span>Topik tersedia</span></div><div><b>${Math.round(completed/keys.length*100)}%</b><span>Kemajuan</span></div></div>
+    <div class="hub-heading"><div><small>LATIHAN TOPIKAL</small><h2>Pilih topik Bahasa Melayu</h2></div><p>Setiap sesi mengandungi 5 soalan rawak. Gunakan butang 🔊 Dengar untuk membantu kemahiran mendengar dan sebutan.</p></div>
+    <div class="kssr-topic-grid">${keys.map(k=>{const t=bmYear1Bank[k],best=bestFor(k);return `<article class="kssr-topic-card ${best>=8?'passed':''}">
+      <div class="topic-icon">${t.icon}</div><div><small>TAHUN 1</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
+      <div class="topic-score">${best?`Rekod terbaik <b>⭐ ${best}/15</b>`:'Belum dimainkan'}</div>
+      <button class="btn ${best>=8?'success':'primary'} bm-topic-start" data-topic="${k}">${best?'Latih Lagi':'Mula Latihan'}</button>
+    </article>`}).join('')}</div>
+    <div class="hub-note">📘 Kandungan ini ialah latihan original CilikGo yang disusun berasaskan kemahiran Bahasa Melayu Tahap I seperti membaca, menulis, kosa kata, tatabahasa dan penggunaan bahasa. Ia bukan salinan kertas peperiksaan atau “soalan rasmi KPM”.</div>
+  </section>`;
+  $('.bm-back').onclick=()=>renderParentLearningHub(p);
+  document.querySelectorAll('.bm-topic-start').forEach(b=>b.onclick=()=>startBmYear1Topic(b.dataset.topic));
+}
+
+async function startBmYear1Topic(topicKey){
+  if(!fb?.auth.currentUser){openAuth('login');return;}
+  const p=currentProfile||await getProfile(fb.auth.currentUser);
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'read');return;}
+  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+  const topic=bmYear1Bank[topicKey];
+  if(!topic){toast('Topik tidak dijumpai.');return;}
+  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
+  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
+
+  const render=()=>{
+    const q=questions[index]; let attempts=0,completed=false;
+    const pct=Math.round(index/questions.length*100);
+    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="badge">Bahasa Melayu Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
+      <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
+      <div class="level-progress"><span style="width:${pct}%"></span></div>
+      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Baca atau dengar soalan, kemudian pilih jawapan.</span></div>
+      <div class="game-prompt">${esc(q.prompt)}</div>
+      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
+      <div id="gameMsg"></div>`;
+    if(!$('#gameModal').open) $('#gameModal').showModal();
+    $('#speakQuestion').onclick=()=>speakBM(q.prompt);
+    document.querySelectorAll('.answer').forEach(btn=>btn.onclick=()=>{
+      if(completed)return;
+      attempts++; totalAttempts++;
+      if(btn.textContent!==q.correct){
+        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),450);
+        $('#gameMsg').innerHTML=`<div class="try-again">💪 Belum tepat. Cuba lagi! <small>Percubaan ${attempts}</small></div>`;
+        speakBM('Cuba lagi'); return;
+      }
+      completed=true; correctCount++;
+      const earned=attempts===1?3:attempts===2?2:1;
+      scoreStars+=earned;
+      btn.classList.add('correct');
+      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
+      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Betul!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(earned)}</strong></div>`;
+      celebrate(); speakBM(q.success||'Betul');
+      setTimeout(()=>{index++;index<questions.length?render():finish();},1200);
+    });
+  };
+
+  const finish=async()=>{
+    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
+    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
+      <span class="badge">Bahasa Melayu Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
+      <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
+      <div class="result-stars">⭐ ${scoreStars} / 15</div>
+      <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
+      <div class="result-actions"><button class="btn primary" id="bmAgain">Latih Lagi</button><button class="btn ghost" id="bmTopics">Pilih Topik</button></div>
+      <p class="result-tip">${passed?'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik.':'Sasarkan sekurang-kurangnya ⭐ 8/15.'}</p></div>`;
+    celebrate(); speakBM(passed?'Syabas, hebat!':'Teruskan latihan');
+    try{
+      await fb.addDoc(fb.collection(fb.db,'progress'),{
+        ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,
+        module:'KSSR Bahasa Melayu Tahun 1',activity:`kssr_bm_y1_${topicKey}`,
+        level:1,year:1,subject:'bm',topic:topicKey,questions:5,
+        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
+        createdAt:fb.serverTimestamp()
+      });
+      toast(`⭐ Rekod ${topic.title} disimpan.`);
+    }catch(e){console.error(e);toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');}
+    $('#bmAgain').onclick=()=>startBmYear1Topic(topicKey);
+    $('#bmTopics').onclick=()=>{$('#gameModal').close();renderBmYear1Hub(p);};
+  };
+  render();
 }
 
 async function renderMathYear1Hub(p){
@@ -762,6 +860,105 @@ const kssrArchitecture={
     sejarah:{name:'Sejarah',icon:'🏛️'}
   },
   questionSchema:['year','subject','topic','contentStandard','learningStandard','difficulty','questionType','prompt','answers','correct','explanation','sourceType']
+};
+
+const bmYear1Bank={
+  huruf:{
+    title:'Huruf, Suku Kata & Perkataan',icon:'🔤',
+    desc:'Kenal huruf, gabung suku kata dan baca perkataan mudah.',
+    questions:[
+      {prompt:'Huruf pertama bagi perkataan “buku” ialah…',answers:['B','D','P'],correct:'B',success:'Betul! Buku bermula dengan huruf B.'},
+      {prompt:'Huruf terakhir bagi perkataan “mata” ialah…',answers:['M','T','A'],correct:'A',success:'Betul! Mata berakhir dengan huruf A.'},
+      {prompt:'Gabungkan suku kata: BA + JU',answers:['BAJU','BUJU','BAJI'],correct:'BAJU',success:'Betul! BA + JU menjadi BAJU.'},
+      {prompt:'Gabungkan suku kata: BO + LA',answers:['BOLA','BALA','BULA'],correct:'BOLA',success:'Hebat! BO + LA menjadi BOLA.'},
+      {prompt:'Pilih suku kata awal bagi “kuda”.',answers:['KU','DA','KA'],correct:'KU',success:'Betul! Kuda bermula dengan suku kata KU.'},
+      {prompt:'Pilih suku kata akhir bagi “roti”.',answers:['RO','TI','RI'],correct:'TI',success:'Betul! Roti berakhir dengan suku kata TI.'},
+      {prompt:'Perkataan manakah bermula dengan huruf M?',answers:['mata','baju','susu'],correct:'mata',success:'Betul! Mata bermula dengan M.'},
+      {prompt:'Perkataan manakah mempunyai dua suku kata?',answers:['buku','sekolah','permainan'],correct:'buku',success:'Betul! BU-KU mempunyai dua suku kata.'},
+      {prompt:'Lengkapkan perkataan: B _ L A',answers:['O','U','E'],correct:'O',success:'Betul! BOLA dieja B-O-L-A.'},
+      {prompt:'Lengkapkan perkataan: S U S _',answers:['A','I','U'],correct:'U',success:'Betul! SUSU berakhir dengan huruf U.'}
+    ]
+  },
+  kosa:{
+    title:'Kosa Kata',icon:'🧠',
+    desc:'Kenal makna perkataan dan penggunaan kosa kata harian.',
+    questions:[
+      {prompt:'Haiwan yang berbunyi “meow” ialah…',answers:['kucing','ayam','ikan'],correct:'kucing',success:'Betul! Kucing berbunyi meow.'},
+      {prompt:'Kita menggunakan pensel untuk…',answers:['menulis','minum','tidur'],correct:'menulis',success:'Betul! Pensel digunakan untuk menulis.'},
+      {prompt:'Tempat murid belajar ialah…',answers:['sekolah','pasar','hospital'],correct:'sekolah',success:'Betul! Murid belajar di sekolah.'},
+      {prompt:'Lawan perkataan “besar” ialah…',answers:['kecil','tinggi','panjang'],correct:'kecil',success:'Betul! Lawan besar ialah kecil.'},
+      {prompt:'Lawan perkataan “panas” ialah…',answers:['sejuk','manis','keras'],correct:'sejuk',success:'Betul! Lawan panas ialah sejuk.'},
+      {prompt:'Buah yang berwarna kuning dan panjang ialah…',answers:['pisang','epal','anggur'],correct:'pisang',success:'Betul! Pisang biasanya berwarna kuning.'},
+      {prompt:'Kita memakai kasut pada…',answers:['kaki','tangan','kepala'],correct:'kaki',success:'Betul! Kasut dipakai pada kaki.'},
+      {prompt:'Benda yang digunakan ketika hujan ialah…',answers:['payung','bantal','sudu'],correct:'payung',success:'Betul! Payung digunakan ketika hujan.'},
+      {prompt:'Perkataan yang sesuai untuk sesuatu yang sedap dimakan ialah…',answers:['lazat','bising','gelap'],correct:'lazat',success:'Betul! Lazat bermaksud sedap.'},
+      {prompt:'Kita minum apabila berasa…',answers:['dahaga','mengantuk','marah'],correct:'dahaga',success:'Betul! Kita minum apabila dahaga.'}
+    ]
+  },
+  tatabahasa:{
+    title:'Tatabahasa Asas',icon:'🧩',
+    desc:'Kata nama, kata kerja, kata adjektif dan penggunaan perkataan mudah.',
+    questions:[
+      {prompt:'Pilih kata nama.',answers:['bola','lari','cantik'],correct:'bola',success:'Betul! Bola ialah kata nama.'},
+      {prompt:'Pilih kata kerja.',answers:['makan','meja','merah'],correct:'makan',success:'Betul! Makan ialah kata kerja.'},
+      {prompt:'Pilih kata adjektif.',answers:['cantik','buku','duduk'],correct:'cantik',success:'Betul! Cantik menerangkan sifat.'},
+      {prompt:'Ali ___ nasi.',answers:['makan','biru','kerusi'],correct:'makan',success:'Betul! Ali makan nasi.'},
+      {prompt:'Bunga itu sangat ___.',answers:['cantik','minum','sekolah'],correct:'cantik',success:'Betul! Cantik menerangkan bunga.'},
+      {prompt:'___ itu sedang tidur.',answers:['Kucing','Makan','Merah'],correct:'Kucing',success:'Betul! Kucing ialah kata nama.'},
+      {prompt:'Pilih perkataan yang menunjukkan perbuatan.',answers:['berlari','rumah','besar'],correct:'berlari',success:'Betul! Berlari ialah perbuatan.'},
+      {prompt:'Pilih perkataan yang menunjukkan warna.',answers:['merah','meja','makan'],correct:'merah',success:'Betul! Merah ialah warna.'},
+      {prompt:'Saya ___ air.',answers:['minum','tinggi','buku'],correct:'minum',success:'Betul! Saya minum air.'},
+      {prompt:'Ayah memandu ___.',answers:['kereta','tidur','manis'],correct:'kereta',success:'Betul! Ayah memandu kereta.'}
+    ]
+  },
+  faham:{
+    title:'Pemahaman Ayat',icon:'📖',
+    desc:'Baca ayat mudah dan pilih jawapan berdasarkan maklumat.',
+    questions:[
+      {prompt:'“Ali ada seekor kucing.” Siapakah yang mempunyai kucing?',answers:['Ali','Siti','Ibu'],correct:'Ali',success:'Betul! Ali mempunyai seekor kucing.'},
+      {prompt:'“Siti makan nasi.” Apakah yang Siti makan?',answers:['nasi','roti','buah'],correct:'nasi',success:'Betul! Siti makan nasi.'},
+      {prompt:'“Bola Amir berwarna biru.” Apakah warna bola Amir?',answers:['merah','biru','hijau'],correct:'biru',success:'Betul! Bola Amir berwarna biru.'},
+      {prompt:'“Ibu membeli tiga biji epal.” Berapa biji epal dibeli?',answers:['dua','tiga','empat'],correct:'tiga',success:'Betul! Ibu membeli tiga biji epal.'},
+      {prompt:'“Aina pergi ke sekolah pada waktu pagi.” Bilakah Aina pergi ke sekolah?',answers:['pagi','petang','malam'],correct:'pagi',success:'Betul! Aina pergi pada waktu pagi.'},
+      {prompt:'“Ayah membaca surat khabar.” Apakah yang dibaca oleh ayah?',answers:['surat khabar','buku cerita','majalah'],correct:'surat khabar',success:'Betul! Ayah membaca surat khabar.'},
+      {prompt:'“Adik tidur di dalam bilik.” Di manakah adik tidur?',answers:['bilik','dapur','taman'],correct:'bilik',success:'Betul! Adik tidur di dalam bilik.'},
+      {prompt:'“Rina menyiram pokok bunga.” Apakah yang Rina siram?',answers:['pokok bunga','kereta','meja'],correct:'pokok bunga',success:'Betul! Rina menyiram pokok bunga.'},
+      {prompt:'“Kamal menaiki bas ke sekolah.” Kamal pergi ke sekolah dengan…',answers:['bas','kapal','basikal'],correct:'bas',success:'Betul! Kamal menaiki bas.'},
+      {prompt:'“Burung itu terbang tinggi.” Apakah yang dilakukan oleh burung?',answers:['terbang','berenang','tidur'],correct:'terbang',success:'Betul! Burung itu terbang.'}
+    ]
+  },
+  menulis:{
+    title:'Penulisan Asas',icon:'✏️',
+    desc:'Ejaan, susunan perkataan, huruf besar dan tanda baca.',
+    questions:[
+      {prompt:'Pilih ejaan yang betul.',answers:['sekolah','sakolah','sekulah'],correct:'sekolah',success:'Betul! Ejaan yang betul ialah sekolah.'},
+      {prompt:'Pilih ejaan yang betul.',answers:['kereta','kareta','kerita'],correct:'kereta',success:'Betul! Ejaan yang betul ialah kereta.'},
+      {prompt:'Pilih ayat dengan huruf besar yang betul.',answers:['Ali makan nasi.','ali makan nasi.','ALI makan nasi.'],correct:'Ali makan nasi.',success:'Betul! Nama khas bermula dengan huruf besar.'},
+      {prompt:'Pilih ayat yang mempunyai tanda noktah.',answers:['Ini buku saya.','Ini buku saya?','Ini buku saya'],correct:'Ini buku saya.',success:'Betul! Ayat penyata berakhir dengan noktah.'},
+      {prompt:'Susun perkataan menjadi ayat yang betul.',answers:['Saya suka membaca.','Suka saya membaca.','Membaca suka saya.'],correct:'Saya suka membaca.',success:'Betul! Ayatnya ialah “Saya suka membaca.”'},
+      {prompt:'Susun perkataan menjadi ayat yang betul.',answers:['Ibu memasak nasi.','Nasi ibu memasak.','Memasak ibu nasi.'],correct:'Ibu memasak nasi.',success:'Betul! Ayatnya ialah “Ibu memasak nasi.”'},
+      {prompt:'Lengkapkan ayat: Ini ___ saya.',answers:['buku','makan','lari'],correct:'buku',success:'Betul! “Ini buku saya.”'},
+      {prompt:'Lengkapkan ayat: Adik bermain ___.',answers:['bola','tidur','merah'],correct:'bola',success:'Betul! “Adik bermain bola.”'},
+      {prompt:'Pilih ayat soalan.',answers:['Siapa nama kamu?','Nama saya Amin.','Saya suka membaca.'],correct:'Siapa nama kamu?',success:'Betul! Ayat itu ialah ayat soalan.'},
+      {prompt:'Pilih ejaan nama yang betul.',answers:['Amin','amin','aMin'],correct:'Amin',success:'Betul! Nama orang bermula dengan huruf besar.'}
+    ]
+  },
+  santun:{
+    title:'Bahasa Santun & Seni Bahasa',icon:'💬',
+    desc:'Ungkapan sopan, peribahasa mudah, rima dan penggunaan bahasa yang baik.',
+    questions:[
+      {prompt:'Apakah yang kita ucap apabila menerima bantuan?',answers:['Terima kasih','Selamat malam','Tahniah'],correct:'Terima kasih',success:'Betul! Kita mengucapkan terima kasih.'},
+      {prompt:'Apakah yang kita ucap apabila melakukan kesalahan?',answers:['Maaf','Silakan','Jumpa lagi'],correct:'Maaf',success:'Betul! Kita meminta maaf.'},
+      {prompt:'Ucapan yang sesuai apabila bertemu guru pada waktu pagi ialah…',answers:['Selamat pagi','Selamat malam','Selamat tinggal'],correct:'Selamat pagi',success:'Betul! Kita mengucapkan selamat pagi.'},
+      {prompt:'Pilih ayat yang lebih sopan.',answers:['Tolong berikan saya pensel.','Beri pensel!','Aku mahu pensel.'],correct:'Tolong berikan saya pensel.',success:'Betul! Ayat itu lebih sopan.'},
+      {prompt:'Perkataan yang berima dengan “batu” ialah…',answers:['satu','bola','buku'],correct:'satu',success:'Betul! Batu dan satu mempunyai bunyi akhir yang hampir sama.'},
+      {prompt:'Perkataan yang berima dengan “mata” ialah…',answers:['kata','buku','susu'],correct:'kata',success:'Betul! Mata dan kata berima.'},
+      {prompt:'Pilih ungkapan yang sesuai untuk memberi izin.',answers:['Silakan','Maaf','Tahniah'],correct:'Silakan',success:'Betul! “Silakan” digunakan untuk memberi izin.'},
+      {prompt:'Apakah ucapan sesuai apabila kawan menang pertandingan?',answers:['Tahniah','Maaf','Tolong'],correct:'Tahniah',success:'Betul! Kita mengucapkan tahniah.'},
+      {prompt:'Pilih ayat yang menunjukkan permintaan.',answers:['Boleh saya pinjam buku?','Saya ada buku.','Buku itu biru.'],correct:'Boleh saya pinjam buku?',success:'Betul! Ayat itu meminta izin dengan sopan.'},
+      {prompt:'Pilih pasangan perkataan yang berima.',answers:['baju - maju','buku - bola','mata - meja'],correct:'baju - maju',success:'Betul! Baju dan maju berima.'}
+    ]
+  }
 };
 
 const mathYear1Bank={
