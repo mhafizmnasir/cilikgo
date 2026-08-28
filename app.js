@@ -311,53 +311,155 @@ async function renderStudentPortal(p){
     await renderUser(p);
     return;
   }
+
   showStudentPage();
   const root=$('#dashboard');
   const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
   const rows=await loadProgress(p.uid,activeChild.id);
+
   const subjects=[
-    {key:'bm',name:'Bahasa Melayu',icon:'🇲🇾',desc:'Membaca, kosa kata, tatabahasa dan penulisan.',activity:'kssr_bm_y1_'},
-    {key:'bi',name:'Bahasa Inggeris',icon:'🔤',desc:'Reading, vocabulary, grammar and writing.',activity:'kssr_bi_y1_'},
-    {key:'math',name:'Matematik',icon:'➗',desc:'Nombor, operasi, wang, masa, ukuran dan bentuk.',activity:'kssr_math_y1_'},
-    {key:'science',name:'Sains',icon:'🔬',desc:'Manusia, hidupan, bahan, bumi dan kemahiran sains.',activity:'kssr_science_y1_'}
+    {key:'bm',name:'Bahasa Melayu',icon:'🇲🇾',emoji:'📖',desc:'Membaca, kosa kata, tatabahasa dan penulisan.',activity:'kssr_bm_y1_',className:'subject-bm'},
+    {key:'bi',name:'Bahasa Inggeris',icon:'🔤',emoji:'💬',desc:'Reading, vocabulary, grammar and writing.',activity:'kssr_bi_y1_',className:'subject-bi'},
+    {key:'math',name:'Matematik',icon:'➗',emoji:'🧮',desc:'Nombor, operasi, wang, masa, ukuran dan bentuk.',activity:'kssr_math_y1_',className:'subject-math'},
+    {key:'science',name:'Sains',icon:'🔬',emoji:'🧪',desc:'Manusia, hidupan, bahan, bumi dan kemahiran sains.',activity:'kssr_science_y1_',className:'subject-science'}
   ];
+
   const subjectStats=s=>{
     const sr=rows.filter(r=>String(r.activity||'').startsWith(s.activity));
     const topics=new Map();
     sr.forEach(r=>topics.set(r.topic,Math.max(topics.get(r.topic)||0,Number(r.stars||0))));
-    const mastered=[...topics.values()].filter(v=>v>=8).length;
-    return {mastered,attempts:sr.length,stars:sr.reduce((n,r)=>n+Number(r.stars||0),0)};
+    const vals=[...topics.values()];
+    const mastered=vals.filter(v=>v>=8).length;
+    const best=vals.length?Math.max(...vals):0;
+    return {mastered,attempts:sr.length,best,stars:sr.reduce((n,r)=>n+Number(r.stars||0),0)};
   };
-  const totalSessions=rows.filter(r=>Number(r.year||0)===year||String(r.activity||'').includes(`_y${year}_`)).length;
-  root.innerHTML=`<section class="student-portal">
-    <header class="student-header">
+
+  const rowDate=r=>{
+    try{return r?.createdAt?.toDate?.()||new Date(r?.createdAt||0);}
+    catch(e){return new Date(0);}
+  };
+  const dayKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const todayKey=dayKey(new Date());
+  const todayRows=rows.filter(r=>dayKey(rowDate(r))===todayKey);
+  const activeDays=new Set(rows.map(r=>dayKey(rowDate(r))).filter(x=>x!=='1970-01-01'));
+  let streak=0, cursor=new Date();
+  while(activeDays.has(dayKey(cursor))){
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+
+  const sortedRows=[...rows].sort((a,b)=>rowDate(b)-rowDate(a));
+  const last=sortedRows[0]||null;
+  const lastSubject=subjects.find(s=>s.key===last?.subject)||subjects.find(s=>subjectStats(s).attempts===0)||subjects[0];
+
+  const totalStars=rows.reduce((n,r)=>n+Number(r.stars||0),0);
+  const xp=totalStars*10;
+  const level=Math.floor(xp/100)+1;
+  const xpInLevel=xp%100;
+  const xpPct=Math.min(100,xpInLevel);
+  const dailyGoal=3;
+  const dailyDone=Math.min(dailyGoal,todayRows.length);
+  const dailyPct=Math.round(dailyDone/dailyGoal*100);
+
+  const masteryTotal=subjects.reduce((n,s)=>n+subjectStats(s).mastered,0);
+  const achievement=totalStars>=150
+    ?{icon:'🏆',name:'Juara Cilik',text:'Hebat! Banyak latihan sudah diselesaikan.'}
+    :totalStars>=75
+      ?{icon:'🌟',name:'Bintang Hebat',text:'Prestasi makin mantap. Teruskan!'}
+      :totalStars>=15
+        ?{icon:'🚀',name:'Mula Meluncur',text:'Permulaan yang baik. Terus kumpul bintang!'}
+        :{icon:'🌱',name:'Langkah Pertama',text:'Mulakan satu latihan untuk kumpul bintang pertama.'};
+
+  root.innerHTML=`<section class="student-portal interactive-student">
+    <div class="student-bg-orb orb-one"></div><div class="student-bg-orb orb-two"></div><div class="student-bg-orb orb-three"></div>
+    <header class="student-header interactive-header">
       <button class="student-back" id="studentBackParent">← Penjaga</button>
       <div class="student-brand"><span class="brand-badge">CG</span><b>CilikGo Pelajar</b></div>
-      <div class="student-profile">${esc(activeChild.avatar||'🧒')} <span>${esc(activeChild.name)}</span><b>Tahun ${year}</b></div>
+      <div class="student-profile-wrap">
+        <div class="student-streak">🔥 <b>${streak}</b><small>hari</small></div>
+        <div class="student-profile">${esc(activeChild.avatar||'🧒')} <span>${esc(activeChild.name)}</span><b>Tahun ${year}</b></div>
+      </div>
     </header>
-    <main class="student-main">
-      <section class="student-welcome">
-        <div><span class="student-kicker">RUANG BELAJAR SAYA</span><h1>Hai, ${esc(activeChild.name)}! 👋</h1><p>Pilih satu subjek dan teruskan latihan hari ini.</p></div>
-        <div class="student-mini-stat"><span>⭐</span><div><b>${rows.reduce((n,r)=>n+Number(r.stars||0),0)}</b><small>Jumlah bintang</small></div></div>
+
+    <main class="student-main interactive-main">
+      <section class="student-hero-panel">
+        <div class="student-hero-copy">
+          <span class="student-kicker">RUANG BELAJAR SAYA</span>
+          <h1>Hai, ${esc(activeChild.name)}! 👋</h1>
+          <p>${todayRows.length?'Bagus! Kamu sudah belajar hari ini. Jom sambung satu lagi latihan.':'Jom mula misi belajar hari ini dan kumpul lebih banyak bintang!'}</p>
+          <div class="student-hero-actions">
+            <button class="student-continue-btn" id="continueLearning"><span>${lastSubject.emoji}</span><div><small>${last?'SAMBUNG BELAJAR':'MULA BELAJAR'}</small><b>${lastSubject.name}</b></div><strong>→</strong></button>
+            <div class="student-level-card"><div class="level-badge">LV ${level}</div><div><small>XP PELAJAR</small><b>${xpInLevel}/100 XP</b><div class="xp-bar"><span style="width:${xpPct}%"></span></div></div></div>
+          </div>
+        </div>
+        <div class="student-mission-card">
+          <div class="mission-top"><div><small>MISI HARI INI</small><h3>Lengkapkan ${dailyGoal} latihan</h3></div><div class="mission-ring" style="--progress:${dailyPct}"><span>${dailyDone}/${dailyGoal}</span></div></div>
+          <div class="mission-steps">${[1,2,3].map((n,i)=>`<div class="mission-step ${dailyDone>=n?'done':''}"><span>${dailyDone>=n?'✓':n}</span><p>${i===0?'Pemanas badan':i===1?'Tambah keyakinan':'Tamatkan misi'}</p></div>`).join('')}</div>
+          <div class="mission-reward"><span>🎁</span><div><small>GANJARAN MISI</small><b>+30 XP apabila lengkap</b></div></div>
+        </div>
       </section>
-      <div class="student-subject-grid">${subjects.map(s=>{const st=subjectStats(s);const available=year===1;return `<button class="student-subject-card ${available?'':'locked'}" data-student-subject="${s.key}" ${available?'':'disabled'}>
-        <span class="student-subject-icon">${s.icon}</span>
-        <span class="student-subject-copy"><small>${available?`TAHUN ${year}`:'AKAN DATANG'}</small><strong>${s.name}</strong><em>${s.desc}</em></span>
-        <span class="student-subject-progress">${available?(st.attempts?`✓ ${st.mastered}/6 topik dikuasai`:'Mula belajar'):'🔒'}</span>
-        <span class="student-go">→</span>
-      </button>`}).join('')}</div>
-      <section class="student-bottom-strip"><div><span>🎯</span><p><b>Sasaran mudah:</b> buat satu latihan pendek setiap sesi.</p></div><div><span>📚</span><p><b>${totalSessions}</b> sesi Tahun ${year} telah direkodkan.</p></div></section>
+
+      <section class="student-section">
+        <div class="student-section-head">
+          <div><span class="student-kicker">PILIH SUBJEK</span><h2>Apa yang kamu mahu belajar?</h2></div>
+          <div class="mastery-chip">🏅 ${masteryTotal}/24 topik dikuasai</div>
+        </div>
+
+        <div class="student-subject-grid interactive-grid">${subjects.map(s=>{
+          const st=subjectStats(s),available=year===1;
+          const masteryPct=Math.round(Math.min(6,st.mastered)/6*100);
+          return `<button class="student-subject-card interactive-card ${s.className} ${available?'':'locked'}" data-student-subject="${s.key}" ${available?'':'disabled'}>
+            <div class="subject-card-top">
+              <span class="student-subject-icon">${s.icon}</span>
+              <span class="subject-status-pill">${st.attempts?`${st.mastered}/6 dikuasai`:'Baru'}</span>
+            </div>
+            <div class="student-subject-copy">
+              <small>${available?`TAHUN ${year}`:'AKAN DATANG'}</small>
+              <strong>${s.name}</strong>
+              <em>${s.desc}</em>
+            </div>
+            <div class="subject-progress-wrap">
+              <div class="subject-progress-meta"><span>${st.attempts?`${st.attempts} sesi`:'Belum mula'}</span><b>${st.best?`⭐ ${st.best}/15`:'Mula belajar'}</b></div>
+              <div class="subject-progress-bar"><span style="width:${masteryPct}%"></span></div>
+            </div>
+            <span class="student-go">→</span>
+          </button>`;
+        }).join('')}</div>
+      </section>
+
+      <section class="student-achievement-row">
+        <div class="achievement-card">
+          <span class="achievement-icon">${achievement.icon}</span>
+          <div><small>PENCAPAIAN SAYA</small><h3>${achievement.name}</h3><p>${achievement.text}</p></div>
+        </div>
+        <div class="achievement-card compact-achievement"><span>⭐</span><div><small>JUMLAH BINTANG</small><h3>${totalStars}</h3></div></div>
+        <div class="achievement-card compact-achievement"><span>📚</span><div><small>SESI DISELESAIKAN</small><h3>${rows.length}</h3></div></div>
+        <div class="achievement-card compact-achievement"><span>🔥</span><div><small>STREAK BELAJAR</small><h3>${streak} hari</h3></div></div>
+      </section>
+
+      <section class="student-tip-card">
+        <span>💡</span>
+        <div><small>TIP CILIKGO</small><p>Belajar 10–15 minit setiap sesi lebih mudah untuk kekal fokus. Pilih satu subjek dahulu dan cuba capai sekurang-kurangnya ⭐ 8/15.</p></div>
+      </section>
     </main>
   </section>`;
-  $('#studentBackParent').onclick=()=>{document.body.classList.remove('student-mode');showDashboardPage();renderUser(p);};
-  document.querySelectorAll('[data-student-subject]').forEach(b=>b.onclick=()=>{
-    const k=b.dataset.studentSubject;
+
+  $('#studentBackParent').onclick=()=>{
+    document.body.classList.remove('student-mode');
+    showDashboardPage();
+    renderUser(p);
+  };
+
+  const openSubject=k=>{
     if(year!==1)return;
     if(k==='bm')renderBmYear1Hub(p);
     if(k==='bi')renderBiYear1Hub(p);
     if(k==='math')renderMathYear1Hub(p);
     if(k==='science')renderScienceYear1Hub(p);
-  });
+  };
+
+  $('#continueLearning').onclick=()=>openSubject(lastSubject.key);
+  document.querySelectorAll('[data-student-subject]').forEach(b=>b.onclick=()=>openSubject(b.dataset.studentSubject));
 }
 async function renderScienceYear1Hub(p){
   if(!fb?.auth.currentUser){openAuth('login');return;}
