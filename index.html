@@ -25,27 +25,30 @@
       <div class="hero-copy">
         <div class="pill">Latihan sekolah rendah Tahun 1–6</div>
         <h1>Belajar ikut <span>tahun & subjek</span>, lebih teratur.</h1>
-        <p>CilikGo menyediakan ruang latihan yang mudah untuk murid dan dashboard ringkas untuk Penjaga memantau pembelajaran. Tahun 1 kini tersedia untuk Bahasa Melayu, Bahasa Inggeris, Matematik dan Sains.</p>
+        <p>CilikGo ialah portal pembelajaran sekolah rendah Tahun 1 hingga Tahun 6. Penjaga mengurus profil pelajar, murid belajar mengikut subjek dan topik, manakala kemajuan direkodkan dalam satu dashboard.</p>
         <div class="hero-actions"><button class="btn primary big" data-auth="register">Buka Akaun Penjaga</button><button class="btn ghost big" data-auth="login">Log Masuk</button></div>
         <div class="trust"><span>✓ Tahun 1–6</span><span>✓ Latihan topikal</span><span>✓ Rekod kemajuan</span></div>
       </div>
-      <div class="hero-card">
-        <div class="mascot">🚀</div><h3>Misi Hari Ini</h3>
-        <div class="mission"><span>📚 Membaca</span><b>3 / 5</b></div><div class="progress"><i style="width:60%"></i></div>
-        <div class="mission"><span>✍️ Menulis</span><b>2 / 4</b></div><div class="progress"><i style="width:50%"></i></div>
-        <div class="mission"><span>🔢 Mengira</span><b>4 / 5</b></div><div class="progress"><i style="width:80%"></i></div>
-        <div class="streak">🔥 5 hari berturut-turut!</div>
+      <div class="hero-card portal-preview-card">
+        <div class="mascot">🎒</div><h3>Portal Pelajar Tahun 1–6</h3>
+        <div class="mission"><span>🇲🇾 Bahasa Melayu</span><b>Tahun 1</b></div><div class="progress"><i style="width:78%"></i></div>
+        <div class="mission"><span>➗ Matematik</span><b>Tahun 1</b></div><div class="progress"><i style="width:64%"></i></div>
+        <div class="mission"><span>🔬 Sains</span><b>Tahun 1</b></div><div class="progress"><i style="width:52%"></i></div>
+        <div class="streak">📚 Tahun 2–6 dibuka secara berperingkat</div>
       </div>
     </section>
 
     <section id="modules" class="section alt">
-      <div class="section-head"><div class="pill">Silibus CilikGo</div><h2>Belajar mengikut tahun, subjek dan topik.</h2><p>Tahun 1 tersedia sekarang. Tahun 2–6 akan dibuka secara berperingkat.</p></div>
-      <div class="cards four curriculum-preview">
-        <article class="learn-card purple"><div class="icon">🇲🇾</div><h3>Bahasa Melayu</h3><p>Membaca, kosa kata, tatabahasa, pemahaman dan penulisan.</p><span class="subject-ready">Tahun 1 tersedia</span></article>
-        <article class="learn-card coral"><div class="icon">🔤</div><h3>Bahasa Inggeris</h3><p>Letters, vocabulary, grammar, reading, writing and communication.</p><span class="subject-ready">Tahun 1 tersedia</span></article>
-        <article class="learn-card green"><div class="icon">➗</div><h3>Matematik</h3><p>Nombor, operasi, wang, masa, ukuran, bentuk dan data.</p><span class="subject-ready">Tahun 1 tersedia</span></article>
-        <article class="learn-card blue"><div class="icon">🔬</div><h3>Sains</h3><p>Kemahiran sains, manusia, hidupan, bahan dan bumi.</p><span class="subject-ready">Tahun 1 tersedia</span></article>
+      <div class="section-head"><div class="pill">Portal Tahun 1–6</div><h2>Satu portal pembelajaran untuk seluruh sekolah rendah.</h2><p>Profil pelajar ditetapkan mengikut Tahun 1 hingga Tahun 6. Kandungan disusun mengikut subjek dan topik supaya perjalanan belajar lebih jelas.</p></div>
+      <div class="year-portal-grid">
+        <article class="year-portal-card active"><span>01</span><div><small>TERSEDIA</small><h3>Tahun 1</h3><p>Bahasa Melayu · Bahasa Inggeris · Matematik · Sains</p></div></article>
+        <article class="year-portal-card"><span>02</span><div><small>SETERUSNYA</small><h3>Tahun 2</h3><p>Struktur portal sudah tersedia.</p></div></article>
+        <article class="year-portal-card"><span>03</span><div><small>AKAN DATANG</small><h3>Tahun 3</h3><p>Kandungan akan ditambah berperingkat.</p></div></article>
+        <article class="year-portal-card"><span>04</span><div><small>AKAN DATANG</small><h3>Tahun 4</h3><p>Latihan mengikut subjek dan topik.</p></div></article>
+        <article class="year-portal-card"><span>05</span><div><small>AKAN DATANG</small><h3>Tahun 5</h3><p>Latihan mengikut subjek dan topik.</p></div></article>
+        <article class="year-portal-card"><span>06</span><div><small>AKAN DATANG</small><h3>Tahun 6</h3><p>Persediaan pembelajaran sekolah rendah.</p></div></article>
       </div>
+      <div class="core-subject-strip"><span>🇲🇾 Bahasa Melayu</span><span>🔤 Bahasa Inggeris</span><span>➗ Matematik</span><span>🔬 Sains</span></div>
     </section>
 
     <section id="pricing" class="section">
@@ -111,7 +114,7 @@
   </section>
 
 
-  <dialog id="childModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Tambah Profil Anak</h2><label>Nama panggilan anak<input id="childName" maxlength="40" required></label><label>Tahun / Darjah<select id="childYear"><option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option><option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option></select></label><label>Avatar<select id="childAvatar"><option value="🧒">🧒 Ceria</option><option value="👧">👧 Puteri</option><option value="👦">👦 Wira</option><option value="🐯">🐯 Harimau</option><option value="🚀">🚀 Angkasawan</option></select></label><button type="button" id="saveChildBtn" class="btn primary full">Simpan Profil</button></form></dialog>
+  <dialog id="childModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Tambah Profil Pelajar</h2><label>Nama panggilan pelajar<input id="childName" maxlength="40" required></label><label>Tahun / Darjah<select id="childYear"><option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option><option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option></select></label><label>Avatar<select id="childAvatar"><option value="🧒">🧒 Ceria</option><option value="👧">👧 Puteri</option><option value="👦">👦 Wira</option><option value="🐯">🐯 Harimau</option><option value="🚀">🚀 Angkasawan</option></select></label><button type="button" id="saveChildBtn" class="btn primary full">Simpan Profil</button></form></dialog>
 
   <dialog id="gameModal"><div class="modal-form game"><button class="x" onclick="gameModal.close()">×</button><div id="gameContent"></div></div></dialog>
 

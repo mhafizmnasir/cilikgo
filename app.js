@@ -1,7 +1,6 @@
 import { firebaseConfig, USE_FIREBASE, FUNCTIONS_BASE_URL } from './firebase.js';
 
 let fb = null, firebaseInitError = null, currentProfile = null, activeChild = null, userChildren = [];
-const gameKeyToModule={read:'Membaca',write:'Menulis',count:'Mengira'};
 if (USE_FIREBASE) {
   try {
     const appMod = await import('https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js');
@@ -196,26 +195,6 @@ function formatDate(value){
   return d.toLocaleDateString('ms-MY',{day:'2-digit',month:'short',year:'numeric'});
 }
 
-function childProgressSummary(rows){
-  const modules=['Membaca','Menulis','Mengira'];
-  const byModule={};
-  modules.forEach(m=>{
-    const r=rows.filter(x=>x.module===m);
-    const stars=r.reduce((s,x)=>s+Number(x.stars||0),0);
-    const attempts=r.reduce((s,x)=>s+Number(x.attempts||0),0);
-    const levels=r.map(x=>Number(x.level||0)).filter(Boolean);
-    byModule[m]={rows:r.length,stars,attempts,level:levels.length?Math.max(...levels):1,efficiency:attempts?Math.round(stars/(attempts*3)*100):0};
-  });
-  return byModule;
-}
-function parentRecommendation(summary){
-  const names=Object.keys(summary);
-  const practiced=names.filter(n=>summary[n].rows>0);
-  if(!practiced.length) return {title:'Mulakan dengan aktiviti ringkas',text:'Pilih satu modul 3M dan lengkapkan Level 1 bersama anak.',module:'Membaca'};
-  const weakest=[...practiced].sort((a,b)=>(summary[a].efficiency||0)-(summary[b].efficiency||0))[0];
-  const strongest=[...practiced].sort((a,b)=>(summary[b].efficiency||0)-(summary[a].efficiency||0))[0];
-  return {title:`Latih ${weakest} seterusnya`,text:`${strongest} menunjukkan prestasi yang baik. Beri sedikit latihan tambahan pada ${weakest} untuk seimbangkan perkembangan 3M.`,module:weakest,strongest};
-}
 
 
 const SUBSCRIPTION_PLANS={
@@ -315,7 +294,8 @@ async function renderStudentPortal(p){
   showStudentPage();
   const root=$('#dashboard');
   const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
-  const rows=await loadProgress(p.uid,activeChild.id);
+  const allRows=await loadProgress(p.uid,activeChild.id);
+  const rows=allRows.filter(r=>Number(r.year)>=1&&r.subject);
 
   const subjects=[
     {key:'bm',name:'Bahasa Melayu',icon:'🇲🇾',emoji:'📖',desc:'Membaca, kosa kata, tatabahasa dan penulisan.',activity:'kssr_bm_y1_',className:'subject-bm'},
@@ -399,6 +379,10 @@ async function renderStudentPortal(p){
         </div>
       </section>
 
+      <section class="student-year-roadmap" aria-label="Tahun pembelajaran">
+        ${[1,2,3,4,5,6].map(y=>`<div class="student-year-step ${y===year?'current':''} ${y===1?'available':''}"><span>${y}</span><div><small>${y===year?'TAHUN SAYA':y===1?'TERSEDIA':'AKAN DATANG'}</small><b>Tahun ${y}</b></div></div>`).join('')}
+      </section>
+
       <section class="student-section">
         <div class="student-section-head">
           <div><span class="student-kicker">PILIH SUBJEK</span><h2>Apa yang kamu mahu belajar?</h2></div>
@@ -451,7 +435,7 @@ async function renderStudentPortal(p){
   };
 
   const openSubject=k=>{
-    if(year!==1)return;
+    if(year!==1){toast(`Kandungan Tahun ${year} sedang disediakan. Struktur portal sudah tersedia.`);return;}
     if(k==='bm')renderBmYear1Hub(p);
     if(k==='bi')renderBiYear1Hub(p);
     if(k==='math')renderMathYear1Hub(p);
@@ -846,7 +830,8 @@ async function renderUser(p){
   document.body.classList.remove('student-mode');
   showDashboardPage();
   const kids=await loadChildren(p.uid);
-  const progress=await loadAllProgress(p.uid);
+  const allProgress=await loadAllProgress(p.uid);
+  const progress=allProgress.filter(r=>Number(r.year)>=1&&r.subject);
   if(!activeChild&&kids.length) activeChild=kids[0];
   const sub=subscriptionState(p), active=sub.active, daysLeft=subscriptionDaysLeft(p);
   const selected=activeChild?progress.filter(x=>x.childId===activeChild.id):[];
@@ -879,7 +864,7 @@ async function renderUser(p){
     <section class="dash-main clean-main">
       <div class="clean-dash-head"><div><span class="dash-kicker">DASHBOARD PENJAGA</span><h1>Selamat datang, ${esc(p.name||'Penjaga')} 👋</h1><p>Pilih profil anak dan masuk terus ke Ruang Pelajar.</p></div><span class="subscription-chip ${active?'active':''}">${active?`✓ Aktif · ${daysLeft} hari`:'Langganan belum aktif'}</span></div>
       <div class="parent-quick-grid">
-        <div class="quick-stat"><span>👧</span><div><b>${kids.length}</b><small>Profil anak</small></div></div>
+        <div class="quick-stat"><span>👧</span><div><b>${kids.length}</b><small>Profil pelajar</small></div></div>
         <div class="quick-stat"><span>⭐</span><div><b>${totalStars}</b><small>Bintang anak dipilih</small></div></div>
         <div class="quick-stat"><span>📝</span><div><b>${selected.length}</b><small>Sesi direkodkan</small></div></div>
       </div>
@@ -1094,9 +1079,10 @@ async function renderAdmin(p){
     try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
     catch(e){console.warn(name,e);return [];}
   };
-  const [users,children,progress,orders,commissions,modules,questionsCms]=await Promise.all([
-    safeDocs('users'),safeDocs('children'),safeDocs('progress'),safeDocs('orders'),safeDocs('commissions'),safeDocs('modules'),safeDocs('questions')
+  const [users,children,allProgress,orders,commissions]=await Promise.all([
+    safeDocs('users'),safeDocs('children'),safeDocs('progress'),safeDocs('orders'),safeDocs('commissions')
   ]);
+  const progress=allProgress.filter(r=>Number(r.year)>=1&&r.subject);
   const agents=users.filter(u=>u.role==='agent'), customers=users.filter(u=>u.role==='user');
   const activeSubs=customers.filter(u=>u.subscriptionStatus==='active');
   const paidOrders=orders.filter(o=>o.status==='paid');
@@ -1113,7 +1099,7 @@ async function renderAdmin(p){
     ['subscriptions','💳','Langganan'],
     ['transactions','🧾','Transaksi'],
     ['commissions','💰','Komisen'],
-    ['modules','🗂️','CMS Legacy'],
+    ['content','🗂️','Kandungan'],
     ['settings','⚙️','Tetapan']
   ];
   const shell=(view,body)=>`<div class="dash-shell admin-shell portal-shell">
@@ -1132,7 +1118,7 @@ async function renderAdmin(p){
   const views={
     overview:()=>`${head('Overview')}<div class="admin-stat-grid">
       <div class="stat"><small>Penjaga</small><b>${customers.length}</b></div><div class="stat"><small>Agent</small><b>${agents.length}</b></div>
-      <div class="stat"><small>Profil anak</small><b>${children.length}</b></div><div class="stat"><small>Langganan aktif</small><b>${activeSubs.length}</b></div>
+      <div class="stat"><small>Profil pelajar</small><b>${children.length}</b></div><div class="stat"><small>Langganan aktif</small><b>${activeSubs.length}</b></div>
       <div class="stat"><small>Jualan dibayar</small><b>RM${sales.toFixed(2)}</b></div><div class="stat"><small>⭐ Dikumpul</small><b>${totalStars}</b></div>
       </div><div class="admin-two-col"><div><h3>Akaun terkini</h3>${users.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>Role</th><th>Status</th></tr>${users.slice(-8).reverse().map(u=>`<tr><td>${esc(u.name||u.email||'-')}</td><td>${statusBadge(u.role)}</td><td>${statusBadge(u.subscriptionStatus||'n/a')}</td></tr>`).join('')}</table></div>`:empty('Tiada akaun.')}</div>
       <div><h3>Ringkasan sistem</h3><div class="admin-summary"><p><b>${orders.length}</b> rekod transaksi</p><p><b>${commissions.length}</b> rekod komisen</p><p><b>RM${commissionTotal.toFixed(2)}</b> jumlah komisen</p><p><b>${progress.length}</b> rekod pembelajaran</p></div></div></div>`,
@@ -1146,7 +1132,7 @@ async function renderAdmin(p){
     learning:()=>{
       const subjectDefs=[['bm','Bahasa Melayu','🇲🇾'],['bi','Bahasa Inggeris','🔤'],['math','Matematik','➗'],['science','Sains','🔬']];
       const cards=subjectDefs.map(([k,n,i])=>{const r=progress.filter(x=>x.subject===k);return `<div class="stat"><small>${i} ${n}</small><b>${r.reduce((s,x)=>s+Number(x.stars||0),0)} ⭐</b><span>${r.length} sesi</span></div>`}).join('');
-      return `${head('Prestasi Pembelajaran','Analitik Tahun 1 dan rekod pembelajaran')}<div class="admin-stat-grid subject-admin-stats">${cards}</div>${progress.length?`<div class="table-wrap"><table class="table"><tr><th>Pelajar</th><th>Subjek / Modul</th><th>Topik</th><th>⭐</th><th>Percubaan</th></tr>${progress.slice(-30).reverse().map(x=>{const child=children.find(c=>c.id===x.childId);return `<tr><td>${esc(child?.name||'-')}</td><td>${esc(x.module||x.subject||'-')}</td><td>${esc(x.topic||('Level '+(x.level||'-')))}</td><td>${Number(x.stars||0)}</td><td>${Number(x.attempts||0)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada rekod pembelajaran.')}`;
+      return `${head('Prestasi Pembelajaran','Analitik Tahun 1 dan rekod pembelajaran')}<div class="admin-stat-grid subject-admin-stats">${cards}</div>${progress.length?`<div class="table-wrap"><table class="table"><tr><th>Pelajar</th><th>Subjek</th><th>Topik</th><th>⭐</th><th>Percubaan</th></tr>${progress.slice(-30).reverse().map(x=>{const child=children.find(c=>c.id===x.childId);return `<tr><td>${esc(child?.name||'-')}</td><td>${esc(({bm:'Bahasa Melayu',bi:'Bahasa Inggeris',math:'Matematik',science:'Sains'})[x.subject]||x.subject||'-')}</td><td>${esc(x.topic||'-')}</td><td>${Number(x.stars||0)}</td><td>${Number(x.attempts||0)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada rekod pembelajaran.')}`;
     },
 
     subscriptions:()=>`${head('Langganan','Status akses Penjaga')}<div class="stat-grid"><div class="stat"><small>Aktif</small><b>${activeSubs.length}</b></div><div class="stat"><small>Tidak aktif</small><b>${customers.length-activeSubs.length}</b></div><div class="stat"><small>Jumlah Penjaga</small><b>${customers.length}</b></div></div>${customers.length?`<div class="table-wrap"><table class="table"><tr><th>Penjaga</th><th>Status</th><th>Tamat</th></tr>${customers.map(u=>`<tr><td>${esc(u.name||u.email||'-')}</td><td>${statusBadge(u.subscriptionStatus||'inactive')}</td><td>${formatDate(u.subscriptionEndsAt)}</td></tr>`).join('')}</table></div>`:empty('Tiada Penjaga.')}`,
@@ -1155,31 +1141,23 @@ async function renderAdmin(p){
 
     commissions:()=>`${head('Komisen','Rekod affiliate')}<div class="stat-grid"><div class="stat"><small>Rekod</small><b>${commissions.length}</b></div><div class="stat"><small>Jumlah</small><b>RM${commissionTotal.toFixed(2)}</b></div><div class="stat"><small>Pending</small><b>${commissions.filter(c=>c.status==='pending').length}</b></div></div>${commissions.length?`<div class="table-wrap"><table class="table"><tr><th>Agent</th><th>Jualan</th><th>Kadar</th><th>Komisen</th><th>Status</th></tr>${commissions.map(c=>{const a=users.find(u=>u.id===c.agentUid);return `<tr><td>${esc(a?.name||c.agentUid||'-')}</td><td>RM${Number(c.saleAmount||0).toFixed(2)}</td><td>${Number(c.ratePercent||0)}%</td><td>RM${Number(c.amount||0).toFixed(2)}</td><td>${statusBadge(c.status)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada komisen.')}`,
 
-    modules:()=>`${head('CMS Soalan 3M (Legacy)','Bank lama untuk keserasian')}<div class="dash-note">ℹ️ CMS ini masih menggunakan struktur lama Modul 3M + Level. Kandungan KSSR Tahun 1 dalam Ruang Pelajar menggunakan bank Tahun/Subjek/Topik yang berasingan. Jangan anggap CMS legacy ini sebagai CMS KSSR.</div>
-      <form id="questionForm" class="question-form">
-        <input type="hidden" id="cmsQuestionId">
-        <label>Modul<select id="cmsModule"><option>Membaca</option><option>Menulis</option><option>Mengira</option></select></label>
-        <label>Level<select id="cmsLevel"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select></label>
-        <label class="wide">Soalan / Paparan<input id="cmsPrompt" required placeholder="Contoh: BA + ? atau 🍎 🍎 🍎"></label>
-        <label>Pilihan A<input id="cmsA" required placeholder="JU"></label>
-        <label>Pilihan B<input id="cmsB" required placeholder="KU"></label>
-        <label>Pilihan C<input id="cmsC" required placeholder="TU"></label>
-        <label>Jawapan betul<select id="cmsCorrect"><option value="0">Pilihan A</option><option value="1">Pilihan B</option><option value="2">Pilihan C</option></select></label>
-        <label class="wide">Maklum balas apabila betul<input id="cmsFeedback" required placeholder="Contoh: BA + JU = BAJU 🎉"></label>
-        <label>Susunan<input id="cmsOrder" type="number" min="1" value="1"></label>
-        <label class="cms-check"><input id="cmsActive" type="checkbox" checked> Aktif</label>
-        <div class="cms-actions"><button class="btn primary" id="cmsSaveBtn">Simpan Soalan</button><button type="button" class="btn ghost hidden" id="cmsCancelEdit">Batal Edit</button></div>
-      </form>
-      <div class="admin-toolbar"><input id="questionSearch" placeholder="Cari soalan…"><span>${questionsCms.length} soalan CMS</span></div>
-      <div id="questionTable">${renderQuestionRows(questionsCms)}</div>`,
+    content:()=>{
+      const subjects=[
+        ['bm','🇲🇾','Bahasa Melayu',Object.values(bmYear1Bank).reduce((n,t)=>n+t.questions.length,0)],
+        ['bi','🔤','Bahasa Inggeris',Object.values(biYear1Bank).reduce((n,t)=>n+t.questions.length,0)],
+        ['math','➗','Matematik',Object.values(mathYear1Bank).reduce((n,t)=>n+t.questions.length,0)],
+        ['science','🔬','Sains',Object.values(scienceYear1Bank).reduce((n,t)=>n+t.questions.length,0)]
+      ];
+      const yearCards=[1,2,3,4,5,6].map(y=>`<article class="admin-year-card ${y===1?'ready':''}"><span>Tahun ${y}</span><b>${y===1?'Aktif':'Belum diisi'}</b><small>${y===1?'4 subjek utama tersedia':'Struktur portal tersedia'}</small></article>`).join('');
+      return `${head('Kandungan Tahun 1–6','Peta kandungan portal sekolah rendah')}
+        <div class="dash-note">📚 CilikGo menggunakan struktur <b>Tahun → Subjek → Topik → Latihan</b>. Kandungan lama tidak lagi digunakan dalam portal.</div>
+        <div class="admin-year-grid">${yearCards}</div>
+        <div class="content-subject-grid">${subjects.map(([k,i,n,q])=>`<article class="content-subject-card"><span>${i}</span><div><small>TAHUN 1</small><h3>${n}</h3><p>${Object.keys(year1SubjectConfig(k).bank).length} topik · ${q} soalan terbina dalam</p></div><b>Aktif</b></article>`).join('')}</div>
+        <div class="dash-note">Tahun 2–6 belum mempunyai bank soalan. Kandungan seterusnya boleh ditambah terus mengikut struktur Tahun/Subjek/Topik.</div>`;
+    },
 
     settings:()=>`${head('Settings','Konfigurasi sistem')}<div class="settings-grid"><div class="setting-card"><b>Harga permulaan</b><strong>RM69</strong><small>4 bulan</small></div><div class="setting-card"><b>Pembaharuan</b><strong>RM15</strong><small>1 bulan · KIV pembayaran</small></div><div class="setting-card"><b>Komisen contoh</b><strong>15%</strong><small>Ubah sebelum production jika perlu</small></div></div><div class="dash-note">Tetapan kewangan sensitif dan secret ToyyibPay tidak disimpan atau diedit dari frontend Admin.</div>`
   };
-
-  function renderQuestionRows(list){
-    const sorted=[...list].sort((a,b)=>(a.module||'').localeCompare(b.module||'')||Number(a.level||0)-Number(b.level||0)||Number(a.order||0)-Number(b.order||0));
-    return sorted.length?`<div class="table-wrap"><table class="table"><tr><th>Modul</th><th>Level</th><th>Soalan</th><th>Jawapan</th><th>Status</th><th>Tindakan</th></tr>${sorted.map(q=>`<tr><td>${esc(q.module||'-')}</td><td>${esc(q.level||'-')}</td><td>${esc(q.prompt||'-')}</td><td><b>${esc(q.correct||'-')}</b></td><td>${statusBadge(q.active===false?'inactive':'active')}</td><td><div class="row-actions"><button class="btn ghost admin-edit-question" data-id="${esc(q.id)}">Edit</button><button class="btn ghost admin-delete-question" data-id="${esc(q.id)}">Padam</button></div></td></tr>`).join('')}</table></div>`:empty('Belum ada soalan CMS. Permainan masih menggunakan bank soalan terbina dalam.');
-  }
 
   function renderAgentRows(list){
     return list.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>E-mel</th><th>Kod</th><th>Jualan</th><th>Komisen</th></tr>${list.map(a=>{const ao=orders.filter(o=>o.agentUid===a.id),ac=commissions.filter(c=>c.agentUid===a.id);return `<tr><td>${esc(a.name||'-')}</td><td>${esc(a.email||'-')}</td><td><code>${esc(a.agentCode||'-')}</code></td><td>${ao.length}</td><td>RM${ac.reduce((s,c)=>s+Number(c.amount||0),0).toFixed(2)}</td></tr>`}).join('')}</table></div>`:empty('Tiada Agent ditemui.');
@@ -1199,47 +1177,6 @@ async function renderAdmin(p){
     const search=$('#adminSearch');
     if(search&&view==='users') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminUserTable').innerHTML=renderUserRows(customers.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
     if(search&&view==='agents') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminAgentTable').innerHTML=renderAgentRows(agents.filter(a=>(a.name||'').toLowerCase().includes(q)||(a.email||'').toLowerCase().includes(q)||(a.agentCode||'').toLowerCase().includes(q)));};
-    if(view==='modules'){
-      const resetForm=()=>{
-        $('#questionForm').reset(); $('#cmsQuestionId').value=''; $('#cmsOrder').value='1'; $('#cmsActive').checked=true;
-        $('#cmsSaveBtn').textContent='Simpan Soalan'; $('#cmsCancelEdit').classList.add('hidden');
-      };
-      const bindQuestionActions=()=>{
-        document.querySelectorAll('.admin-edit-question').forEach(b=>b.onclick=()=>{
-          const q=questionsCms.find(x=>x.id===b.dataset.id); if(!q)return;
-          $('#cmsQuestionId').value=q.id; $('#cmsModule').value=q.module; $('#cmsLevel').value=String(q.level);
-          $('#cmsPrompt').value=q.prompt||''; const ans=q.answers||['','',''];
-          $('#cmsA').value=ans[0]||''; $('#cmsB').value=ans[1]||''; $('#cmsC').value=ans[2]||'';
-          $('#cmsCorrect').value=String(Math.max(0,ans.indexOf(q.correct))); $('#cmsFeedback').value=q.success||'';
-          $('#cmsOrder').value=Number(q.order||1); $('#cmsActive').checked=q.active!==false;
-          $('#cmsSaveBtn').textContent='Simpan Perubahan'; $('#cmsCancelEdit').classList.remove('hidden');
-          $('#questionForm').scrollIntoView({behavior:'smooth',block:'start'});
-        });
-        document.querySelectorAll('.admin-delete-question').forEach(b=>b.onclick=async()=>{
-          if(!confirm('Padam soalan ini?'))return;
-          try{await fb.deleteDoc(fb.doc(fb.db,'questions',b.dataset.id));toast('Soalan dipadam.');await renderAdmin(p);}
-          catch(err){toast('Gagal padam: '+friendlyError(err));}
-        });
-      };
-      bindQuestionActions();
-      $('#cmsCancelEdit').onclick=resetForm;
-      $('#questionSearch').oninput=()=>{
-        const q=$('#questionSearch').value.toLowerCase();
-        $('#questionTable').innerHTML=renderQuestionRows(questionsCms.filter(x=>(x.prompt||'').toLowerCase().includes(q)||(x.module||'').toLowerCase().includes(q)||(x.correct||'').toLowerCase().includes(q)));
-        bindQuestionActions();
-      };
-      $('#questionForm').onsubmit=async e=>{
-        e.preventDefault();
-        const answers=[$('#cmsA').value.trim(),$('#cmsB').value.trim(),$('#cmsC').value.trim()];
-        const data={module:$('#cmsModule').value,level:Number($('#cmsLevel').value),prompt:$('#cmsPrompt').value.trim(),answers,correct:answers[Number($('#cmsCorrect').value)],success:$('#cmsFeedback').value.trim(),order:Number($('#cmsOrder').value||1),active:$('#cmsActive').checked,updatedAt:fb.serverTimestamp()};
-        try{
-          const id=$('#cmsQuestionId').value;
-          if(id) await fb.setDoc(fb.doc(fb.db,'questions',id),data,{merge:true});
-          else await fb.addDoc(fb.collection(fb.db,'questions'),{...data,createdBy:p.uid,createdAt:fb.serverTimestamp()});
-          toast(id?'Soalan berjaya dikemas kini.':'Soalan berjaya ditambah.'); await renderAdmin(p);
-        }catch(err){toast('Gagal simpan: '+friendlyError(err));}
-      };
-    }
   };
   await mount('overview');
 }
@@ -1319,7 +1256,7 @@ $('#saveChildBtn').onclick=async()=>{
   if(!fb?.auth.currentUser||currentProfile?.role!=='user') return toast('Fungsi ini untuk akaun Penjaga.');
   const name=$('#childName').value.trim(), year=Number($('#childYear').value), age=year+6, avatar=$('#childAvatar').value;
   if(!name) return toast('Masukkan nama panggilan anak.');
-  try{ const ref=await fb.addDoc(fb.collection(fb.db,'children'),{ownerUid:fb.auth.currentUser.uid,name,age,year,avatar,createdAt:fb.serverTimestamp()}); localStorage.setItem('cilikgo_active_child',ref.id); $('#childName').value=''; $('#childModal').close(); toast('Profil anak berjaya ditambah.'); await renderUser(currentProfile); }
+  try{ const ref=await fb.addDoc(fb.collection(fb.db,'children'),{ownerUid:fb.auth.currentUser.uid,name,age,year,avatar,createdAt:fb.serverTimestamp()}); localStorage.setItem('cilikgo_active_child',ref.id); $('#childName').value=''; $('#childModal').close(); toast('Profil pelajar berjaya ditambah.'); await renderUser(currentProfile); }
   catch(e){ console.error(e); toast('Gagal simpan profil: '+friendlyError(e)); }
 };
 
@@ -1731,319 +1668,18 @@ const mathYear1Bank={
   }
 };
 
-const curriculum={
-  read:{
-    title:'📖 Membaca',
-    levels:[
-      {level:1,name:'Suku Kata Asas',unlockStars:0,questions:[
-        {prompt:"BA + ?",answers:["JU", "KU", "TU"],correct:"JU",success:"BA + JU = BAJU 🎉"},
-        {prompt:"BU + ?",answers:["KU", "KA", "KI"],correct:"KU",success:"BU + KU = BUKU 📚"},
-        {prompt:"BO + ?",answers:["LA", "LI", "LU"],correct:"LA",success:"BO + LA = BOLA ⚽"},
-        {prompt:"MA + ?",answers:["TA", "TI", "TU"],correct:"TA",success:"MA + TA = MATA 👀"},
-        {prompt:"SU + ?",answers:["SU", "SA", "SI"],correct:"SU",success:"SU + SU = SUSU 🥛"},
-        {prompt:"BA + ?",answers:["TU", "TI", "TA"],correct:"TU",success:"BA + TU = BATU 🪨"},
-        {prompt:"BI + ?",answers:["RU", "RA", "RI"],correct:"RU",success:"BI + RU = BIRU 🔵"},
-        {prompt:"SA + ?",answers:["PU", "PI", "PA"],correct:"PU",success:"SA + PU = SAPU 🧹"},
-        {prompt:"ME + ?",answers:["JA", "JI", "JU"],correct:"JA",success:"ME + JA = MEJA"},
-        {prompt:"BO + ?",answers:["NE", "NA", "NI"],correct:"NE",success:"BO + NE = BONEKA 🧸"},
-        {prompt:"GI + ?",answers:["GI", "GA", "GU"],correct:"GI",success:"GI + GI = GIGI 😁"},
-        {prompt:"I + ?",answers:["BU", "BA", "BI"],correct:"BU",success:"I + BU = IBU ❤️"}]},
-      {level:2,name:'Bina Perkataan',unlockStars:8,questions:[
-        {prompt:"KU + ?",answers:["DA", "DI", "DU"],correct:"DA",success:"KU + DA = KUDA 🐴"},
-        {prompt:"RO + ?",answers:["TI", "TA", "TU"],correct:"TI",success:"RO + TI = ROTI 🍞"},
-        {prompt:"NA + ?",answers:["SI", "SA", "SU"],correct:"SI",success:"NA + SI = NASI 🍚"},
-        {prompt:"TO + ?",answers:["PI", "PA", "PU"],correct:"PI",success:"TO + PI = TOPI 🧢"},
-        {prompt:"KA + ?",answers:["KI", "KU", "KO"],correct:"KI",success:"KA + KI = KAKI 🦶"},
-        {prompt:"BA + ?",answers:["JU", "JI", "JO"],correct:"JU",success:"BA + JU = BAJU 👕"},
-        {prompt:"BO + ?",answers:["LA", "LI", "LU"],correct:"LA",success:"BO + LA = BOLA ⚽"},
-        {prompt:"ME + ?",answers:["JA", "JI", "JU"],correct:"JA",success:"ME + JA = MEJA"},
-        {prompt:"SA + ?",answers:["YA", "YU", "YO"],correct:"YA",success:"SA + YA = SAYA"},
-        {prompt:"BU + ?",answers:["KU", "KO", "KA"],correct:"KU",success:"BU + KU = BUKU 📚"},
-        {prompt:"SU + ?",answers:["SU", "SI", "SA"],correct:"SU",success:"SU + SU = SUSU 🥛"},
-        {prompt:"MA + ?",answers:["TA", "TI", "TU"],correct:"TA",success:"MA + TA = MATA 👀"}]},
-      {level:3,name:'Perkataan Lebih Panjang',unlockStars:18,questions:[
-        {prompt:"KE + RE + ?",answers:["TA", "TI", "TU"],correct:"TA",success:"KE + RE + TA = KERETA 🚗"},
-        {prompt:"SE + KO + ?",answers:["LAH", "LIH", "LUH"],correct:"LAH",success:"SE + KO + LAH = SEKOLAH 🏫"},
-        {prompt:"KE + PA + ?",answers:["LA", "LI", "LU"],correct:"LA",success:"KE + PA + LA = KEPALA 🙂"},
-        {prompt:"BI + NA + ?",answers:["TANG", "TING", "TUNG"],correct:"TANG",success:"BI + NA + TANG = BINATANG 🐯"},
-        {prompt:"KE + LU + ?",answers:["AR", "IR", "UR"],correct:"AR",success:"KE + LU + AR = KELUAR"},
-        {prompt:"PE + LA + ?",answers:["JAR", "JIR", "JUR"],correct:"JAR",success:"PE + LA + JAR = PELAJAR"},
-        {prompt:"MA + KA + ?",answers:["NAN", "NIN", "NUN"],correct:"NAN",success:"MA + KA + NAN = MAKANAN 🍽️"},
-        {prompt:"MI + NU + ?",answers:["MAN", "MIN", "MUN"],correct:"MAN",success:"MI + NU + MAN = MINUMAN 🥤"},
-        {prompt:"HA + RI + ?",answers:["MAU", "MIU", "MUU"],correct:"MAU",success:"HA + RI + MAU = HARIMAU 🐯"},
-        {prompt:"BA + SI + ?",answers:["KAL", "KIL", "KUL"],correct:"KAL",success:"BA + SI + KAL = BASIKAL 🚲"},
-        {prompt:"TE + LE + ?",answers:["FON", "FIN", "FUN"],correct:"FON",success:"TE + LE + FON = TELEFON 📱"},
-        {prompt:"CE + RE + ?",answers:["KA", "KI", "KU"],correct:"KA",success:"CE + RE + KA = CEREKA 📖"}]}
-    ]},
-  write:{
-    title:'✏️ Menulis',
-    levels:[
-      {level:1,name:'Pilih Ejaan',unlockStars:0,questions:[
-        {prompt:"🐱",answers:["KUCIN", "KUCING", "KUSING"],correct:"KUCING",success:"Ejaan betul ialah KUCING 🐱"},
-        {prompt:"🐟",answers:["IKAN", "EKAN", "IKON"],correct:"IKAN",success:"Ejaan betul ialah IKAN 🐟"},
-        {prompt:"🌸",answers:["BUNGA", "BONGA", "BUNGO"],correct:"BUNGA",success:"Ejaan betul ialah BUNGA 🌸"},
-        {prompt:"👁️",answers:["MATA", "META", "MITA"],correct:"MATA",success:"Ejaan betul ialah MATA 👁️"},
-        {prompt:"📚",answers:["BUKU", "BOKU", "BUKO"],correct:"BUKU",success:"Ejaan betul ialah BUKU 📚"},
-        {prompt:"⚽",answers:["BOLA", "BULA", "BELA"],correct:"BOLA",success:"Ejaan betul ialah BOLA ⚽"},
-        {prompt:"🍚",answers:["NASI", "NASE", "NESI"],correct:"NASI",success:"Ejaan betul ialah NASI 🍚"},
-        {prompt:"🧢",answers:["TOPI", "TUPI", "TOPE"],correct:"TOPI",success:"Ejaan betul ialah TOPI 🧢"},
-        {prompt:"🐴",answers:["KUDA", "KODA", "KUDE"],correct:"KUDA",success:"Ejaan betul ialah KUDA 🐴"},
-        {prompt:"🥛",answers:["SUSU", "SOSU", "SUSO"],correct:"SUSU",success:"Ejaan betul ialah SUSU 🥛"},
-        {prompt:"🦶",answers:["KAKI", "KEKI", "KAKU"],correct:"KAKI",success:"Ejaan betul ialah KAKI 🦶"},
-        {prompt:"👕",answers:["BAJU", "BEJU", "BAJO"],correct:"BAJU",success:"Ejaan betul ialah BAJU 👕"}]},
-      {level:2,name:'Lengkapkan Perkataan',unlockStars:8,questions:[
-        {prompt:"B _ L A",answers:["O", "U", "A"],correct:"O",success:"B + O + LA = BOLA ⚽"},
-        {prompt:"R _ T I",answers:["O", "A", "U"],correct:"O",success:"R + O + TI = ROTI 🍞"},
-        {prompt:"K _ D A",answers:["U", "O", "A"],correct:"U",success:"K + U + DA = KUDA 🐴"},
-        {prompt:"N _ S I",answers:["A", "E", "O"],correct:"A",success:"N + A + SI = NASI 🍚"},
-        {prompt:"T _ P I",answers:["O", "U", "A"],correct:"O",success:"T + O + PI = TOPI 🧢"},
-        {prompt:"B _ K U",answers:["U", "O", "A"],correct:"U",success:"B + U + KU = BUKU 📚"},
-        {prompt:"M _ T A",answers:["A", "I", "U"],correct:"A",success:"M + A + TA = MATA 👀"},
-        {prompt:"S _ S U",answers:["U", "A", "I"],correct:"U",success:"S + U + SU = SUSU 🥛"},
-        {prompt:"B _ J U",answers:["A", "I", "O"],correct:"A",success:"B + A + JU = BAJU 👕"},
-        {prompt:"M _ J A",answers:["E", "A", "I"],correct:"E",success:"M + E + JA = MEJA"},
-        {prompt:"K _ K I",answers:["A", "E", "U"],correct:"A",success:"K + A + KI = KAKI 🦶"},
-        {prompt:"S _ P U",answers:["A", "I", "U"],correct:"A",success:"S + A + PU = SAPU 🧹"}]},
-      {level:3,name:'Ejaan Lebih Panjang',unlockStars:18,questions:[
-        {prompt:"🚗",answers:["KERETA", "KARETA", "KERITA"],correct:"KERETA",success:"Ejaan betul ialah KERETA 🚗"},
-        {prompt:"🏫",answers:["SEKOLAH", "SIKOLAH", "SEKULAH"],correct:"SEKOLAH",success:"Ejaan betul ialah SEKOLAH 🏫"},
-        {prompt:"🦋",answers:["RAMA-RAMA", "REMA-REMA", "RAMA-ROMA"],correct:"RAMA-RAMA",success:"Ejaan betul ialah RAMA-RAMA 🦋"},
-        {prompt:"🚲",answers:["BASIKAL", "BESIKAL", "BASIKEL"],correct:"BASIKAL",success:"Ejaan betul ialah BASIKAL 🚲"},
-        {prompt:"🐯",answers:["HARIMAU", "HERIMAU", "HARIMOU"],correct:"HARIMAU",success:"Ejaan betul ialah HARIMAU 🐯"},
-        {prompt:"📱",answers:["TELEFON", "TALIFON", "TELEPON"],correct:"TELEFON",success:"Ejaan betul ialah TELEFON 📱"},
-        {prompt:"🍽️",answers:["MAKANAN", "MAKENAN", "MAKANEN"],correct:"MAKANAN",success:"Ejaan betul ialah MAKANAN 🍽️"},
-        {prompt:"🥤",answers:["MINUMAN", "MENUMAN", "MINOMAN"],correct:"MINUMAN",success:"Ejaan betul ialah MINUMAN 🥤"},
-        {prompt:"👨\u200d🎓",answers:["PELAJAR", "PELEJAR", "PELAJER"],correct:"PELAJAR",success:"Ejaan betul ialah PELAJAR"},
-        {prompt:"🙂",answers:["KEPALA", "KAPALA", "KEPELA"],correct:"KEPALA",success:"Ejaan betul ialah KEPALA 🙂"},
-        {prompt:"🐘",answers:["GAJAH", "GEJAH", "GAJEH"],correct:"GAJAH",success:"Ejaan betul ialah GAJAH 🐘"},
-        {prompt:"🌴",answers:["KELAPA", "KALAPA", "KELEPA"],correct:"KELAPA",success:"Ejaan betul ialah KELAPA 🌴"}]}
-    ]},
-  count:{
-    title:'🧮 Mengira',
-    levels:[
-      {level:1,name:'Nombor 1–5',unlockStars:0,questions:[
-        {prompt:"🍎 🍎 🍎",answers:["2", "3", "4"],correct:"3",success:"Tepat! Ada 3 biji epal 🍎"},
-        {prompt:"⭐ ⭐",answers:["1", "2", "3"],correct:"2",success:"Tepat! Ada 2 bintang ⭐"},
-        {prompt:"🐟 🐟 🐟 🐟",answers:["3", "4", "5"],correct:"4",success:"Tepat! Ada 4 ekor ikan 🐟"},
-        {prompt:"🌼",answers:["1", "2", "3"],correct:"1",success:"Tepat! Ada 1 bunga 🌼"},
-        {prompt:"⚽ ⚽ ⚽ ⚽ ⚽",answers:["4", "5", "6"],correct:"5",success:"Tepat! Ada 5 bola ⚽"},
-        {prompt:"🍌 🍌",answers:["1", "2", "3"],correct:"2",success:"Tepat! Ada 2 pisang 🍌"},
-        {prompt:"🐱 🐱 🐱",answers:["2", "3", "4"],correct:"3",success:"Tepat! Ada 3 kucing 🐱"},
-        {prompt:"🚗 🚗 🚗 🚗",answers:["3", "4", "5"],correct:"4",success:"Tepat! Ada 4 kereta 🚗"},
-        {prompt:"🧸 🧸 🧸 🧸 🧸",answers:["4", "5", "6"],correct:"5",success:"Tepat! Ada 5 patung 🧸"},
-        {prompt:"🥕",answers:["1", "2", "3"],correct:"1",success:"Tepat! Ada 1 lobak 🥕"},
-        {prompt:"🍊 🍊 🍊",answers:["2", "3", "4"],correct:"3",success:"Tepat! Ada 3 oren 🍊"},
-        {prompt:"🐥 🐥",answers:["1", "2", "3"],correct:"2",success:"Tepat! Ada 2 anak ayam 🐥"}]},
-      {level:2,name:'Nombor 6–10',unlockStars:8,questions:[
-        {prompt:"🍓 🍓 🍓 🍓 🍓 🍓",answers:["5", "6", "7"],correct:"6",success:"Bagus! Ada 6 strawberi 🍓"},
-        {prompt:"🐥 🐥 🐥 🐥 🐥 🐥 🐥",answers:["6", "7", "8"],correct:"7",success:"Bagus! Ada 7 anak ayam 🐥"},
-        {prompt:"🌟 🌟 🌟 🌟 🌟 🌟 🌟 🌟",answers:["7", "8", "9"],correct:"8",success:"Bagus! Ada 8 bintang 🌟"},
-        {prompt:"🍊 🍊 🍊 🍊 🍊 🍊 🍊 🍊 🍊",answers:["8", "9", "10"],correct:"9",success:"Bagus! Ada 9 oren 🍊"},
-        {prompt:"🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵",answers:["8", "9", "10"],correct:"10",success:"Bagus! Ada 10 bulatan 🔵"},
-        {prompt:"6 + 1 = ?",answers:["6", "7", "8"],correct:"7",success:"Betul! 6 + 1 = 7"},
-        {prompt:"8 - 1 = ?",answers:["6", "7", "8"],correct:"7",success:"Betul! 8 - 1 = 7"},
-        {prompt:"7 + 2 = ?",answers:["8", "9", "10"],correct:"9",success:"Betul! 7 + 2 = 9"},
-        {prompt:"10 - 2 = ?",answers:["7", "8", "9"],correct:"8",success:"Betul! 10 - 2 = 8"},
-        {prompt:"5 + 3 = ?",answers:["7", "8", "9"],correct:"8",success:"Betul! 5 + 3 = 8"},
-        {prompt:"9 - 3 = ?",answers:["5", "6", "7"],correct:"6",success:"Betul! 9 - 3 = 6"},
-        {prompt:"6 + 4 = ?",answers:["9", "10", "11"],correct:"10",success:"Betul! 6 + 4 = 10"}]},
-      {level:3,name:'Tambah Mudah',unlockStars:18,questions:[
-        {prompt:"2 + 1 = ?",answers:["2", "3", "4"],correct:"3",success:"Betul! 2 + 1 = 3 🎉"},
-        {prompt:"3 + 2 = ?",answers:["4", "5", "6"],correct:"5",success:"Betul! 3 + 2 = 5 🎉"},
-        {prompt:"4 + 2 = ?",answers:["5", "6", "7"],correct:"6",success:"Betul! 4 + 2 = 6 🎉"},
-        {prompt:"5 + 3 = ?",answers:["7", "8", "9"],correct:"8",success:"Betul! 5 + 3 = 8 🎉"},
-        {prompt:"6 + 4 = ?",answers:["9", "10", "11"],correct:"10",success:"Betul! 6 + 4 = 10 🎉"},
-        {prompt:"10 + 5 = ?",answers:["14", "15", "16"],correct:"15",success:"Betul! 10 + 5 = 15 🎉"},
-        {prompt:"12 - 4 = ?",answers:["7", "8", "9"],correct:"8",success:"Betul! 12 - 4 = 8 🎉"},
-        {prompt:"7 + 8 = ?",answers:["14", "15", "16"],correct:"15",success:"Betul! 7 + 8 = 15 🎉"},
-        {prompt:"15 - 6 = ?",answers:["8", "9", "10"],correct:"9",success:"Betul! 15 - 6 = 9 🎉"},
-        {prompt:"9 + 9 = ?",answers:["17", "18", "19"],correct:"18",success:"Betul! 9 + 9 = 18 🎉"},
-        {prompt:"20 - 5 = ?",answers:["14", "15", "16"],correct:"15",success:"Betul! 20 - 5 = 15 🎉"},
-        {prompt:"11 + 6 = ?",answers:["16", "17", "18"],correct:"17",success:"Betul! 11 + 6 = 17 🎉"}]}
-    ]}
-};
-
-let preferredMalayVoice=null;
-function chooseMalayVoice(){
-  const voices=speechSynthesis.getVoices();
-  if(!voices.length) return null;
-  const score=v=>{
-    const lang=(v.lang||'').toLowerCase(), name=(v.name||'').toLowerCase();
-    let s=0;
-    if(lang==='ms-my') s+=100;
-    else if(lang.startsWith('ms')) s+=70;
-    else if(lang==='id-id') s+=20;
-    if(name.includes('malaysia')||name.includes('malay')) s+=25;
-    if(v.localService) s+=3;
-    return s;
-  };
-  return [...voices].sort((a,b)=>score(b)-score(a))[0]||null;
-}
-function refreshMalayVoice(){ preferredMalayVoice=chooseMalayVoice(); }
-if('speechSynthesis' in window){
-  refreshMalayVoice();
-  speechSynthesis.addEventListener?.('voiceschanged',refreshMalayVoice);
-}
-function speakBM(text){
-  if(!('speechSynthesis' in window)) return toast('Audio tidak disokong oleh browser ini.');
-  const clean=String(text||'').replace(/[^\p{L}\p{N}\s+\-=?]/gu,' ').trim();
-  if(!clean)return;
-  speechSynthesis.cancel();
-  if(!preferredMalayVoice) refreshMalayVoice();
-  const u=new SpeechSynthesisUtterance(clean);
-  if(preferredMalayVoice){u.voice=preferredMalayVoice;u.lang=preferredMalayVoice.lang||'ms-MY';}
-  else u.lang='ms-MY';
-  u.rate=.65; u.pitch=1.0; u.volume=1.0;
-  speechSynthesis.speak(u);
-}
-function celebrate(){
-  const layer=document.createElement('div'); layer.className='celebration';
-  layer.innerHTML=Array.from({length:18},(_,i)=>`<i style="--i:${i}">${['⭐','🎉','✨','🌟'][i%4]}</i>`).join('');
-  document.body.appendChild(layer); setTimeout(()=>layer.remove(),1300);
-}
-function awardBadge(moduleName,level,stars){
-  if(!activeChild||stars<8)return null;
-  const key=`badge_${activeChild.id}_${moduleName}_${level}`;
-  if(localStorage.getItem(key))return null;
-  localStorage.setItem(key,'1');
-  return stars>=13?'🏆 Juara 3M':stars>=10?'🥇 Bintang Hebat':'🏅 Berani Mencuba';
-}
-
-async function loadCmsQuestions(key,levelNo){
-  if(!fb) return [];
-  try{
-    const snap=await fb.getDocs(fb.collection(fb.db,'questions'));
-    return snap.docs.map(d=>({id:d.id,...d.data()}))
-      .filter(q=>q.active!==false&&q.module===gameKeyToModule[key]&&Number(q.level)===Number(levelNo)&&Array.isArray(q.answers)&&q.answers.length>=2&&q.correct)
-      .sort((a,b)=>Number(a.order||0)-Number(b.order||0));
-  }catch(e){console.warn('CMS questions fallback:',e);return [];}
-}
-
-function bestLevelScores(progress,module){
-  const best={};
-  progress.filter(x=>x.module===module&&x.correct===true).forEach(x=>{
-    const level=Number(x.level||0),stars=Number(x.stars||0);
-    if(level) best[level]=Math.max(best[level]||0,stars);
-  });
-  return best;
-}
-const moduleStars=(progress,module)=>Object.values(bestLevelScores(progress,module)).reduce((n,x)=>n+Number(x||0),0);
-function unlockedLevel(progress,key){
-  const levels=curriculum[key].levels, best=bestLevelScores(progress,gameKeyToModule[key]);
-  let unlocked=1;
-  for(let i=1;i<levels.length;i++){
-    const prev=levels[i-1];
-    if((best[prev.level]||0)>=8) unlocked=levels[i].level;
-    else break;
-  }
-  return unlocked;
-}
-function levelBest(progress,key,levelNo){return bestLevelScores(progress,gameKeyToModule[key])[levelNo]||0;}
-function learningRank(stars){
-  if(stars>=24)return {icon:'👑',name:'Juara 3M'};
-  if(stars>=16)return {icon:'🏆',name:'Bintang Hebat'};
-  if(stars>=8)return {icon:'🌟',name:'Pelajar Ceria'};
-  return {icon:'🌱',name:'Mula Belajar'};
-}
-function showSubscriptionGate(profile,key){
-  const sub=subscriptionState(profile),c=curriculum[key],expired=sub.expired;
+function showSubscriptionGate(profile,context='latihan'){
+  const sub=subscriptionState(profile),expired=sub.expired;
   $('#gameContent').innerHTML=`<div class="subscription-gate"><div class="gate-icon">🔒</div><small>Akses Premium CilikGo</small>
-  <h2>${expired?'Langganan telah tamat':'Langganan diperlukan'}</h2>
-  <p>${expired?`Untuk teruskan ${c?.title||'modul 3M'}, perbaharui langganan RM15 untuk 1 bulan.`:`Akses penuh ${c?.title||'modul 3M'} tersedia dengan Pakej Permulaan RM69 untuk 4 bulan.`}</p>
-  <div class="gate-plan"><span>${expired?'Renewal':'Pakej Permulaan'}</span><b>${expired?'RM15':'RM69'}</b><small>${expired?'1 bulan':'4 bulan'}</small></div>
-  <div class="gate-actions"><button class="btn primary" disabled>${expired?'Renew RM15':'Langgan RM69'}</button><button class="btn ghost" id="gateBack">Kembali</button></div>
-  <p class="gate-note">ToyyibPay masih KIV.</p></div>`;
+    <h2>${expired?'Langganan telah tamat':'Langganan diperlukan'}</h2>
+    <p>${expired?'Perbaharui langganan untuk meneruskan latihan Tahun 1–6.':'Aktifkan langganan untuk membuka Ruang Pelajar dan latihan mengikut tahun, subjek serta topik.'}</p>
+    <div class="gate-plan"><span>${expired?'Pembaharuan':'Pakej Permulaan'}</span><b>${expired?'RM15':'RM69'}</b><small>${expired?'1 bulan':'4 bulan'}</small></div>
+    <div class="gate-actions"><button class="btn primary" disabled>${expired?'Renew RM15':'Langgan RM69'}</button><button class="btn ghost" id="gateBack">Kembali</button></div>
+    <p class="gate-note">ToyyibPay masih KIV.</p></div>`;
   if(!$('#gameModal').open) $('#gameModal').showModal();
   $('#gateBack').onclick=()=>$('#gameModal').close();
 }
 
-function openLevelPicker(key,track=false){
-  const c=curriculum[key];
-  const render=async()=>{
-    if(track){
-      if(!fb?.auth.currentUser){openAuth('login');return;}
-      const profile=currentProfile||await getProfile(fb.auth.currentUser);
-      if(!subscriptionState(profile).active){showSubscriptionGate(profile,key);return;}
-      if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-    }
-    const progress=track&&activeChild&&currentProfile?await loadProgress(currentProfile.uid,activeChild.id):[];
-    const stars=moduleStars(progress,gameKeyToModule[key]), max=track?unlockedLevel(progress,key):3,rank=learningRank(stars);
-    $('#gameContent').innerHTML=`<div class="learning-picker"><h2>${c.title}</h2>${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${rank.icon} ${rank.name}</p>`:''}
-      <div class="learning-summary"><div><small>Bintang terbaik</small><b>⭐ ${stars}/45</b></div><div><small>Level terbuka</small><b>${max}/3</b></div></div>
-      <p>Pilih tahap pembelajaran:</p><div class="level-grid">${c.levels.map(l=>{const best=levelBest(progress,key,l.level),locked=l.level>max;return `<button class="level-card ${best>=8?'level-passed':''}" data-level="${l.level}" ${locked?'disabled':''}><b>Level ${l.level}</b><span>${esc(l.name)}</span><small>${locked?'🔒 Selesaikan level sebelumnya':best?`Rekod terbaik ⭐ ${best}/15`:'Terbuka · Belum dimainkan'}</small>${best>=8?'<em>✓ Lulus</em>':''}</button>`}).join('')}</div>
-      ${track?`<p class="level-total">Selesaikan setiap level dengan sekurang-kurangnya ⭐ 8/15 untuk membuka level seterusnya.</p>`:''}</div>`;
-    if(!$('#gameModal').open) $('#gameModal').showModal();
-    document.querySelectorAll('.level-card:not(:disabled)').forEach(b=>b.onclick=()=>startLevel(key,Number(b.dataset.level),track));
-  }; render();
-}
-async function startLevel(key,levelNo,track=false){
-  if(track){
-    if(!fb?.auth.currentUser){openAuth('login');return;}
-    const profile=currentProfile||await getProfile(fb.auth.currentUser);
-    if(!subscriptionState(profile).active){showSubscriptionGate(profile,key);return;}
-    if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-    const progress=await loadProgress(profile.uid,activeChild.id);
-    if(levelNo>unlockedLevel(progress,key)){toast('Level ini belum terbuka. Selesaikan level sebelumnya dahulu.');openLevelPicker(key,true);return;}
-  }
-  const c=curriculum[key], level=c.levels.find(x=>x.level===levelNo);
-  const cmsQuestions=await loadCmsQuestions(key,levelNo);
-  const sourceQuestions=cmsQuestions.length?cmsQuestions:level.questions;
-  const questions=[...sourceQuestions].sort(()=>Math.random()-.5).slice(0,5);
-  let index=0,scoreStars=0,totalAttempts=0;
-
-  const renderQuestion=()=>{
-    const q=questions[index]; let attempts=0,completed=false;
-    const pct=Math.round((index/questions.length)*100);
-    $('#gameContent').innerHTML=`<h2>${c.title} · Level ${levelNo}</h2>
-      ${track&&activeChild?`<p class="game-child">${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)} · ${esc(level.name)}</p>`:''}
-      <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
-      <div class="level-progress"><span style="width:${pct}%"></span></div>
-      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Tak apa kalau tersalah. Cuba lagi 💜</span></div>
-      <div class="game-prompt">${esc(q.prompt)}</div>
-      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
-      <div id="gameMsg"></div>`;
-    $('#speakQuestion').onclick=()=>speakBM(q.prompt);
-    document.querySelectorAll('.answer').forEach(x=>x.onclick=()=>{
-      if(completed)return; attempts++; totalAttempts++;
-      if(x.textContent!==q.correct){
-        x.classList.add('wrong'); setTimeout(()=>x.classList.remove('wrong'),450);
-        $('#gameMsg').innerHTML=`<div class="try-again">💪 Belum tepat. Cuba lagi! <small>Percubaan ${attempts}</small></div>`;
-        speakBM('Cuba lagi'); return;
-      }
-      completed=true; const stars=attempts===1?3:attempts===2?2:1; scoreStars+=stars;
-      x.classList.add('correct'); document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
-      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Hebat!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(stars)}</strong></div>`;
-      celebrate(); speakBM(q.success||'Hebat');
-      setTimeout(()=>{index++;index<questions.length?renderQuestion():finishLevel();},1200);
-    });
-  };
-
-  const finishLevel=async()=>{
-    const passed=scoreStars>=8,maxStars=questions.length*3,pct=Math.round(scoreStars/maxStars*100);
-    const badge=awardBadge(gameKeyToModule[key],levelNo,scoreStars);
-    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <h2>${pct>=85?'Cemerlang!':pct>=65?'Syabas!':'Bagus kerana mencuba!'}</h2>
-      <p>${esc(activeChild?.name||'Adik')} sudah tamat ${esc(level.name)}.</p>
-      <div class="result-stars">⭐ ${scoreStars} / ${maxStars}</div>
-      <div class="result-grid"><div><b>${scoreStars}</b><small>Bintang</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Pencapaian</small></div></div>
-      ${badge?`<div class="badge-earned"><span>${badge.split(' ')[0]}</span><b>${badge.substring(badge.indexOf(' ')+1)}</b><small>Badge baharu!</small></div>`:''}
-      <div class="result-actions"><button class="btn primary" id="playAgain">${passed?'Main Lagi':'Cuba Lagi'}</button>${passed&&levelNo<3?'<button class="btn success" id="nextLevel">Level Seterusnya →</button>':''}<button class="btn ghost" id="backLevels">Pilih Level</button></div>
-      <p class="result-tip">${passed?'⭐ Level seterusnya kini boleh dibuka. Rekod terbaik digunakan untuk kemajuan.':'Dapatkan sekurang-kurangnya ⭐ 8 untuk membuka level seterusnya.'}</p></div>`;
-    celebrate(); speakBM(passed?'Syabas, hebat!':'Bagus kerana mencuba');
-    if(track&&activeChild&&fb?.auth.currentUser){
-      try{
-        await fb.addDoc(fb.collection(fb.db,'progress'),{ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,module:gameKeyToModule[key],activity:key,level:levelNo,questions:questions.length,correct:true,attempts:totalAttempts,stars:scoreStars,passed,createdAt:fb.serverTimestamp()});
-        toast(`⭐ ${scoreStars} bintang ${activeChild.name} direkodkan!`);
-      }catch(e){console.error(e);toast('Level selesai, tetapi rekod kemajuan gagal disimpan.');}
-    }
-    $('#playAgain').onclick=()=>startLevel(key,levelNo,track);
-    if($('#nextLevel')) $('#nextLevel').onclick=()=>startLevel(key,levelNo+1,track);
-    $('#backLevels').onclick=()=>openLevelPicker(key,track);
-  };
-  renderQuestion();
-}
-function openGame(key,track=false){ openLevelPicker(key,track); }
-document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dataset.game,false));
 
 
 document.addEventListener('click',e=>{
