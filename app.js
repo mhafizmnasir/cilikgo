@@ -802,6 +802,86 @@ function quizAnswerEmoji(answer){
   return '';
 }
 
+
+function animalMascotSvg(type='owl'){
+  const common='viewBox="0 0 180 180" role="img" aria-hidden="true"';
+  if(type==='rabbit')return `<svg ${common} class="cartoon-animal-svg">
+    <ellipse cx="72" cy="43" rx="18" ry="45" fill="#f0e6df" stroke="#9f8d85" stroke-width="5" transform="rotate(-12 72 43)"/>
+    <ellipse cx="111" cy="42" rx="18" ry="45" fill="#f0e6df" stroke="#9f8d85" stroke-width="5" transform="rotate(12 111 42)"/>
+    <ellipse cx="72" cy="42" rx="8" ry="30" fill="#ffb9bd" opacity=".85" transform="rotate(-12 72 42)"/>
+    <ellipse cx="111" cy="41" rx="8" ry="30" fill="#ffb9bd" opacity=".85" transform="rotate(12 111 41)"/>
+    <circle cx="91" cy="93" r="55" fill="#eee5de" stroke="#9f8d85" stroke-width="5"/>
+    <ellipse cx="70" cy="88" rx="8" ry="11" fill="#29262b"/><ellipse cx="112" cy="88" rx="8" ry="11" fill="#29262b"/>
+    <circle cx="67" cy="84" r="3" fill="#fff"/><circle cx="109" cy="84" r="3" fill="#fff"/>
+    <ellipse cx="91" cy="104" rx="9" ry="7" fill="#ff8f91"/>
+    <path d="M91 111 C84 118 77 119 72 116 M91 111 C98 118 105 119 110 116" fill="none" stroke="#5d4e4a" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="56" cy="108" rx="12" ry="7" fill="#ffb9bd" opacity=".45"/><ellipse cx="126" cy="108" rx="12" ry="7" fill="#ffb9bd" opacity=".45"/>
+    <path d="M54 142 C65 124 118 124 130 142 L137 172 H44 Z" fill="#fff4dc" stroke="#9f8d85" stroke-width="5"/>
+    <path d="M54 144 Q91 127 128 144" fill="none" stroke="#64bdf0" stroke-width="5"/>
+  </svg>`;
+  if(type==='squirrel')return `<svg ${common} class="cartoon-animal-svg">
+    <path d="M45 121 C6 107 8 52 51 55 C73 56 79 84 66 99 C53 114 34 106 28 89 C30 115 49 128 65 131" fill="#e98a36" stroke="#9a5324" stroke-width="5"/>
+    <circle cx="102" cy="79" r="43" fill="#e98a36" stroke="#9a5324" stroke-width="5"/>
+    <path d="M75 53 L69 28 L91 45 Z M123 48 L142 31 L139 58 Z" fill="#e98a36" stroke="#9a5324" stroke-width="5" stroke-linejoin="round"/>
+    <ellipse cx="87" cy="78" rx="7" ry="9" fill="#222"/><ellipse cx="119" cy="78" rx="7" ry="9" fill="#222"/>
+    <circle cx="84" cy="75" r="2.5" fill="#fff"/><circle cx="116" cy="75" r="2.5" fill="#fff"/>
+    <ellipse cx="103" cy="94" rx="8" ry="6" fill="#6d381e"/>
+    <path d="M103 101 C96 108 89 108 85 104 M103 101 C110 108 117 108 121 104" fill="none" stroke="#6d381e" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="77" cy="98" rx="11" ry="6" fill="#ffbd91" opacity=".55"/><ellipse cx="129" cy="98" rx="11" ry="6" fill="#ffbd91" opacity=".55"/>
+    <path d="M70 129 Q101 113 132 131 L137 171 H64 Z" fill="#6fc46a" stroke="#458e48" stroke-width="5"/>
+    <path d="M81 141 L96 153 L115 135" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  </svg>`;
+  if(type==='bird')return `<svg ${common} class="cartoon-animal-svg">
+    <ellipse cx="94" cy="100" rx="50" ry="43" fill="#51bde7" stroke="#237ca7" stroke-width="5"/>
+    <circle cx="91" cy="67" r="38" fill="#60c7ef" stroke="#237ca7" stroke-width="5"/>
+    <path d="M71 35 Q91 12 111 35" fill="#2d9dd0"/>
+    <ellipse cx="77" cy="67" rx="7" ry="9" fill="#222"/><ellipse cx="104" cy="67" rx="7" ry="9" fill="#222"/>
+    <circle cx="75" cy="64" r="2.5" fill="#fff"/><circle cx="102" cy="64" r="2.5" fill="#fff"/>
+    <path d="M88 78 L103 83 L88 88 Z" fill="#ffb12f" stroke="#d57e13" stroke-width="3"/>
+    <path d="M51 100 Q19 82 21 124 Q45 132 61 119" fill="#3aa6d5" stroke="#237ca7" stroke-width="5"/>
+    <path d="M137 99 Q164 78 166 119 Q147 130 130 119" fill="#3aa6d5" stroke="#237ca7" stroke-width="5"/>
+    <path d="M77 138 L70 164 M109 138 L116 164" stroke="#d57e13" stroke-width="5" stroke-linecap="round"/>
+  </svg>`;
+  return `<svg ${common} class="cartoon-animal-svg">
+    <path d="M54 54 L39 24 L73 39 Z M126 54 L141 24 L107 39 Z" fill="#9d663c" stroke="#704528" stroke-width="5"/>
+    <circle cx="90" cy="91" r="58" fill="#a96d40" stroke="#704528" stroke-width="5"/>
+    <ellipse cx="66" cy="87" rx="22" ry="28" fill="#f1d59c"/><ellipse cx="114" cy="87" rx="22" ry="28" fill="#f1d59c"/>
+    <circle cx="67" cy="85" r="8" fill="#202027"/><circle cx="113" cy="85" r="8" fill="#202027"/>
+    <circle cx="64" cy="82" r="3" fill="#fff"/><circle cx="110" cy="82" r="3" fill="#fff"/>
+    <path d="M83 103 L90 112 L97 103 Z" fill="#f5a623" stroke="#c46f0e" stroke-width="3"/>
+    <path d="M90 112 L90 122" stroke="#704528" stroke-width="4"/>
+    <path d="M61 42 Q90 21 119 42" fill="#253f86"/>
+    <rect x="54" y="38" width="72" height="12" rx="5" fill="#253f86"/>
+    <path d="M124 43 L142 60 L126 62" fill="#f4c443"/>
+    <path d="M52 133 Q90 116 128 133 L138 174 H42 Z" fill="#77c96a" stroke="#4c9347" stroke-width="5"/>
+  </svg>`;
+}
+
+function quizSceneAnimals(subjectKey,topicKey){
+  const scenes={
+    bm:{huruf:['owl','rabbit','bird'],kosa:['squirrel','rabbit','bird'],tatabahasa:['owl','squirrel','bird'],faham:['squirrel','owl','bird'],menulis:['rabbit','owl','bird'],santun:['bird','squirrel','rabbit']},
+    bi:{alphabet:['owl','rabbit','bird'],vocabulary:['squirrel','rabbit','bird'],grammar:['owl','squirrel','bird'],reading:['rabbit','owl','bird'],writing:['squirrel','rabbit','bird'],communication:['bird','rabbit','squirrel']},
+    math:{numbers:['squirrel','rabbit','bird'],addsub:['squirrel','owl','bird'],money:['rabbit','squirrel','bird'],time:['owl','rabbit','bird'],measure:['squirrel','rabbit','bird'],shapes:['rabbit','owl','bird'],data:['bird','squirrel','rabbit']},
+    science:{skills:['owl','rabbit','bird'],living:['rabbit','squirrel','bird'],human:['squirrel','rabbit','bird'],organisms:['bird','rabbit','squirrel'],materials:['owl','squirrel','bird'],earthdesign:['rabbit','owl','bird']}
+  };
+  return scenes?.[subjectKey]?.[topicKey]||['owl','rabbit','bird'];
+}
+
+function formatQuizBoardPrompt(prompt){
+  const text=String(prompt||'').trim();
+  const colon=text.indexOf(':');
+  if(colon>0&&colon<text.length-1){
+    const first=esc(text.slice(0,colon+1));
+    const second=esc(text.slice(colon+1).trim());
+    return `<span class="board-prompt-lead">${first}</span><strong class="board-prompt-focus">${second}</strong>`;
+  }
+  const quoted=text.match(/^(.*?)[“"]([^”"]+)[”"](.*)$/);
+  if(quoted){
+    return `<span class="board-prompt-lead">${esc((quoted[1]+quoted[3]).trim())}</span><strong class="board-prompt-focus">${esc(quoted[2])}</strong>`;
+  }
+  return `<strong class="board-prompt-single">${esc(text)}</strong>`;
+}
+
 function year1QuizRuntimeConfig(subjectKey){
   const configs={
     bm:{
@@ -874,40 +954,56 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
     const scene=questionNatureScene(subjectKey,topicKey,q);
     const letters=['A','B','C','D'];
 
-    $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell subject-${cfg.key}">
-      <header class="quiz-full-header">
-        <div class="quiz-full-brand"><span class="brand-badge">CG</span><div><small>CILIKGO PELAJAR</small><b>${cfg.name} · Tahun 1</b></div></div>
+    const animals=quizSceneAnimals(subjectKey,topicKey);
+    $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell reference-quiz subject-${cfg.key}">
+      <div class="forest-canopy" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="forest-floor" aria-hidden="true"><span>🌼</span><span>🌸</span><span>🍄</span><span>🌻</span><span>🌺</span></div>
+
+      <header class="quiz-ref-header">
+        <div class="quiz-ref-brand"><span class="brand-badge">CG</span><div><b>CilikGo Pelajar</b><small>${cfg.name} · Tahun 1</small></div></div>
         <div class="quiz-child-pill">${esc(activeChild.avatar||'🧒')} <span>${esc(activeChild.name)}</span></div>
       </header>
 
-      <main class="quiz-full-main">
-        <div class="quiz-topline">
-          <div><span class="quiz-subject-chip">${cfg.icon} ${cfg.name} · Tahun 1</span><h1>${topic.icon} ${esc(topic.title)}</h1></div>
+      <main class="quiz-ref-main">
+        <div class="quiz-ref-progress">
+          <div class="quiz-ref-progress-count"><b>${cfg.question} ${index+1} / ${questions.length}</b></div>
+          <div class="quiz-ref-progress-track"><span style="width:${Math.round(index/questions.length*100)}%"></span></div>
           <div class="quiz-score-box"><span>⭐</span><b>${scoreStars}</b></div>
         </div>
 
-        <div class="quiz-progress-row">
-          <div><b>${cfg.question} ${index+1}/${questions.length}</b><small>${pct}% ${cfg.complete}</small></div>
-          <div class="quiz-progress-track"><span style="width:${pct}%"></span></div>
-        </div>
-
-        <section class="quiz-question-panel nature-quiz-panel">
-          <div class="quiz-listen-wrap">
-            <button class="quiz-listen-btn" id="speakQuestion">🔊 ${cfg.listen}</button>
-            <p class="quiz-audio-hint">${cfg.hint}</p>
+        <section class="quiz-ref-card">
+          <div class="quiz-ref-card-head">
+            <div class="quiz-ref-topic"><span class="quiz-ref-topic-icon">${topic.icon}</span><b>${esc(topic.title)}</b></div>
+            <span class="quiz-ref-subject-pill">${cfg.name} · Tahun 1</span>
           </div>
 
-          <div class="quiz-nature-board">
-            <span class="nature-character nature-left">${scene.left}</span>
-            <span class="nature-character nature-right">${scene.right}</span>
-            <span class="nature-accent">${scene.accent}</span>
-            <div class="nature-board-copy">
-              <small>${scene.label}</small>
-              <h2 class="quiz-question-text">${esc(q.prompt)}</h2>
+          <div class="quiz-listen-wrap">
+            <button class="quiz-listen-btn" id="speakQuestion"><span>🔊</span>${cfg.listen}</button>
+            <span class="listen-music-notes" aria-hidden="true">♫ ♪</span>
+          </div>
+          <p class="quiz-audio-hint">${cfg.hint}</p>
+
+          <div class="quiz-reference-scene">
+            <div class="scene-sky-cloud cloud-a"></div><div class="scene-sky-cloud cloud-b"></div>
+            <div class="scene-bush bush-left"></div><div class="scene-bush bush-right"></div>
+            <div class="scene-tree tree-left">🌳</div><div class="scene-tree tree-right">🌳</div>
+            <div class="scene-animal teacher-animal">${animalMascotSvg(animals[0])}</div>
+            <div class="scene-animal learner-animal">${animalMascotSvg(animals[1])}</div>
+            <div class="scene-bird">${animalMascotSvg(animals[2])}</div>
+
+            <div class="quiz-wood-board">
+              <div class="wood-board-inner">
+                ${formatQuizBoardPrompt(q.prompt)}
+              </div>
+              <span class="wood-board-leg left-leg"></span><span class="wood-board-leg right-leg"></span>
+            </div>
+
+            <div class="scene-learning-blocks" aria-hidden="true">
+              <span>${cfg.key==='math'?'1':'A'}</span><span>${cfg.key==='science'?'🌱':cfg.key==='bi'?'B':'JU'}</span>
             </div>
           </div>
 
-          <div class="quiz-answer-grid colorful-answer-grid">
+          <div class="quiz-answer-grid colorful-answer-grid ref-answer-grid">
             ${choices.map((answer,i)=>{const icon=quizAnswerEmoji(answer);return `<button class="quiz-answer" data-answer="${esc(answer)}">
               <span class="quiz-answer-letter">${letters[i]}</span>
               <span class="quiz-answer-text">${esc(answer)}</span>
@@ -917,7 +1013,7 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
 
           <div class="quiz-feedback" id="gameMsg" aria-live="polite"></div>
 
-          <div class="quiz-next-row">
+          <div class="quiz-next-row ref-next-row">
             <button class="quiz-next-btn" id="quizNextBtn" disabled>${cfg.next}<span>→</span></button>
           </div>
         </section>
