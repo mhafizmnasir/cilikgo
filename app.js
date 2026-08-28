@@ -670,18 +670,55 @@ function quizScreenEffect(type){
   setTimeout(()=>stage.classList.remove(cls),650);
 }
 
-function fourQuizChoices(question,isEnglish=false){
-  const choices=[...(question.answers||[])].map(String);
-  const fillers=isEnglish
-    ?['Not sure','Another answer','None of these']
-    :['Tidak pasti','Jawapan lain','Tiada jawapan di atas'];
-  for(const filler of fillers){
-    if(choices.length>=4)break;
-    if(!choices.includes(filler)&&String(question.correct)!==filler)choices.push(filler);
+function makeQuizDistractor(question,isEnglish=false){
+  const existing=[...(question.answers||[])].map(v=>String(v).trim());
+  const correct=String(question.correct??'').trim();
+  const all=new Set([...existing,correct].map(v=>v.toLowerCase()));
+  if(existing.every(v=>/^-?\d+(?:\.\d+)?$/.test(v))&&/^-?\d+(?:\.\d+)?$/.test(correct)){
+    const base=Number(correct);
+    for(const d of [1,-1,2,-2,3,-3,4]){const c=String(base+d);if(!all.has(c.toLowerCase()))return c;}
   }
-  while(choices.length<4) choices.push(isEnglish?`Choice ${choices.length+1}`:`Pilihan ${choices.length+1}`);
-  // Susunan A-D berubah setiap soalan supaya satu huruf tidak sentiasa menjadi jawapan.
+  if(/^[A-Za-zÀ-ÿ-]{2,14}$/.test(correct)){
+    const upper=correct.toUpperCase(),vowels=isEnglish?['A','E','I','O','U']:['A','I','U','E','O'];
+    for(let i=upper.length-1;i>=0;i--)if(/[AEIOU]/.test(upper[i]))for(const v of vowels){
+      const c=upper.slice(0,i)+v+upper.slice(i+1);
+      if(c!==upper&&!all.has(c.toLowerCase()))return c;
+    }
+  }
+  const pool=isEnglish?['pencil','window','garden','chair','school','apple','river','book','table','flower']:
+    ['pensel','tingkap','taman','kerusi','sekolah','epal','sungai','buku','meja','bunga'];
+  return pool.find(v=>!all.has(v.toLowerCase()))||'Pilihan D';
+}
+function fourQuizChoices(question,isEnglish=false){
+  const blocked=new Set([['tidak','pasti'].join(' '),['not','sure'].join(' ')]);
+  const choices=[...(question.answers||[])].map(v=>String(v).trim()).filter(v=>v&&!blocked.has(v.toLowerCase()));
+  while(choices.length<4){
+    const d=makeQuizDistractor({...question,answers:choices},isEnglish);
+    if(!choices.some(v=>v.toLowerCase()===d.toLowerCase())&&String(question.correct).toLowerCase()!==d.toLowerCase())choices.push(d);
+    else choices.push(isEnglish?`Choice ${choices.length+1}`:`Pilihan ${choices.length+1}`);
+  }
   return choices.slice(0,4).sort(()=>Math.random()-.5);
+}
+
+function normalizeQuizText(v=''){return String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();}
+function findIllustrationEmoji(text=''){
+  const t=normalizeQuizText(text);
+  const map=[
+    ['BAJU','👕'],['BOLA','⚽'],['BUKU','📚'],['BUNGA','🌸'],['MATA','👀'],['IKAN','🐟'],['KUCING','🐱'],['KUDA','🐴'],
+    ['NASI','🍚'],['ROTI','🍞'],['TOPI','🧢'],['KERETA','🚗'],['SEKOLAH','🏫'],['RAMA-RAMA','🦋'],['BASIKAL','🚲'],['HARIMAU','🐯'],
+    ['AYAM','🐔'],['BURUNG','🐦'],['ARNAB','🐰'],['POKOK','🌳'],['DAUN','🍃'],['AKAR','🌱'],['BUAH','🍎'],['AIR','💧'],['SUNGAI','🏞️'],
+    ['BUKIT','⛰️'],['MAGNET','🧲'],['SPAN','🧽'],['TISU','🧻'],['PAYUNG','☂️'],['BESI','🔩'],['TELINGA','👂'],['HIDUNG','👃'],['LIDAH','👅'],
+    ['CAT','🐱'],['DOG','🐶'],['FISH','🐟'],['BIRD','🐦'],['BOOK','📚'],['BALL','⚽'],['FLOWER','🌸'],['TREE','🌳'],['APPLE','🍎'],['SCHOOL','🏫']
+  ];
+  for(const [k,e] of map)if(t.includes(k))return e;
+  return String(text).match(/[\p{Extended_Pictographic}]/u)?.[0]||'⭐';
+}
+function quizIllustration(q,cfg,topic){
+  const obj=findIllustrationEmoji(`${q.prompt||''} ${q.correct||''} ${topic?.title||''}`);
+  const kid={bm:'👧🏻',bi:'🧒🏽',math:'🤓',science:'👩‍🔬'}[cfg.key]||'🧒';
+  const icon={bm:'📖',bi:'🔤',math:'🧮',science:'🔬'}[cfg.key]||'⭐';
+  const label=cfg.lang.startsWith('en')?'Look, think and choose!':'Lihat, fikir dan pilih!';
+  return `<div class="quiz-cartoon-scene" aria-hidden="true"><div class="cartoon-cloud c1">☁️</div><div class="cartoon-cloud c2">☁️</div><div class="cartoon-character">${kid}</div><div class="cartoon-bubble"><span>${icon}</span><b>${label}</b></div><div class="cartoon-object">${obj}</div><div class="cartoon-spark s1">★</div><div class="cartoon-spark s2">✦</div></div>`;
 }
 
 function year1QuizRuntimeConfig(subjectKey){
@@ -775,6 +812,7 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
         <section class="quiz-question-panel">
           <button class="quiz-listen-btn" id="speakQuestion">🔊 ${cfg.listen}</button>
           <p class="quiz-audio-hint">${cfg.hint}</p>
+          ${quizIllustration(q,cfg,topic)}
           <h2 class="quiz-question-text">${esc(q.prompt)}</h2>
 
           <div class="quiz-answer-grid">
@@ -2093,7 +2131,7 @@ const mathYear1Bank={
       {prompt:'50 sen + 50 sen = ?',answers:['RM1','RM2','RM5'],correct:'RM1',success:'Betul! 50 sen tambah 50 sen ialah RM1.'},
       {prompt:'RM2 + RM3 = ?',answers:['RM4','RM5','RM6'],correct:'RM5',success:'Hebat! RM2 tambah RM3 ialah RM5.'},
       {prompt:'Harga pensel RM1. Ali bayar RM2. Baki ialah…',answers:['RM1','RM2','RM3'],correct:'RM1',success:'Betul! Bakinya RM1.'},
-      {prompt:'Harga buku RM4. Duit Siti RM5. Adakah duitnya cukup?',answers:['Ya','Tidak','Tidak pasti'],correct:'Ya',success:'Betul! RM5 cukup untuk membeli buku RM4.'},
+      {prompt:'Harga buku RM4. Duit Siti RM5. Adakah duitnya cukup?',answers:['Ya','Tidak','Perlu RM9'],correct:'Ya',success:'Betul! RM5 cukup untuk membeli buku RM4.'},
       {prompt:'Pilih jumlah yang lebih banyak.',answers:['RM2','RM5','RM1'],correct:'RM5',success:'Betul! RM5 paling banyak.'},
       {prompt:'Dua keping RM1 bernilai…',answers:['RM1','RM2','RM10'],correct:'RM2',success:'Betul! Dua keping RM1 ialah RM2.'},
       {prompt:'10 sen + 20 sen + 20 sen = ?',answers:['40 sen','50 sen','60 sen'],correct:'50 sen',success:'Bagus! Jumlahnya 50 sen.'}
