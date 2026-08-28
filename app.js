@@ -1097,23 +1097,88 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
 
   const finishQuiz=async()=>{
     const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100),isEnglish=cfg.lang.startsWith('en');
-    $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell quiz-result-screen subject-${cfg.key}">
-      <main class="quiz-result-main">
-        <div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-        <span class="quiz-subject-chip">${cfg.icon} ${cfg.name} · Tahun 1</span>
-        <h1>${passed?cfg.done:cfg.keep}</h1>
-        <p>${esc(activeChild.name)} ${isEnglish?'has completed':'telah menamatkan'} <b>${esc(topic.title)}</b>.</p>
-        <div class="result-stars">⭐ ${scoreStars} / 15</div>
-        <div class="result-grid">
-          <div><b>${correctCount}/5</b><small>${cfg.questionsDone}</small></div>
-          <div><b>${totalAttempts}</b><small>${cfg.attempts}</small></div>
-          <div><b>${pct}%</b><small>${cfg.score}</small></div>
+    const animals=quizSceneAnimals(subjectKey,topicKey);
+    const completionCopy=passed
+      ?(isEnglish?'Amazing work! Keep exploring more topics.':'Hebat! Teruskan belajar topik yang lain.')
+      :(isEnglish?'Great effort! Try again to collect more stars.':'Usaha yang baik! Cuba lagi untuk kumpul lebih banyak bintang.');
+    const masteryTip=passed
+      ?(isEnglish?'⭐ This topic is marked as mastered based on your best score.':'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik anda.')
+      :(isEnglish?'Aim for at least ⭐ 8/15 to master this topic.':'Sasarkan sekurang-kurangnya ⭐ 8/15 untuk kuasai topik ini.');
+
+    $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell reference-quiz quiz-result-reference subject-${cfg.key}">
+      <div class="forest-canopy" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="forest-floor" aria-hidden="true"><span>🌼</span><span>🌸</span><span>🍄</span><span>🌻</span><span>🌺</span></div>
+
+      <header class="quiz-ref-header">
+        <div class="quiz-ref-brand"><span class="brand-badge">CG</span><div><b>CilikGo Pelajar</b><small>${cfg.name} · Tahun 1</small></div></div>
+        <div class="quiz-child-pill">${esc(activeChild.avatar||'🧒')} <span>${esc(activeChild.name)}</span></div>
+      </header>
+
+      <main class="quiz-ref-main quiz-result-ref-main">
+        <div class="quiz-ref-progress quiz-result-progress">
+          <div class="quiz-ref-progress-count"><b>${cfg.question} ${questions.length} / ${questions.length}</b></div>
+          <div class="quiz-ref-progress-track completed"><span style="width:100%"></span></div>
+          <div class="quiz-score-box"><span>⭐</span><b>${scoreStars}</b></div>
         </div>
-        <div class="result-actions">
-          <button class="btn primary" id="quizAgain">${cfg.again}</button>
-          <button class="btn ghost" id="quizTopics">${cfg.topics}</button>
-        </div>
-        <p class="result-tip">${passed?(isEnglish?'⭐ This topic is marked as mastered based on the best score.':'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik.'):(isEnglish?'Aim for at least ⭐ 8/15.':'Sasarkan sekurang-kurangnya ⭐ 8/15.')}</p>
+
+        <section class="quiz-ref-card quiz-result-ref-card">
+          <div class="quiz-ref-card-head">
+            <div class="quiz-ref-topic"><span class="quiz-ref-topic-icon">${topic.icon}</span><b>${esc(topic.title)}</b></div>
+            <span class="quiz-ref-subject-pill">${cfg.name} · Tahun 1</span>
+          </div>
+
+          <div class="quiz-result-celebrate">
+            <div class="quiz-result-banner">${pct>=85?'🏆':pct>=65?'🌟':'💪'} <span>${passed?cfg.done:cfg.keep}</span></div>
+            <p class="quiz-result-subcopy">${esc(activeChild.name)} ${isEnglish?'has completed':'telah menamatkan'} <b>${esc(topic.title)}</b>. ${completionCopy}</p>
+          </div>
+
+          <div class="quiz-reference-scene quiz-result-scene">
+            <div class="scene-sky-cloud cloud-a"></div><div class="scene-sky-cloud cloud-b"></div>
+            <div class="scene-bush bush-left"></div><div class="scene-bush bush-right"></div>
+            <div class="scene-tree tree-left">🌳</div><div class="scene-tree tree-right">🌳</div>
+            <div class="scene-animal teacher-animal">${animalMascotSvg(animals[0])}</div>
+            <div class="scene-animal learner-animal">${animalMascotSvg(animals[1])}</div>
+            <div class="scene-bird">${animalMascotSvg(animals[2])}</div>
+
+            <div class="quiz-wood-board quiz-result-board">
+              <div class="wood-board-inner">
+                <span class="board-prompt-lead">${passed?(isEnglish?'Well done!':'Syabas!'):(isEnglish?'Keep trying!':'Teruskan latihan!')}</span>
+                <strong class="board-prompt-focus">${scoreStars} / 15</strong>
+                <span class="board-prompt-lead">${correctCount}/5 ${cfg.questionsDone.toLowerCase()}</span>
+              </div>
+              <span class="wood-board-leg left-leg"></span><span class="wood-board-leg right-leg"></span>
+            </div>
+
+            <div class="scene-learning-blocks quiz-result-blocks" aria-hidden="true">
+              <span>${correctCount}</span><span>⭐</span>
+            </div>
+          </div>
+
+          <div class="quiz-result-stats">
+            <div class="quiz-result-stat">
+              <span class="stat-icon">✅</span>
+              <b>${correctCount}/5</b>
+              <small>${cfg.questionsDone}</small>
+            </div>
+            <div class="quiz-result-stat">
+              <span class="stat-icon">🎯</span>
+              <b>${totalAttempts}</b>
+              <small>${cfg.attempts}</small>
+            </div>
+            <div class="quiz-result-stat">
+              <span class="stat-icon">⭐</span>
+              <b>${pct}%</b>
+              <small>${cfg.score}</small>
+            </div>
+          </div>
+
+          <div class="quiz-result-tip-box">${masteryTip}</div>
+
+          <div class="quiz-next-row ref-next-row quiz-result-actions">
+            <button class="quiz-next-btn ready" id="quizAgain" type="button" aria-disabled="false">${cfg.again}<span>↺</span></button>
+            <button class="quiz-next-btn secondary" id="quizTopics" type="button" aria-disabled="false">${cfg.topics}<span>☰</span></button>
+          </div>
+        </section>
       </main>
     </section>`;
     celebrate();
