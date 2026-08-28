@@ -977,12 +977,9 @@ async function renderUser(p){
     const st=cp.reduce((n,x)=>n+Number(x.stars||0),0);
     const year=esc(c.year||Math.max(1,Number(c.age||7)-6));
     const genderLabel=c.gender==='female'?'Perempuan':c.gender==='male'?'Lelaki':'';
-    return `<div class="child-card-wrap ${activeChild?.id===c.id?'selected':''}">
-      <button class="child-card compact ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}">
-        <span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>Tahun ${year}${genderLabel?` · ${genderLabel}`:''} · ⭐ ${st}</small>
-      </button>
-      <button class="delete-child-btn" data-delete-child="${c.id}" aria-label="Padam profil ${esc(c.name)}" title="Padam profil">🗑️</button>
-    </div>`;
+    return `<button class="child-card compact ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}">
+      <span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>Tahun ${year}${genderLabel?` · ${genderLabel}`:''} · ⭐ ${st}</small>
+    </button>`;
   }).join('');
 
   $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
@@ -993,7 +990,7 @@ async function renderUser(p){
         <a class="active" data-parent-view="overview">⌂ <span>Ringkasan</span></a>
         <a href="#" id="enterStudentNav">🎒 <span>Ruang Pelajar</span></a>
         <a href="#" id="parentSubscriptionLink">💳 <span>Langganan</span></a>
-        <a href="#" id="addChildSide">＋ <span>Tambah Profil</span></a>
+        <a href="#settings" id="parentSettingsLink">⚙️ <span>Tetapan</span></a>
       </nav>
       <div class="side-foot"><small>Akaun</small><b>${esc(p.name||p.email||'Penjaga')}</b></div>
     </aside>
@@ -1015,9 +1012,8 @@ async function renderUser(p){
     </section>
   </div>`;
 
-  const openChild=()=>{setRoleNav(false);$('#childModal').showModal();};
+  const openChild=()=>{setRoleNav(false);prepareChildModal(null);};
   $('#addChildBtn')?.addEventListener('click',openChild);
-  $('#addChildSide')?.addEventListener('click',e=>{e.preventDefault();openChild();});
   $('#emptyAddChild')?.addEventListener('click',openChild);
   const enterStudent=async e=>{
     e?.preventDefault();
@@ -1028,6 +1024,7 @@ async function renderUser(p){
   };
   $('#enterStudentBtn')?.addEventListener('click',enterStudent);
   $('#enterStudentNav')?.addEventListener('click',enterStudent);
+  $('#parentSettingsLink')?.addEventListener('click',e=>{e.preventDefault();setRoleNav(false);history.pushState(null,'','#settings');renderParentSettingsView(p);});
   document.querySelector('[data-parent-view="overview"]')?.addEventListener('click',e=>{e.preventDefault();setRoleNav(false);});
   animateIn($('#dashboard'));
   document.querySelectorAll('[data-child]').forEach(b=>b.onclick=async()=>{
@@ -1038,34 +1035,74 @@ async function renderUser(p){
     await renderUser(p);
   });
 
-  document.querySelectorAll('[data-delete-child]').forEach(btn=>btn.onclick=async e=>{
-    e.preventDefault();e.stopPropagation();
-    const id=btn.dataset.deleteChild;
-    const child=kids.find(c=>c.id===id);
-    if(!child)return;
-    const ok=window.confirm(`Padam profil ${child.name}?\n\nRekod latihan untuk profil ini juga akan dipadam. Tindakan ini tidak boleh dibuat asal.`);
-    if(!ok)return;
-    setButtonLoading(btn,true,'…');
-    try{
-      const q=fb.query(
-        fb.collection(fb.db,'progress'),
-        fb.where('ownerUid','==',p.uid),
-        fb.where('childId','==',id)
-      );
-      const snap=await fb.getDocs(q);
-      await Promise.all(snap.docs.map(d=>fb.deleteDoc(fb.doc(fb.db,'progress',d.id))));
-      await fb.deleteDoc(fb.doc(fb.db,'children',id));
-      if(localStorage.getItem('cilikgo_active_child')===id) localStorage.removeItem('cilikgo_active_child');
-      if(activeChild?.id===id) activeChild=null;
-      toast(`Profil ${child.name} berjaya dipadam.`);
-      await renderUser(p);
-    }catch(err){
-      console.error('delete child',err);
-      toast('Gagal padam profil: '+friendlyError(err));
-      setButtonLoading(btn,false);
-    }
-  });
 }
+
+async function renderParentSettingsView(p){
+  setRoleNav(false);
+  document.body.classList.remove('student-mode');
+  showDashboardPage();
+
+  const kids=await loadChildren(p.uid);
+  const allProgress=await loadAllProgress(p.uid);
+  const progress=allProgress.filter(r=>Number(r.year)>=1&&r.subject);
+
+  const profileRows=kids.map(c=>{
+    const rows=progress.filter(r=>r.childId===c.id);
+    const stars=rows.reduce((n,r)=>n+Number(r.stars||0),0);
+    const year=Number(c.year||Math.max(1,Number(c.age||7)-6));
+    const gender=c.gender==='female'?'Perempuan':c.gender==='male'?'Lelaki':'Belum ditetapkan';
+    return `<article class="settings-profile-card">
+      <div class="settings-profile-avatar">${esc(c.avatar||'🧒')}</div>
+      <div class="settings-profile-copy"><small>PROFIL PELAJAR</small><h3>${esc(c.name||'-')}</h3><p>Tahun ${year} · ${gender} · ⭐ ${stars}</p></div>
+      <div class="settings-profile-actions">
+        <button class="btn ghost small edit-profile-btn" data-edit-child="${c.id}">✏️ Edit</button>
+        <button class="btn danger small settings-delete-btn" data-delete-child="${c.id}">🗑️ Padam</button>
+      </div>
+    </article>`;
+  }).join('');
+
+  $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
+    <aside class="dash-side clean-side role-drawer">
+      <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
+      <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
+      <nav class="parent-role-menu">
+        <a href="#dashboard" id="settingsOverviewLink">⌂ <span>Ringkasan</span></a>
+        <a href="#student" id="settingsStudentLink">🎒 <span>Ruang Pelajar</span></a>
+        <a href="#" id="settingsSubscriptionLink">💳 <span>Langganan</span></a>
+        <a class="active" href="#settings">⚙️ <span>Tetapan</span></a>
+      </nav>
+      <div class="side-foot"><small>Akaun</small><b>${esc(p.name||p.email||'Penjaga')}</b></div>
+    </aside>
+    <section class="dash-main clean-main">
+      <div class="clean-dash-head settings-page-head">
+        <div><span class="dash-kicker">TETAPAN PENJAGA</span><h1>Urus Profil Pelajar</h1><p>Edit maklumat atau padam profil pelajar dari satu tempat.</p></div>
+        <button class="btn primary small" id="settingsAddProfile">+ Tambah Profil</button>
+      </div>
+      <div class="settings-info-card"><span>⚙️</span><div><b>Pengurusan profil</b><p>Perubahan nama, jantina, tahun dan avatar boleh dibuat di sini. Memadam profil akan turut memadam rekod latihan profil tersebut.</p></div></div>
+      <div class="settings-profile-list">${profileRows||`<div class="empty-state settings-empty"><h3>Belum ada profil pelajar</h3><p>Tambah profil pertama untuk membuka Ruang Pelajar.</p><button class="btn primary" id="settingsEmptyAdd">Tambah Profil</button></div>`}</div>
+    </section>
+  </div>`;
+
+  $('#settingsOverviewLink')?.addEventListener('click',e=>{e.preventDefault();history.pushState(null,'','#dashboard');renderUser(p);});
+  $('#settingsStudentLink')?.addEventListener('click',e=>{e.preventDefault();renderStudentPortal(p);});
+  $('#settingsSubscriptionLink')?.addEventListener('click',e=>{e.preventDefault();renderParentSubscriptionView(p);});
+  $('#settingsAddProfile')?.addEventListener('click',()=>prepareChildModal(null));
+  $('#settingsEmptyAdd')?.addEventListener('click',()=>prepareChildModal(null));
+
+  document.querySelectorAll('[data-edit-child]').forEach(btn=>btn.onclick=()=>{
+    const child=kids.find(c=>c.id===btn.dataset.editChild);
+    if(child) prepareChildModal(child);
+  });
+  document.querySelectorAll('[data-delete-child]').forEach(btn=>btn.onclick=async()=>{
+    const id=btn.dataset.deleteChild;
+    setButtonLoading(btn,true,'Memadam…');
+    const ok=await deleteStudentProfile(p,id);
+    if(ok) await renderParentSettingsView(p);
+    else setButtonLoading(btn,false);
+  });
+  animateIn($('#dashboard'));
+}
+
 async function renderAgent(p){
   setRoleNav(false);
   document.body.classList.remove('student-mode'); showDashboardPage();
@@ -1406,6 +1443,7 @@ window.addEventListener('hashchange',async()=>{
   }
   if(!currentProfile)return;
   if(hash==='#student'&&currentProfile.role==='user'){await renderStudentPortal(currentProfile);return;}
+  if(hash==='#settings'&&currentProfile.role==='user'){await renderParentSettingsView(currentProfile);return;}
   if(hash==='#dashboard'){await renderPortal(currentProfile);return;}
   if(hash==='#home')showPublicPage();
 });
@@ -1447,29 +1485,100 @@ $('#childGender')?.addEventListener('change',()=>{
 });
 syncAvatarPreview();
 
+function prepareChildModal(child=null){
+  const isEdit=!!child;
+  $('#childEditId').value=child?.id||'';
+  $('#childModalTitle').textContent=isEdit?'Edit Profil Pelajar':'Tambah Profil Pelajar';
+  $('#childModalDesc').textContent=isEdit?'Kemaskini maklumat profil pelajar.':'Maklumat ini membantu CilikGo memaparkan ruang belajar yang sesuai.';
+  $('#saveChildBtn').textContent=isEdit?'Simpan Perubahan':'Simpan Profil';
+  $('#childName').value=child?.name||'';
+  $('#childGender').value=child?.gender||((child?.avatar==='👧'||child?.avatar==='👩‍🎓'||child?.avatar==='👩‍🚀'||child?.avatar==='👩‍🔬'||child?.avatar==='🦸‍♀️')?'female':'male');
+  $('#childYear').value=String(child?.year||Math.max(1,Number(child?.age||7)-6)||1);
+  const available=[...$('#childAvatar').options].some(o=>o.value===(child?.avatar||''));
+  $('#childAvatar').value=available?(child?.avatar||'👦'):($('#childGender').value==='female'?'👧':'👦');
+  syncAvatarPreview();
+  $('#childModal').showModal();
+  setTimeout(()=>$('#childName')?.focus(),50);
+}
+function resetChildModal(){
+  $('#childEditId').value='';
+  $('#childModalTitle').textContent='Tambah Profil Pelajar';
+  $('#childModalDesc').textContent='Maklumat ini membantu CilikGo memaparkan ruang belajar yang sesuai.';
+  $('#saveChildBtn').textContent='Simpan Profil';
+  $('#childName').value='';
+  $('#childGender').value='male';
+  $('#childYear').value='1';
+  $('#childAvatar').value='👦';
+  syncAvatarPreview();
+}
+
 $('#saveChildBtn').onclick=async()=>{
   if(!fb?.auth.currentUser||currentProfile?.role!=='user') return toast('Fungsi ini untuk akaun Penjaga.');
-  const name=$('#childName').value.trim(),
+  const editId=$('#childEditId').value.trim(),
+        name=$('#childName').value.trim(),
         gender=$('#childGender').value,
         year=Number($('#childYear').value),
         age=year+6,
         avatar=$('#childAvatar').value;
   if(!name) return toast('Masukkan nama panggilan pelajar.');
   if(!['male','female'].includes(gender)) return toast('Pilih jantina pelajar.');
+
+  const btn=$('#saveChildBtn');
+  setButtonLoading(btn,true,editId?'Menyimpan…':'Menambah…');
   try{
-    const ref=await fb.addDoc(fb.collection(fb.db,'children'),{
-      ownerUid:fb.auth.currentUser.uid,name,gender,age,year,avatar,createdAt:fb.serverTimestamp()
-    });
-    localStorage.setItem('cilikgo_active_child',ref.id);
-    $('#childName').value='';
-    $('#childGender').value='male';
-    $('#childAvatar').value='👦';
-    syncAvatarPreview();
+    if(editId){
+      const existing=userChildren.find(c=>c.id===editId);
+      if(!existing||existing.ownerUid!==fb.auth.currentUser.uid) throw new Error('Profil pelajar tidak ditemui.');
+      await fb.updateDoc(fb.doc(fb.db,'children',editId),{
+        name,gender,age,year,avatar,updatedAt:fb.serverTimestamp()
+      });
+      if(activeChild?.id===editId) activeChild={...activeChild,name,gender,age,year,avatar};
+      toast('Profil pelajar berjaya dikemaskini.');
+    }else{
+      const ref=await fb.addDoc(fb.collection(fb.db,'children'),{
+        ownerUid:fb.auth.currentUser.uid,name,gender,age,year,avatar,createdAt:fb.serverTimestamp()
+      });
+      localStorage.setItem('cilikgo_active_child',ref.id);
+      toast('Profil pelajar berjaya ditambah.');
+    }
     $('#childModal').close();
-    toast('Profil pelajar berjaya ditambah.');
-    await renderUser(currentProfile);
-  }catch(e){ console.error(e); toast('Gagal simpan profil: '+friendlyError(e)); }
+    resetChildModal();
+    await loadChildren(currentProfile.uid);
+    if(location.hash==='#settings') await renderParentSettingsView(currentProfile);
+    else await renderUser(currentProfile);
+  }catch(e){
+    console.error(e);
+    toast('Gagal simpan profil: '+friendlyError(e));
+    setButtonLoading(btn,false);
+  }
 };
+
+async function deleteStudentProfile(p,id){
+  const kids=await loadChildren(p.uid);
+  const child=kids.find(c=>c.id===id);
+  if(!child)return toast('Profil pelajar tidak ditemui.');
+  const ok=window.confirm(`Padam profil ${child.name}?\n\nSemua rekod latihan untuk profil ini juga akan dipadam. Tindakan ini tidak boleh dibuat asal.`);
+  if(!ok)return false;
+  try{
+    const q=fb.query(
+      fb.collection(fb.db,'progress'),
+      fb.where('ownerUid','==',p.uid),
+      fb.where('childId','==',id)
+    );
+    const snap=await fb.getDocs(q);
+    await Promise.all(snap.docs.map(d=>fb.deleteDoc(fb.doc(fb.db,'progress',d.id))));
+    await fb.deleteDoc(fb.doc(fb.db,'children',id));
+    if(localStorage.getItem('cilikgo_active_child')===id) localStorage.removeItem('cilikgo_active_child');
+    if(activeChild?.id===id) activeChild=null;
+    toast(`Profil ${child.name} berjaya dipadam.`);
+    await loadChildren(p.uid);
+    return true;
+  }catch(err){
+    console.error('delete child',err);
+    toast('Gagal padam profil: '+friendlyError(err));
+    return false;
+  }
+}
 
 const kssrArchitecture={
   years:[1,2,3,4,5,6],
