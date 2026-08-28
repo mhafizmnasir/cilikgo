@@ -76,15 +76,17 @@
 
     <section class="section dashboard-demo" id="portal">
       <div class="app-topbar">
+        <button class="role-menu-btn" id="roleMenuBtn" aria-label="Buka menu dashboard" aria-expanded="false">☰</button>
         <a class="app-brand" href="#dashboard"><span class="brand-badge">CG</span><span>CilikGo</span></a>
         <div class="app-user desktop-app-actions"><span id="appMemberName"></span><button class="btn ghost small" id="appHomeBtn">Laman Utama</button><button class="btn primary small" id="appLogoutBtn">Log Keluar</button></div>
-        <button class="app-menu-btn" id="appMenuBtn" aria-label="Buka menu akaun" aria-expanded="false">☰</button>
+        <button class="app-menu-btn" id="appMenuBtn" aria-label="Buka menu akaun" aria-expanded="false">👤</button>
         <div class="app-mobile-menu" id="appMobileMenu">
           <div class="app-mobile-account"><small>AKAUN</small><b id="appMobileMemberName">CilikGo</b></div>
           <button id="appMobileHomeBtn">⌂ Laman Utama</button>
           <button id="appMobileLogoutBtn">↪ Log Keluar</button>
         </div>
       </div>
+      <div class="role-nav-backdrop" id="roleNavBackdrop"></div>
       <div class="section-head"><div class="pill">Portal CilikGo</div><h2 id="portalTitle">Dashboard anda.</h2><p id="portalSubtitle">Log masuk untuk membuka dashboard mengikut peranan akaun anda.</p></div>
       <div id="dashboard"><div class="portal-locked"><div class="lock-icon">🔐</div><h3>Portal dilindungi</h3><p>Log masuk untuk membuka dashboard.</p><button class="btn primary" data-auth="login">Log Masuk</button></div></div>
     </section>

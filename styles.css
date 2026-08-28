@@ -770,3 +770,216 @@ body.app-mode .setting-card{background:#fff!important;padding:16px!important}
   .table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .table{min-width:660px}
 }
+
+/* =========================================================
+   Role Navigation Fix — Admin / Agent / Penjaga
+   Tablet & phone use one hidden drawer pattern
+   ========================================================= */
+.role-menu-btn,.role-nav-close,.role-nav-backdrop{display:none}
+
+/* Desktop remains sidebar. */
+@media(min-width:1025px){
+  body.app-mode .role-drawer{transform:none!important}
+}
+
+/* Tablet and mobile: hide all role sidebars and open them only by menu. */
+@media(max-width:1024px){
+  body.app-mode:not(.student-mode) .app-topbar{
+    display:grid!important;
+    grid-template-columns:auto 1fr auto!important;
+    gap:8px;
+    align-items:center;
+  }
+  body.app-mode:not(.student-mode) .app-brand{justify-self:start}
+  body.app-mode:not(.student-mode) .desktop-app-actions{display:none!important}
+  body.app-mode:not(.student-mode) .role-menu-btn,
+  body.app-mode:not(.student-mode) .app-menu-btn{
+    display:grid!important;
+    place-items:center;
+    width:42px;height:42px;
+    min-height:42px!important;
+    border:0;border-radius:12px;
+    background:#f1efff;color:#604fdc;
+    font-size:18px;font-weight:900;
+    cursor:pointer;
+  }
+  body.app-mode:not(.student-mode) .role-menu-btn{grid-column:1}
+  body.app-mode:not(.student-mode) .app-brand{grid-column:2}
+  body.app-mode:not(.student-mode) .app-menu-btn{grid-column:3}
+
+  body.app-mode:not(.student-mode) #dashboard{
+    overflow:hidden!important;
+  }
+
+  /* Both parent clean-shell and Admin/Agent portal-shell become content-only frames. */
+  body.app-mode:not(.student-mode) .clean-shell,
+  body.app-mode:not(.student-mode) .portal-shell{
+    display:block!important;
+    grid-template-columns:none!important;
+    height:100%!important;
+    overflow:hidden!important;
+  }
+  body.app-mode:not(.student-mode) .clean-main,
+  body.app-mode:not(.student-mode) .portal-main{
+    width:100%!important;
+    height:100%!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    padding:20px 18px 44px!important;
+  }
+
+  /* Force every role navigation to the same off-canvas drawer. */
+  body.app-mode:not(.student-mode) #dashboard .role-drawer{
+    display:block!important;
+    position:fixed!important;
+    z-index:95!important;
+    top:60px!important;
+    left:0!important;
+    bottom:0!important;
+    width:min(82vw,320px)!important;
+    height:calc(100dvh - 60px)!important;
+    min-height:0!important;
+    padding:18px 13px 24px!important;
+    background:#fff!important;
+    border-right:1px solid #e7e9f2!important;
+    border-top:1px solid #eef0f5!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    white-space:normal!important;
+    transform:translateX(-104%)!important;
+    transition:transform .24s ease!important;
+    box-shadow:20px 0 60px rgba(34,30,80,.14)!important;
+  }
+  body.app-mode:not(.student-mode) #dashboard .role-drawer.role-drawer-open{
+    transform:translateX(0)!important;
+  }
+  .role-nav-close{
+    display:grid!important;
+    place-items:center;
+    position:absolute;
+    right:11px;top:10px;
+    width:36px;height:36px;
+    min-height:36px!important;
+    border:0;border-radius:10px;
+    background:#f3f4f8;color:#606477;
+    font-size:24px;line-height:1;
+    cursor:pointer;
+    z-index:2;
+  }
+  .role-nav-backdrop{
+    display:block;
+    position:fixed;
+    z-index:90;
+    top:60px;left:0;right:0;bottom:0;
+    background:rgba(27,24,50,.38);
+    backdrop-filter:blur(2px);
+    opacity:0;visibility:hidden;
+    transition:.2s;
+  }
+  .role-nav-backdrop.show{opacity:1;visibility:visible}
+  body.role-nav-open{overflow:hidden}
+
+  /* Parent menu must no longer turn into fixed bottom navigation. */
+  body.app-mode:not(.student-mode) .clean-side .side-role{
+    display:flex!important;
+    justify-content:flex-start!important;
+    padding:7px 44px 18px 8px!important;
+  }
+  body.app-mode:not(.student-mode) .clean-side .side-role div,
+  body.app-mode:not(.student-mode) .clean-side .side-foot{
+    display:block!important;
+  }
+  body.app-mode:not(.student-mode) .clean-side .side-foot{
+    position:static!important;
+    margin:18px 6px 0!important;
+  }
+  .parent-role-menu{display:grid;gap:4px}
+  body.app-mode:not(.student-mode) .clean-side a{
+    display:flex!important;
+    justify-content:flex-start!important;
+    align-items:center!important;
+    gap:10px!important;
+    width:100%!important;
+    margin:0!important;
+    padding:11px 12px!important;
+    font-size:12px!important;
+  }
+  body.app-mode:not(.student-mode) .clean-side a span{display:inline!important}
+
+  /* Admin/Agent menus must stay vertical inside drawer. */
+  body.app-mode:not(.student-mode) .portal-side .portal-role{
+    display:flex!important;
+    justify-content:flex-start!important;
+    padding:7px 44px 18px 8px!important;
+  }
+  body.app-mode:not(.student-mode) .portal-side .portal-role div{display:block!important}
+  body.app-mode:not(.student-mode) .portal-menu{
+    display:grid!important;
+    width:100%!important;
+    gap:4px!important;
+  }
+  body.app-mode:not(.student-mode) .portal-side .portal-menu a{
+    width:100%!important;
+    min-width:0!important;
+    display:flex!important;
+    flex-direction:row!important;
+    justify-content:flex-start!important;
+    gap:10px!important;
+    padding:11px 12px!important;
+    margin:0!important;
+  }
+  body.app-mode:not(.student-mode) .portal-menu-label{
+    display:inline!important;
+    font-size:12px!important;
+  }
+  body.app-mode:not(.student-mode) .portal-menu-icon{
+    font-size:15px!important;
+    line-height:normal!important;
+  }
+  body.app-mode:not(.student-mode) .portal-side-foot{
+    position:static!important;
+    display:block!important;
+    margin:18px 6px 0!important;
+  }
+
+  /* Account menu lives on top-right and doesn't conflict with role drawer. */
+  body.app-mode:not(.student-mode) .app-mobile-menu{
+    display:none;
+    top:54px!important;
+    right:10px!important;
+  }
+  body.app-mode:not(.student-mode) .app-mobile-menu.open{display:grid!important}
+}
+
+/* Handphone density */
+@media(max-width:600px){
+  body.app-mode:not(.student-mode) #dashboard .role-drawer{
+    top:58px!important;
+    height:calc(100dvh - 58px)!important;
+    width:min(88vw,310px)!important;
+  }
+  .role-nav-backdrop{top:58px}
+  body.app-mode:not(.student-mode) .clean-main,
+  body.app-mode:not(.student-mode) .portal-main{
+    padding:15px 12px 34px!important;
+  }
+  .clean-dash-head h1{font-size:22px!important}
+  .portal-page-head h2{font-size:21px!important}
+}
+
+@media(min-width:761px) and (max-width:1024px){
+  body.app-mode:not(.student-mode) .app-menu-btn{display:grid!important}
+  body.app-mode:not(.student-mode) .app-mobile-menu{
+    position:absolute;
+    width:280px;
+    background:#fff;
+    border:1px solid #e6e8f0;
+    border-radius:16px;
+    padding:10px;
+    box-shadow:0 18px 44px rgba(34,30,80,.15);
+    z-index:100;
+  }
+  body.app-mode:not(.student-mode) .app-mobile-menu.open{display:grid!important;gap:5px}
+  body.app-mode:not(.student-mode) .app-mobile-account{padding:8px 9px 10px;border-bottom:1px solid #eceef4}
+  body.app-mode:not(.student-mode) .app-mobile-menu button{border:0;background:#fff;padding:10px;text-align:left;border-radius:10px;font:inherit;font-size:11px;font-weight:850;color:#505366}
+}

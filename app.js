@@ -69,8 +69,28 @@ mobileMenuBtn?.addEventListener('click',()=>setMobileNav(!mobileNavDrawer.classL
 $('#mobileNavClose')?.addEventListener('click',()=>setMobileNav(false));
 mobileNavBackdrop?.addEventListener('click',()=>setMobileNav(false));
 document.querySelectorAll('.mobile-nav-links a,.mobile-nav-actions [data-auth]').forEach(el=>el.addEventListener('click',()=>setMobileNav(false)));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){setMobileNav(false);setAppMobileMenu(false);}});
-window.addEventListener('resize',()=>{if(window.innerWidth>1024)setMobileNav(false);if(window.innerWidth>760)setAppMobileMenu(false);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){setMobileNav(false);setAppMobileMenu(false);setRoleNav(false);}});
+window.addEventListener('resize',()=>{if(window.innerWidth>1024){setMobileNav(false);setRoleNav(false);}if(window.innerWidth>760)setAppMobileMenu(false);});
+
+function setRoleNav(open){
+  const drawer=document.querySelector('#dashboard .role-drawer');
+  const btn=$('#roleMenuBtn'),backdrop=$('#roleNavBackdrop');
+  if(!drawer){ document.body.classList.remove('role-nav-open'); return; }
+  document.body.classList.toggle('role-nav-open',!!open);
+  drawer.classList.toggle('role-drawer-open',!!open);
+  backdrop?.classList.toggle('show',!!open);
+  btn?.setAttribute('aria-expanded',open?'true':'false');
+}
+$('#roleMenuBtn')?.addEventListener('click',e=>{
+  e.stopPropagation();
+  setAppMobileMenu(false);
+  setRoleNav(!document.body.classList.contains('role-nav-open'));
+});
+$('#roleNavBackdrop')?.addEventListener('click',()=>setRoleNav(false));
+document.addEventListener('click',e=>{
+  if(e.target.closest('.role-nav-close')){ setRoleNav(false); return; }
+  if(e.target.closest('#dashboard .role-drawer a')) setRoleNav(false);
+});
 
 function setAppMobileMenu(open){
   const menu=$('#appMobileMenu'),btn=$('#appMenuBtn');
@@ -109,13 +129,14 @@ function showPublicPage(){
   $('#authScreen')?.classList.add('hidden');
 }
 function showDashboardPage(){
-  setMobileNav(false); setAppMobileMenu(false);
+  setMobileNav(false); setAppMobileMenu(false); setRoleNav(false);
   document.body.classList.remove('auth-mode','student-mode');
   document.body.classList.add('app-mode');
   $('#authScreen')?.classList.add('hidden');
   if(location.hash!=='#dashboard') history.pushState(null,'','#dashboard');
 }
 function showStudentPage(){
+  setRoleNav(false); setAppMobileMenu(false);
   document.body.classList.remove('auth-mode');
   document.body.classList.add('app-mode','student-mode');
   $('#authScreen')?.classList.add('hidden');
@@ -889,12 +910,15 @@ async function renderUser(p){
   }).join('');
 
   $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
-    <aside class="dash-side clean-side">
+    <aside class="dash-side clean-side role-drawer">
+      <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
       <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
-      <a class="active" data-parent-view="overview">⌂ <span>Ringkasan</span></a>
-      <a href="#" id="enterStudentNav">🎒 <span>Ruang Pelajar</span></a>
-      <a href="#" id="parentSubscriptionLink">💳 <span>Langganan</span></a>
-      <a href="#" id="addChildSide">＋ <span>Tambah Profil</span></a>
+      <nav class="parent-role-menu">
+        <a class="active" data-parent-view="overview">⌂ <span>Ringkasan</span></a>
+        <a href="#" id="enterStudentNav">🎒 <span>Ruang Pelajar</span></a>
+        <a href="#" id="parentSubscriptionLink">💳 <span>Langganan</span></a>
+        <a href="#" id="addChildSide">＋ <span>Tambah Profil</span></a>
+      </nav>
       <div class="side-foot"><small>Akaun</small><b>${esc(p.name||p.email||'Penjaga')}</b></div>
     </aside>
     <section class="dash-main clean-main">
@@ -980,7 +1004,8 @@ async function renderAgent(p){
     ['settings','⚙️','Tetapan']
   ];
   $('#dashboard').innerHTML=`<div class="dash-shell agent-shell portal-shell">
-    <aside class="dash-side portal-side">
+    <aside class="dash-side portal-side role-drawer">
+      <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
       <div class="portal-role"><span>🤝</span><div><small>PORTAL</small><h3>Agent</h3></div></div>
       <nav class="portal-menu">${agentNav.map(([k,i,l])=>`<a class="agent-nav ${k==='overview'?'active':''}" data-view="${k}"><span class="portal-menu-icon">${i}</span><span class="portal-menu-label">${l}</span></a>`).join('')}</nav>
       <div class="portal-side-foot"><small>Kod Agent</small><b>${esc(code||'-')}</b></div>
@@ -1139,7 +1164,8 @@ async function renderAdmin(p){
     ['settings','⚙️','Tetapan']
   ];
   const shell=(view,body)=>`<div class="dash-shell admin-shell portal-shell">
-    <aside class="dash-side portal-side">
+    <aside class="dash-side portal-side role-drawer">
+      <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
       <div class="portal-role"><span>🛡️</span><div><small>CONTROL CENTER</small><h3>Admin</h3></div></div>
       <nav class="portal-menu">${adminNav.map(([k,i,l])=>`<a class="admin-nav ${view===k?'active':''}" data-view="${k}"><span class="portal-menu-icon">${i}</span><span class="portal-menu-label">${l}</span></a>`).join('')}</nav>
       <div class="portal-side-foot"><small>Sistem</small><b>CilikGo Admin</b></div>
