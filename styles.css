@@ -122,3 +122,6 @@ input,select,textarea{font-size:16px}
 
 /* Bahasa Melayu Tahun 1 Pilot */
 .kssr-topic-card .topic-icon{line-height:1}
+
+/* Bahasa Inggeris Tahun 1 Pilot */
+.kssr-quiz-head .badge{display:inline-flex}

@@ -285,12 +285,121 @@ async function renderParentLearningHub(p){
     const names={bm:'Bahasa Melayu',bi:'Bahasa Inggeris',math:'Matematik',science:'Sains'};
     const key=b.dataset.subject;
     if(year===1&&key==='bm'){ renderBmYear1Hub(p); return; }
+    if(year===1&&key==='bi'){ renderBiYear1Hub(p); return; }
     if(year===1&&key==='math'){ renderMathYear1Hub(p); return; }
-    root.querySelector('.hub-note').innerHTML=`🚧 <b>${names[key]} Tahun 1:</b> kandungan pilot belum diaktifkan. Bahasa Melayu dan Matematik Tahun 1 tersedia untuk diuji sekarang.`;
+    root.querySelector('.hub-note').innerHTML=`🚧 <b>${names[key]} Tahun 1:</b> kandungan pilot belum diaktifkan. Bahasa Melayu, Bahasa Inggeris dan Matematik Tahun 1 tersedia untuk diuji sekarang.`;
     root.querySelector('.hub-note').scrollIntoView({behavior:'smooth',block:'center'});
   });
 }
 
+
+
+async function renderBiYear1Hub(p){
+  if(!fb?.auth.currentUser){openAuth('login');return;}
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'read');return;}
+  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+  const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
+  if(year!==1){toast('Pilot Bahasa Inggeris ini untuk murid Tahun 1.');return;}
+  const root=$('#dashboard'), rows=await loadProgress(p.uid,activeChild.id);
+  const keys=Object.keys(biYear1Bank);
+  const bestFor=k=>{
+    const vals=rows.filter(r=>r.activity===`kssr_bi_y1_${k}`).map(r=>Number(r.stars||0));
+    return vals.length?Math.max(...vals):0;
+  };
+  const completed=keys.filter(k=>bestFor(k)>=8).length;
+  root.innerHTML=`<section class="container learning-hub-page">
+    <div class="hub-top"><button class="btn ghost bi-back">← Semua Subjek</button><span class="badge">Bahasa Inggeris Tahun 1 · Pilot</span></div>
+    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>BAHASA INGGERIS TAHUN 1</small><h1>${esc(activeChild.name)}</h1><p>📚 ${completed}/${keys.length} topik mencapai sekurang-kurangnya ⭐ 8/15</p></div></div>
+    <div class="kssr-progress-summary"><div><b>${completed}</b><span>Topik dikuasai</span></div><div><b>${keys.length}</b><span>Topik tersedia</span></div><div><b>${Math.round(completed/keys.length*100)}%</b><span>Kemajuan</span></div></div>
+    <div class="hub-heading"><div><small>TOPICAL PRACTICE</small><h2>Choose an English topic</h2></div><p>Each session contains 5 random questions. The best score is used to show topic mastery.</p></div>
+    <div class="kssr-topic-grid">${keys.map(k=>{const t=biYear1Bank[k],best=bestFor(k);return `<article class="kssr-topic-card ${best>=8?'passed':''}">
+      <div class="topic-icon">${t.icon}</div><div><small>YEAR 1</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
+      <div class="topic-score">${best?`Best score <b>⭐ ${best}/15</b>`:'Not attempted yet'}</div>
+      <button class="btn ${best>=8?'success':'primary'} bi-topic-start" data-topic="${k}">${best?'Practise Again':'Start Practice'}</button>
+    </article>`}).join('')}</div>
+    <div class="hub-note">📘 This is original CilikGo practice content for Year 1 English skills such as reading, vocabulary, grammar, writing and simple communication. It is not copied from examination papers and is not labelled as “official KPM questions”.</div>
+  </section>`;
+  $('.bi-back').onclick=()=>renderParentLearningHub(p);
+  document.querySelectorAll('.bi-topic-start').forEach(b=>b.onclick=()=>startBiYear1Topic(b.dataset.topic));
+}
+
+async function startBiYear1Topic(topicKey){
+  if(!fb?.auth.currentUser){openAuth('login');return;}
+  const p=currentProfile||await getProfile(fb.auth.currentUser);
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'read');return;}
+  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+  const topic=biYear1Bank[topicKey];
+  if(!topic){toast('Topik tidak dijumpai.');return;}
+  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
+  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
+
+  const speakEnglish=text=>{
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    const voices=speechSynthesis.getVoices();
+    u.voice=voices.find(v=>/^en-MY/i.test(v.lang))||voices.find(v=>/^en-GB/i.test(v.lang))||voices.find(v=>/^en/i.test(v.lang))||null;
+    u.lang=u.voice?.lang||'en-GB';
+    u.rate=.86; u.pitch=1.02;
+    speechSynthesis.speak(u);
+  };
+
+  const render=()=>{
+    const q=questions[index]; let attempts=0,completed=false;
+    const pct=Math.round(index/questions.length*100);
+    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="badge">Bahasa Inggeris Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
+      <div class="learning-hud"><div><b>Question ${index+1}/${questions.length}</b><small>${pct}% complete</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
+      <div class="level-progress"><span style="width:${pct}%"></span></div>
+      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Listen</button><span>Read or listen, then choose the best answer.</span></div>
+      <div class="game-prompt">${esc(q.prompt)}</div>
+      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
+      <div id="gameMsg"></div>`;
+    if(!$('#gameModal').open) $('#gameModal').showModal();
+    $('#speakQuestion').onclick=()=>speakEnglish(q.prompt);
+    document.querySelectorAll('.answer').forEach(btn=>btn.onclick=()=>{
+      if(completed)return;
+      attempts++; totalAttempts++;
+      if(btn.textContent!==q.correct){
+        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),450);
+        $('#gameMsg').innerHTML=`<div class="try-again">💪 Not quite. Try again! <small>Attempt ${attempts}</small></div>`;
+        speakEnglish('Try again'); return;
+      }
+      completed=true; correctCount++;
+      const earned=attempts===1?3:attempts===2?2:1;
+      scoreStars+=earned;
+      btn.classList.add('correct');
+      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
+      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Correct!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(earned)}</strong></div>`;
+      celebrate(); speakEnglish(q.success||'Correct');
+      setTimeout(()=>{index++;index<questions.length?render():finish();},1200);
+    });
+  };
+
+  const finish=async()=>{
+    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
+    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
+      <span class="badge">Bahasa Inggeris Tahun 1</span><h2>${passed?'Well done!':'Keep practising!'}</h2>
+      <p>${esc(activeChild.name)} has completed <b>${esc(topic.title)}</b>.</p>
+      <div class="result-stars">⭐ ${scoreStars} / 15</div>
+      <div class="result-grid"><div><b>${correctCount}/5</b><small>Questions completed</small></div><div><b>${totalAttempts}</b><small>Attempts</small></div><div><b>${pct}%</b><small>Star score</small></div></div>
+      <div class="result-actions"><button class="btn primary" id="biAgain">Practise Again</button><button class="btn ghost" id="biTopics">Choose Topic</button></div>
+      <p class="result-tip">${passed?'⭐ This topic is marked as mastered based on the best score.':'Aim for at least ⭐ 8/15.'}</p></div>`;
+    celebrate(); speakEnglish(passed?'Well done!':'Keep practising');
+    try{
+      await fb.addDoc(fb.collection(fb.db,'progress'),{
+        ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,
+        module:'KSSR Bahasa Inggeris Tahun 1',activity:`kssr_bi_y1_${topicKey}`,
+        level:1,year:1,subject:'bi',topic:topicKey,questions:5,
+        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
+        createdAt:fb.serverTimestamp()
+      });
+      toast(`⭐ Rekod ${topic.title} disimpan.`);
+    }catch(e){console.error(e);toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');}
+    $('#biAgain').onclick=()=>startBiYear1Topic(topicKey);
+    $('#biTopics').onclick=()=>{$('#gameModal').close();renderBiYear1Hub(p);};
+  };
+  render();
+}
 
 async function renderBmYear1Hub(p){
   if(!fb?.auth.currentUser){openAuth('login');return;}
@@ -860,6 +969,105 @@ const kssrArchitecture={
     sejarah:{name:'Sejarah',icon:'🏛️'}
   },
   questionSchema:['year','subject','topic','contentStandard','learningStandard','difficulty','questionType','prompt','answers','correct','explanation','sourceType']
+};
+
+const biYear1Bank={
+  alphabet:{
+    title:'Letters & Sounds',icon:'🔤',
+    desc:'Recognise letters, beginning sounds and simple letter patterns.',
+    questions:[
+      {prompt:'Which letter comes after A?',answers:['B','C','D'],correct:'B',success:'Correct! B comes after A.'},
+      {prompt:'Which letter comes before D?',answers:['B','C','E'],correct:'C',success:'Correct! C comes before D.'},
+      {prompt:'Which word starts with B?',answers:['ball','cat','fish'],correct:'ball',success:'Correct! Ball starts with B.'},
+      {prompt:'Which word starts with C?',answers:['dog','cat','sun'],correct:'cat',success:'Correct! Cat starts with C.'},
+      {prompt:'Choose the small letter for M.',answers:['m','n','w'],correct:'m',success:'Correct! The small letter for M is m.'},
+      {prompt:'Choose the capital letter for a.',answers:['A','E','O'],correct:'A',success:'Correct! The capital letter for a is A.'},
+      {prompt:'Which word ends with T?',answers:['cat','dog','sun'],correct:'cat',success:'Correct! Cat ends with T.'},
+      {prompt:'Which word begins with the sound /s/?',answers:['sun','ball','fish'],correct:'sun',success:'Correct! Sun begins with the /s/ sound.'},
+      {prompt:'Complete the pattern: A, B, C, __',answers:['D','E','F'],correct:'D',success:'Correct! D comes next.'},
+      {prompt:'Which pair matches?',answers:['G - g','G - q','G - c'],correct:'G - g',success:'Correct! G matches with g.'}
+    ]
+  },
+  vocabulary:{
+    title:'Everyday Vocabulary',icon:'🧠',
+    desc:'Learn common words about people, objects, animals and places.',
+    questions:[
+      {prompt:'Which one is an animal?',answers:['cat','chair','book'],correct:'cat',success:'Correct! A cat is an animal.'},
+      {prompt:'Which one do we use for writing?',answers:['pencil','plate','shoe'],correct:'pencil',success:'Correct! We use a pencil for writing.'},
+      {prompt:'Where do pupils learn?',answers:['school','market','park'],correct:'school',success:'Correct! Pupils learn at school.'},
+      {prompt:'Which one is a fruit?',answers:['apple','table','shirt'],correct:'apple',success:'Correct! An apple is a fruit.'},
+      {prompt:'Which one is a colour?',answers:['blue','run','book'],correct:'blue',success:'Correct! Blue is a colour.'},
+      {prompt:'Which body part do we use to see?',answers:['eyes','ears','feet'],correct:'eyes',success:'Correct! We use our eyes to see.'},
+      {prompt:'Which one can fly?',answers:['bird','fish','cat'],correct:'bird',success:'Correct! A bird can fly.'},
+      {prompt:'Which room is used for cooking?',answers:['kitchen','bedroom','garden'],correct:'kitchen',success:'Correct! We cook in the kitchen.'},
+      {prompt:'Which word means the opposite of big?',answers:['small','long','fast'],correct:'small',success:'Correct! Small is the opposite of big.'},
+      {prompt:'Which word means the opposite of hot?',answers:['cold','sweet','soft'],correct:'cold',success:'Correct! Cold is the opposite of hot.'}
+    ]
+  },
+  grammar:{
+    title:'Basic Grammar',icon:'🧩',
+    desc:'Use simple nouns, verbs, adjectives and basic sentence patterns.',
+    questions:[
+      {prompt:'Choose the noun.',answers:['book','run','happy'],correct:'book',success:'Correct! Book is a noun.'},
+      {prompt:'Choose the verb.',answers:['jump','table','red'],correct:'jump',success:'Correct! Jump is a verb.'},
+      {prompt:'Choose the adjective.',answers:['happy','cat','eat'],correct:'happy',success:'Correct! Happy is an adjective.'},
+      {prompt:'I ___ milk.',answers:['drink','blue','chair'],correct:'drink',success:'Correct! I drink milk.'},
+      {prompt:'She ___ a book.',answers:['reads','yellow','school'],correct:'reads',success:'Correct! She reads a book.'},
+      {prompt:'The ball is ___.',answers:['round','run','table'],correct:'round',success:'Correct! Round describes the ball.'},
+      {prompt:'Choose the correct sentence.',answers:['I am Ali.','I Ali am.','Am I Ali.'],correct:'I am Ali.',success:'Correct! “I am Ali.” is correct.'},
+      {prompt:'Choose the correct word: This is ___ cat.',answers:['a','an','two'],correct:'a',success:'Correct! We say “a cat”.'},
+      {prompt:'Choose the correct word: This is ___ apple.',answers:['a','an','the two'],correct:'an',success:'Correct! We say “an apple”.'},
+      {prompt:'They ___ happy.',answers:['are','is','am'],correct:'are',success:'Correct! We say “They are happy.”'}
+    ]
+  },
+  reading:{
+    title:'Reading Comprehension',icon:'📖',
+    desc:'Read short sentences and answer simple questions.',
+    questions:[
+      {prompt:'“Ali has a red ball.” What colour is the ball?',answers:['red','blue','green'],correct:'red',success:'Correct! The ball is red.'},
+      {prompt:'“Mia has two cats.” How many cats does Mia have?',answers:['one','two','three'],correct:'two',success:'Correct! Mia has two cats.'},
+      {prompt:'“The boy eats rice.” What does the boy eat?',answers:['rice','bread','cake'],correct:'rice',success:'Correct! The boy eats rice.'},
+      {prompt:'“Sara goes to school in the morning.” When does Sara go to school?',answers:['morning','evening','night'],correct:'morning',success:'Correct! Sara goes in the morning.'},
+      {prompt:'“The bird is in the tree.” Where is the bird?',answers:['in the tree','under the table','in the car'],correct:'in the tree',success:'Correct! The bird is in the tree.'},
+      {prompt:'“Dad drives a car.” What does Dad drive?',answers:['car','bus','bike'],correct:'car',success:'Correct! Dad drives a car.'},
+      {prompt:'“The fish swims in water.” What does the fish do?',answers:['swims','runs','flies'],correct:'swims',success:'Correct! The fish swims.'},
+      {prompt:'“Lina likes bananas.” What fruit does Lina like?',answers:['bananas','apples','oranges'],correct:'bananas',success:'Correct! Lina likes bananas.'},
+      {prompt:'“The book is on the table.” Where is the book?',answers:['on the table','under the bed','in the bag'],correct:'on the table',success:'Correct! The book is on the table.'},
+      {prompt:'“Ben is seven years old.” How old is Ben?',answers:['six','seven','eight'],correct:'seven',success:'Correct! Ben is seven years old.'}
+    ]
+  },
+  writing:{
+    title:'Writing Basics',icon:'✏️',
+    desc:'Spell common words and build simple sentences.',
+    questions:[
+      {prompt:'Choose the correct spelling.',answers:['school','scool','schol'],correct:'school',success:'Correct! School is spelt S-C-H-O-O-L.'},
+      {prompt:'Choose the correct spelling.',answers:['apple','aple','appel'],correct:'apple',success:'Correct! Apple is the correct spelling.'},
+      {prompt:'Choose the correct spelling.',answers:['house','hous','howse'],correct:'house',success:'Correct! House is the correct spelling.'},
+      {prompt:'Complete the word: c _ t',answers:['a','e','i'],correct:'a',success:'Correct! C-A-T spells cat.'},
+      {prompt:'Complete the word: d _ g',answers:['o','a','u'],correct:'o',success:'Correct! D-O-G spells dog.'},
+      {prompt:'Choose the sentence with a capital letter.',answers:['My name is Ben.','my name is Ben.','MY name is Ben.'],correct:'My name is Ben.',success:'Correct! A sentence starts with a capital letter.'},
+      {prompt:'Choose the sentence with a full stop.',answers:['I like milk.','I like milk?','I like milk'],correct:'I like milk.',success:'Correct! The sentence ends with a full stop.'},
+      {prompt:'Put the words in the correct order.',answers:['I like cats.','Like I cats.','Cats I like.'],correct:'I like cats.',success:'Correct! “I like cats.” is the correct order.'},
+      {prompt:'Complete the sentence: This is my ___.',answers:['book','run','blue'],correct:'book',success:'Correct! “This is my book.”'},
+      {prompt:'Complete the sentence: I can ___.',answers:['jump','green','table'],correct:'jump',success:'Correct! “I can jump.”'}
+    ]
+  },
+  communication:{
+    title:'Simple Communication',icon:'💬',
+    desc:'Use greetings, polite expressions and everyday classroom language.',
+    questions:[
+      {prompt:'What do you say when you meet someone in the morning?',answers:['Good morning','Good night','Goodbye'],correct:'Good morning',success:'Correct! We say “Good morning”.'},
+      {prompt:'What do you say when someone helps you?',answers:['Thank you','Sorry','Good night'],correct:'Thank you',success:'Correct! We say “Thank you”.'},
+      {prompt:'What do you say when you make a mistake?',answers:['Sorry','Welcome','Hello'],correct:'Sorry',success:'Correct! We say “Sorry”.'},
+      {prompt:'Choose the polite request.',answers:['Please give me the pencil.','Give me the pencil!','Pencil now!'],correct:'Please give me the pencil.',success:'Correct! That is a polite request.'},
+      {prompt:'What can you say before leaving?',answers:['Goodbye','Good morning','Thank you'],correct:'Goodbye',success:'Correct! We say “Goodbye”.'},
+      {prompt:'Choose the correct reply to “How are you?”',answers:['I am fine, thank you.','My name is Ali.','Good night.'],correct:'I am fine, thank you.',success:'Correct! That is a suitable reply.'},
+      {prompt:'Choose the correct reply to “What is your name?”',answers:['My name is Sara.','I am seven years old.','I like apples.'],correct:'My name is Sara.',success:'Correct! That answers the question.'},
+      {prompt:'What do you say when asking permission?',answers:['May I come in?','Come in now!','I am coming in.'],correct:'May I come in?',success:'Correct! “May I come in?” is polite.'},
+      {prompt:'Choose the classroom instruction.',answers:['Open your book.','The book is blue.','I like books.'],correct:'Open your book.',success:'Correct! “Open your book.” is an instruction.'},
+      {prompt:'Choose the polite expression.',answers:['Excuse me','Move!','Go away!'],correct:'Excuse me',success:'Correct! “Excuse me” is polite.'}
+    ]
+  }
 };
 
 const bmYear1Bank={
