@@ -54,6 +54,67 @@ const toast = msg => {
 document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>$('#'+b.dataset.open).showModal());
 document.querySelectorAll('dialog .x').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 
+
+/* ===== CilikGo cheerful background music (Web Audio, no external file) ===== */
+let cgAudioCtx=null,cgMusicTimer=null,cgMusicOn=localStorage.getItem('cilikgo_music')==='on';
+const cgMusicNotes=[261.63,329.63,392.00,523.25,392.00,329.63,293.66,349.23,440.00,523.25,440.00,349.23];
+function cgTone(freq,start,duration=.28,gain=.018){
+  if(!cgAudioCtx)return;
+  const osc=cgAudioCtx.createOscillator(),g=cgAudioCtx.createGain();
+  osc.type='triangle'; osc.frequency.value=freq;
+  g.gain.setValueAtTime(0,start);
+  g.gain.linearRampToValueAtTime(gain,start+.025);
+  g.gain.exponentialRampToValueAtTime(.0001,start+duration);
+  osc.connect(g).connect(cgAudioCtx.destination);
+  osc.start(start);osc.stop(start+duration+.04);
+}
+function scheduleCgMusic(){
+  if(!cgMusicOn||!cgAudioCtx)return;
+  const now=cgAudioCtx.currentTime+.05;
+  cgMusicNotes.forEach((n,i)=>{
+    cgTone(n,now+i*.34,.24,i%4===0?.021:.015);
+    if(i%4===0) cgTone(n/2,now+i*.34,.46,.008);
+  });
+  clearTimeout(cgMusicTimer);
+  cgMusicTimer=setTimeout(scheduleCgMusic,cgMusicNotes.length*340+280);
+}
+async function startCgMusic(){
+  try{
+    cgAudioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
+    await cgAudioCtx.resume();
+    if(!cgMusicTimer)scheduleCgMusic();
+  }catch(e){console.warn('Background music unavailable',e);}
+}
+function stopCgMusic(){
+  clearTimeout(cgMusicTimer);cgMusicTimer=null;
+  if(cgAudioCtx?.state==='running') cgAudioCtx.suspend().catch(()=>{});
+}
+function updateMusicButton(){
+  const b=$('#musicToggle'); if(!b)return;
+  b.classList.toggle('playing',cgMusicOn);
+  b.setAttribute('aria-label',cgMusicOn?'Matikan muzik latar':'Hidupkan muzik latar');
+  b.querySelector('.music-label').textContent=cgMusicOn?'Muzik On':'Muzik';
+}
+$('#musicToggle')?.addEventListener('click',async()=>{
+  cgMusicOn=!cgMusicOn;
+  localStorage.setItem('cilikgo_music',cgMusicOn?'on':'off');
+  updateMusicButton();
+  if(cgMusicOn) await startCgMusic(); else stopCgMusic();
+});
+updateMusicButton();
+
+/* Browsers require a user gesture before sound can start. */
+document.addEventListener('pointerdown',()=>{
+  if(cgMusicOn&&(!cgAudioCtx||cgAudioCtx.state!=='running')) startCgMusic();
+},{once:true});
+
+function animateIn(scope=document){
+  scope.querySelectorAll('.year-portal-card,.student-subject-card,.subject-topic-card,.stat,.quick-stat,.parent-subject-mini,.content-subject-card').forEach((el,i)=>{
+    el.style.setProperty('--delay',`${Math.min(i,12)*45}ms`);
+    el.classList.add('cg-pop-in');
+  });
+}
+
 document.querySelectorAll('[data-auth]').forEach(b=>b.onclick=()=>showAuthPage(b.dataset.auth||'login'));
 
 const mobileMenuBtn=$('#mobileMenuBtn'), mobileNavDrawer=$('#mobileNavDrawer'), mobileNavBackdrop=$('#mobileNavBackdrop');
@@ -504,6 +565,7 @@ async function renderStudentPortal(p){
 
   $('#continueLearning').onclick=()=>openSubject(lastSubject.key);
   document.querySelectorAll('[data-student-subject]').forEach(b=>b.onclick=()=>openSubject(b.dataset.studentSubject));
+  animateIn(root);
 }
 
 function year1SubjectConfig(key){
@@ -597,6 +659,7 @@ async function renderYear1SubjectHub(p,key){
 
   $('.subject-back').onclick=()=>renderStudentPortal(p);
   document.querySelectorAll('[data-subject-topic]').forEach(b=>b.onclick=()=>cfg.start(b.dataset.subjectTopic));
+  animateIn(root);
 }
 
 async function renderScienceYear1Hub(p){ return renderYear1SubjectHub(p,'science'); }
@@ -957,6 +1020,7 @@ async function renderUser(p){
   $('#enterStudentBtn')?.addEventListener('click',enterStudent);
   $('#enterStudentNav')?.addEventListener('click',enterStudent);
   document.querySelector('[data-parent-view="overview"]')?.addEventListener('click',e=>{e.preventDefault();setRoleNav(false);});
+  animateIn($('#dashboard'));
   document.querySelectorAll('[data-child]').forEach(b=>b.onclick=async()=>{
     const selectedChild=kids.find(c=>c.id===b.dataset.child);
     if(!selectedChild)return;
@@ -1050,6 +1114,7 @@ async function renderAgent(p){
     $('#agentView').innerHTML=views[selected]();
     document.querySelectorAll('.agent-nav').forEach(a=>a.classList.toggle('active',a.dataset.view===selected));
     const main=$('.agent-shell .portal-main'); if(main) main.scrollTop=0;
+    animateIn($('#agentView'));
     if($('#copyAgentLink')) $('#copyAgentLink').onclick=copyReferral;
     if($('#copyAgentSettingsLink')) $('#copyAgentSettingsLink').onclick=copyReferral;
     if($('#agentSearch')) $('#agentSearch').oninput=()=>{
@@ -1244,6 +1309,7 @@ async function renderAdmin(p){
     if(view==='subscriptions') await renderAdminSubscriptions();
     document.querySelectorAll('.admin-nav').forEach(a=>a.onclick=()=>{setRoleNav(false);mount(a.dataset.view);});
     const main=$('.admin-shell .portal-main'); if(main) main.scrollTop=0;
+    animateIn($('#adminContent'));
     const search=$('#adminSearch');
     if(search&&view==='users') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminUserTable').innerHTML=renderUserRows(customers.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
     if(search&&view==='agents') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminAgentTable').innerHTML=renderAgentRows(agents.filter(a=>(a.name||'').toLowerCase().includes(q)||(a.email||'').toLowerCase().includes(q)||(a.agentCode||'').toLowerCase().includes(q)));};

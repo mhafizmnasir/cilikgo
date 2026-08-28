@@ -1005,3 +1005,168 @@ body:not(.role-nav-open) #dashboard .role-drawer{
     transform:none!important;
   }
 }
+
+/* =========================================================
+   CilikGo Kids Theme — Tahun 1–6
+   ========================================================= */
+:root{
+  --purple:#6b5cf6;
+  --purple2:#8b7cf8;
+  --ink:#24243a;
+  --muted:#73778d;
+  --line:#e8e9f3;
+  --shadow:0 18px 45px rgba(92,78,190,.12);
+  --cg-sky:#61c7ff;
+  --cg-mint:#57d8a4;
+  --cg-sun:#ffd765;
+  --cg-coral:#ff8d8d;
+  --cg-lilac:#a99bff;
+}
+
+body{
+  background:
+    radial-gradient(circle at 10% 12%,rgba(97,199,255,.12),transparent 22%),
+    radial-gradient(circle at 90% 18%,rgba(255,215,101,.13),transparent 20%),
+    #fbfcff;
+}
+.topbar,.app-topbar,.student-header{
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 5px 22px rgba(69,60,130,.055);
+}
+.brand-badge{
+  background:linear-gradient(145deg,#6b5cf6,#8a79fb)!important;
+  box-shadow:0 6px 16px rgba(107,92,246,.24);
+}
+.btn.primary{
+  background:linear-gradient(135deg,#6b5cf6,#8a79fb)!important;
+  box-shadow:0 10px 22px rgba(107,92,246,.22)!important;
+}
+.btn.primary:hover{transform:translateY(-2px) scale(1.015)}
+.ghost{background:#f2f0ff!important}
+
+.hero{
+  background:
+    radial-gradient(circle at 80% 12%,rgba(169,155,255,.22),transparent 30%),
+    radial-gradient(circle at 10% 75%,rgba(87,216,164,.12),transparent 28%),
+    linear-gradient(180deg,#ffffff,#fffdf8)!important;
+}
+.hero-card{
+  border-color:#e6e2ff!important;
+  box-shadow:0 22px 52px rgba(94,77,190,.13)!important;
+}
+.hero-card .mascot{animation:cgFloat 3.2s ease-in-out infinite}
+.streak{background:linear-gradient(90deg,#fff3c6,#fff8df)!important}
+
+.year-portal-card{
+  transition:.2s transform,.2s box-shadow,.2s border-color;
+}
+.year-portal-card:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(72,62,130,.1)}
+.year-portal-card:nth-child(1)>span{background:linear-gradient(145deg,#6b5cf6,#8f7fff)!important;color:#fff}
+.year-portal-card:nth-child(2)>span{background:#e9f8ff;color:#2a94c8}
+.year-portal-card:nth-child(3)>span{background:#fff4d6;color:#b7830d}
+.year-portal-card:nth-child(4)>span{background:#e8fbf2;color:#21845e}
+.year-portal-card:nth-child(5)>span{background:#fff0f0;color:#d15f5f}
+.year-portal-card:nth-child(6)>span{background:#f1edff;color:#6b5cf6}
+
+.interactive-student{
+  background:
+    radial-gradient(circle at 5% 12%,rgba(119,103,255,.12),transparent 24%),
+    radial-gradient(circle at 96% 28%,rgba(84,203,255,.16),transparent 25%),
+    radial-gradient(circle at 48% 100%,rgba(91,220,164,.12),transparent 30%),
+    linear-gradient(180deg,#f9f8ff,#f7fbff 55%,#fbfffd)!important;
+}
+.student-hero-copy{
+  background:
+    radial-gradient(circle at 84% 15%,rgba(255,255,255,.18),transparent 30%),
+    linear-gradient(125deg,#6657ef,#8a73fb 55%,#a58dfb)!important;
+}
+.student-mission-card,.student-subject-card,.achievement-card,.student-tip-card{
+  box-shadow:0 12px 32px rgba(70,60,130,.07)!important;
+}
+.interactive-card:hover{transform:translateY(-5px) rotate(-.2deg)!important}
+.subject-bm{--subject-accent:#e86b9a}.subject-bi{--subject-accent:#39a8ef}.subject-math{--subject-accent:#7561e8}.subject-science{--subject-accent:#39ae7e}
+
+.subject-hub-shell{
+  background:
+    radial-gradient(circle at 0 12%,rgba(107,92,246,.08),transparent 22%),
+    radial-gradient(circle at 100% 40%,rgba(97,199,255,.1),transparent 24%),
+    #f8faff!important;
+}
+.subject-topic-card:hover{transform:translateY(-4px)!important}
+.topic-card-icon{animation:cgSoftBounce 3.6s ease-in-out infinite}
+
+.music-toggle{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:180;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:46px;
+  padding:0 14px;
+  border:1px solid #ded9ff;
+  border-radius:999px;
+  background:rgba(255,255,255,.94);
+  color:#6252da;
+  font:inherit;
+  font-size:11px;
+  font-weight:900;
+  box-shadow:0 12px 30px rgba(54,45,120,.16);
+  cursor:pointer;
+  backdrop-filter:blur(10px);
+}
+.music-toggle .music-icon{
+  width:27px;height:27px;border-radius:50%;
+  display:grid;place-items:center;
+  background:#eeebff;
+  font-size:15px;
+}
+.music-toggle.playing{
+  background:linear-gradient(135deg,#6b5cf6,#8b79f7);
+  color:#fff;border-color:transparent;
+}
+.music-toggle.playing .music-icon{background:rgba(255,255,255,.18);animation:cgPulse 1.2s ease-in-out infinite}
+
+.cg-pop-in{
+  animation:cgPopIn .48s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay:var(--delay,0ms);
+}
+@keyframes cgPopIn{
+  from{opacity:0;transform:translateY(12px) scale(.985)}
+  to{opacity:1;transform:none}
+}
+@keyframes cgFloat{
+  0%,100%{transform:translateY(0) rotate(-1deg)}
+  50%{transform:translateY(-7px) rotate(1deg)}
+}
+@keyframes cgSoftBounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-3px)}
+}
+@keyframes cgPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.12)}
+}
+
+/* Respect accessibility preference. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+}
+
+/* Tablet & phone polish */
+@media(max-width:1024px){
+  .music-toggle{right:14px;bottom:14px}
+}
+@media(max-width:600px){
+  .music-toggle{
+    right:12px;bottom:12px;
+    width:44px;height:44px;min-height:44px;padding:0;
+    justify-content:center;
+  }
+  .music-toggle .music-label{display:none}
+  .music-toggle .music-icon{background:transparent!important}
+  .student-hero-copy{border-radius:22px!important}
+  .student-subject-card{border-radius:20px!important}
+  .subject-topic-card{border-radius:17px!important}
+}
