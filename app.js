@@ -500,8 +500,10 @@ async function renderStudentPortal(p){
         </div>
       </section>
 
-      <section class="student-year-roadmap" aria-label="Tahun pembelajaran">
-        ${[1,2,3,4,5,6].map(y=>`<div class="student-year-step ${y===year?'current':''} ${y===1?'available':''}"><span>${y}</span><div><small>${y===year?'TAHUN SAYA':y===1?'TERSEDIA':'AKAN DATANG'}</small><b>Tahun ${y}</b></div></div>`).join('')}
+      <section class="student-year-focus" aria-label="Tahun pembelajaran aktif">
+        <div class="student-year-focus-icon">🎒</div>
+        <div><small>TAHUN PEMBELAJARAN SAYA</small><h3>Tahun ${year}</h3><p>${year===1?'Semua subjek Tahun 1 yang tersedia dipaparkan di bawah.':`Kandungan Tahun ${year} akan dibuka apabila bank latihan tersedia.`}</p></div>
+        <span class="student-year-focus-badge">${year===1?'Aktif':'Akan datang'}</span>
       </section>
 
       <section class="student-section">
@@ -973,7 +975,14 @@ async function renderUser(p){
   const childCards=kids.map(c=>{
     const cp=progress.filter(x=>x.childId===c.id);
     const st=cp.reduce((n,x)=>n+Number(x.stars||0),0);
-    return `<button class="child-card compact ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>Tahun ${esc(c.year||Math.max(1,Number(c.age||7)-6))} · ⭐ ${st}</small></button>`;
+    const year=esc(c.year||Math.max(1,Number(c.age||7)-6));
+    const genderLabel=c.gender==='female'?'Perempuan':c.gender==='male'?'Lelaki':'';
+    return `<div class="child-card-wrap ${activeChild?.id===c.id?'selected':''}">
+      <button class="child-card compact ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}">
+        <span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>Tahun ${year}${genderLabel?` · ${genderLabel}`:''} · ⭐ ${st}</small>
+      </button>
+      <button class="delete-child-btn" data-delete-child="${c.id}" aria-label="Padam profil ${esc(c.name)}" title="Padam profil">🗑️</button>
+    </div>`;
   }).join('');
 
   $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
@@ -998,7 +1007,7 @@ async function renderUser(p){
       <div class="clean-section-head"><div><h2>Profil Pelajar</h2><p>Pilih anak yang ingin menggunakan CilikGo.</p></div><button class="btn ghost small" id="addChildBtn">+ Tambah Anak</button></div>
       <div class="child-list compact-list">${childCards||'<div class="empty-state compact-empty">Belum ada profil anak. Tambah profil untuk bermula.</div>'}</div>
       ${activeChild?`<div class="parent-focus-card">
-        <div class="focus-profile"><span class="focus-avatar">${esc(activeChild.avatar||'🧒')}</span><div><small>PELAJAR DIPILIH</small><h2>${esc(activeChild.name)}</h2><p>Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))}</p></div></div>
+        <div class="focus-profile"><span class="focus-avatar">${esc(activeChild.avatar||'🧒')}</span><div><small>PELAJAR DIPILIH</small><h2>${esc(activeChild.name)}</h2><p>Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))}${activeChild.gender?` · ${activeChild.gender==='female'?'Perempuan':'Lelaki'}`:''}</p></div></div>
         <button class="student-launch" id="enterStudentBtn"><span>🎒</span><div><small>BUKA PAPARAN PELAJAR</small><b>Masuk Ruang Belajar</b></div><strong>→</strong></button>
       </div>
       <div class="parent-subject-row">${subjectMeta.map(subjectCard).join('')}</div>`:
@@ -1027,6 +1036,34 @@ async function renderUser(p){
     activeChild=selectedChild;
     localStorage.setItem('cilikgo_active_child',selectedChild.id);
     await renderUser(p);
+  });
+
+  document.querySelectorAll('[data-delete-child]').forEach(btn=>btn.onclick=async e=>{
+    e.preventDefault();e.stopPropagation();
+    const id=btn.dataset.deleteChild;
+    const child=kids.find(c=>c.id===id);
+    if(!child)return;
+    const ok=window.confirm(`Padam profil ${child.name}?\n\nRekod latihan untuk profil ini juga akan dipadam. Tindakan ini tidak boleh dibuat asal.`);
+    if(!ok)return;
+    setButtonLoading(btn,true,'…');
+    try{
+      const q=fb.query(
+        fb.collection(fb.db,'progress'),
+        fb.where('ownerUid','==',p.uid),
+        fb.where('childId','==',id)
+      );
+      const snap=await fb.getDocs(q);
+      await Promise.all(snap.docs.map(d=>fb.deleteDoc(fb.doc(fb.db,'progress',d.id))));
+      await fb.deleteDoc(fb.doc(fb.db,'children',id));
+      if(localStorage.getItem('cilikgo_active_child')===id) localStorage.removeItem('cilikgo_active_child');
+      if(activeChild?.id===id) activeChild=null;
+      toast(`Profil ${child.name} berjaya dipadam.`);
+      await renderUser(p);
+    }catch(err){
+      console.error('delete child',err);
+      toast('Gagal padam profil: '+friendlyError(err));
+      setButtonLoading(btn,false);
+    }
   });
 }
 async function renderAgent(p){
@@ -1395,12 +1432,43 @@ async function startPayment(plan='starter'){
 }
 $('#buyBtn').onclick=()=>startPayment(currentProfile?.subscriptionStatus==='active'?'renewal':'starter');
 
+function syncAvatarPreview(){
+  const sel=$('#childAvatar'),preview=$('#avatarPreview'),text=$('#avatarPreviewText');
+  if(!sel||!preview||!text)return;
+  preview.textContent=sel.value||'🧒';
+  text.textContent=sel.options[sel.selectedIndex]?.text?.replace(/^\S+\s*/,'')||'Avatar';
+}
+$('#childAvatar')?.addEventListener('change',syncAvatarPreview);
+$('#childGender')?.addEventListener('change',()=>{
+  const gender=$('#childGender').value, avatar=$('#childAvatar');
+  if(!avatar)return;
+  avatar.value=gender==='female'?'👧':'👦';
+  syncAvatarPreview();
+});
+syncAvatarPreview();
+
 $('#saveChildBtn').onclick=async()=>{
   if(!fb?.auth.currentUser||currentProfile?.role!=='user') return toast('Fungsi ini untuk akaun Penjaga.');
-  const name=$('#childName').value.trim(), year=Number($('#childYear').value), age=year+6, avatar=$('#childAvatar').value;
-  if(!name) return toast('Masukkan nama panggilan anak.');
-  try{ const ref=await fb.addDoc(fb.collection(fb.db,'children'),{ownerUid:fb.auth.currentUser.uid,name,age,year,avatar,createdAt:fb.serverTimestamp()}); localStorage.setItem('cilikgo_active_child',ref.id); $('#childName').value=''; $('#childModal').close(); toast('Profil pelajar berjaya ditambah.'); await renderUser(currentProfile); }
-  catch(e){ console.error(e); toast('Gagal simpan profil: '+friendlyError(e)); }
+  const name=$('#childName').value.trim(),
+        gender=$('#childGender').value,
+        year=Number($('#childYear').value),
+        age=year+6,
+        avatar=$('#childAvatar').value;
+  if(!name) return toast('Masukkan nama panggilan pelajar.');
+  if(!['male','female'].includes(gender)) return toast('Pilih jantina pelajar.');
+  try{
+    const ref=await fb.addDoc(fb.collection(fb.db,'children'),{
+      ownerUid:fb.auth.currentUser.uid,name,gender,age,year,avatar,createdAt:fb.serverTimestamp()
+    });
+    localStorage.setItem('cilikgo_active_child',ref.id);
+    $('#childName').value='';
+    $('#childGender').value='male';
+    $('#childAvatar').value='👦';
+    syncAvatarPreview();
+    $('#childModal').close();
+    toast('Profil pelajar berjaya ditambah.');
+    await renderUser(currentProfile);
+  }catch(e){ console.error(e); toast('Gagal simpan profil: '+friendlyError(e)); }
 };
 
 const kssrArchitecture={

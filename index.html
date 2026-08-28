@@ -136,7 +136,57 @@
   </section>
 
 
-  <dialog id="childModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Tambah Profil Pelajar</h2><label>Nama panggilan pelajar<input id="childName" maxlength="40" required></label><label>Tahun / Darjah<select id="childYear"><option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option><option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option></select></label><label>Avatar<select id="childAvatar"><option value="🧒">🧒 Ceria</option><option value="👧">👧 Puteri</option><option value="👦">👦 Wira</option><option value="🐯">🐯 Harimau</option><option value="🚀">🚀 Angkasawan</option></select></label><button type="button" id="saveChildBtn" class="btn primary full">Simpan Profil</button></form></dialog>
+  <dialog id="childModal">
+    <form method="dialog" class="modal-form child-profile-form">
+      <button class="x" aria-label="Tutup">×</button>
+      <div class="profile-modal-head"><span>🎒</span><div><small>PROFIL PELAJAR</small><h2>Tambah Profil Pelajar</h2><p>Maklumat ini membantu CilikGo memaparkan ruang belajar yang sesuai.</p></div></div>
+      <label>Nama panggilan pelajar<input id="childName" maxlength="40" autocomplete="off" placeholder="Contoh: Aiman" required></label>
+      <div class="profile-form-grid">
+        <label>Jantina
+          <select id="childGender">
+            <option value="male">Lelaki</option>
+            <option value="female">Perempuan</option>
+          </select>
+        </label>
+        <label>Tahun / Darjah
+          <select id="childYear">
+            <option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option>
+            <option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option>
+          </select>
+        </label>
+      </div>
+      <label>Avatar
+        <select id="childAvatar">
+          <optgroup label="Pelajar">
+            <option value="👦">👦 Pelajar Lelaki</option>
+            <option value="👧">👧 Pelajar Perempuan</option>
+            <option value="🧒">🧒 Ceria</option>
+            <option value="👨‍🎓">👨‍🎓 Cendekiawan</option>
+            <option value="👩‍🎓">👩‍🎓 Cendekiawati</option>
+          </optgroup>
+          <optgroup label="Cita-cita">
+            <option value="👨‍🚀">👨‍🚀 Angkasawan Lelaki</option>
+            <option value="👩‍🚀">👩‍🚀 Angkasawan Perempuan</option>
+            <option value="👨‍🔬">👨‍🔬 Saintis Lelaki</option>
+            <option value="👩‍🔬">👩‍🔬 Saintis Perempuan</option>
+            <option value="🦸‍♂️">🦸‍♂️ Adiwira</option>
+            <option value="🦸‍♀️">🦸‍♀️ Adiwirati</option>
+          </optgroup>
+          <optgroup label="Haiwan Comel">
+            <option value="🐯">🐯 Harimau</option>
+            <option value="🦁">🦁 Singa</option>
+            <option value="🐼">🐼 Panda</option>
+            <option value="🐰">🐰 Arnab</option>
+            <option value="🐨">🐨 Koala</option>
+            <option value="🦊">🦊 Musang</option>
+            <option value="🐧">🐧 Penguin</option>
+          </optgroup>
+        </select>
+      </label>
+      <div class="avatar-preview-row"><span id="avatarPreview">👦</span><div><small>AVATAR DIPILIH</small><b id="avatarPreviewText">Pelajar Lelaki</b></div></div>
+      <button type="button" id="saveChildBtn" class="btn primary full">Simpan Profil</button>
+    </form>
+  </dialog>
 
   <dialog id="gameModal"><div class="modal-form game"><button class="x" onclick="gameModal.close()">×</button><div id="gameContent"></div></div></dialog>
 

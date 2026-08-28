@@ -43,7 +43,7 @@ service cloud.firestore {
              .hasOnly(['name','email','phone','updatedAt'])
         )
       );
-      allow delete: if isAdmin();
+      allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
     }
 
     function validChildProfile(data) {
@@ -52,15 +52,18 @@ service cloud.firestore {
         && data.name.size() <= 60
         && data.age is int
         && (
-          // Profil lama CilikGo 3M.
+          // Profil lama untuk keserasian data sejarah.
           (data.age >= 4 && data.age <= 6 && !('year' in data))
           ||
-          // Profil KSSR baharu: Tahun 1-6, umur kompatibiliti 7-12.
+          // Profil portal Tahun 1-6: umur kompatibiliti 7-12.
           ('year' in data
             && data.year is int
             && data.year >= 1
             && data.year <= 6
-            && data.age == data.year + 6)
+            && data.age == data.year + 6
+            && 'gender' in data
+            && data.gender is string
+            && data.gender in ['male', 'female'])
         );
     }
 
