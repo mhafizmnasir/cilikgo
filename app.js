@@ -951,29 +951,54 @@ async function renderAgent(p){
 
   const commissionRows=myCommissions.length?`<div class="table-wrap"><table class="table"><tr><th>Order</th><th>Jualan</th><th>Kadar</th><th>Komisen</th><th>Status</th></tr>${[...myCommissions].reverse().map(c=>`<tr><td><code>${esc(c.orderId||c.id)}</code></td><td>RM${Number(c.saleAmount||0).toFixed(2)}</td><td>${Number(c.ratePercent||0)}%</td><td><b>RM${Number(c.amount||0).toFixed(2)}</b></td><td>${status(c.status)}</td></tr>`).join('')}</table></div>`:'<div class="empty-state">Belum ada rekod komisen. Rekod akan muncul selepas transaksi pembayaran sebenar tersedia.</div>';
 
-  $('#dashboard').innerHTML=`<div class="dash-shell agent-shell"><aside class="dash-side"><h3>🤝 Agent</h3>
-    <a class="agent-nav active" data-view="overview">Overview</a><a class="agent-nav" data-view="referrals">Referral</a><a class="agent-nav" data-view="sales">Jualan</a><a class="agent-nav" data-view="commission">Komisen</a><a href="#settings">Settings</a>
-    </aside><section class="dash-main">
-    <div id="agentView"></div>
-  </section></div>`;
+  const agentNav=[
+    ['overview','⌂','Ringkasan'],
+    ['referrals','👥','Referral'],
+    ['sales','🧾','Jualan'],
+    ['commission','💰','Komisen'],
+    ['settings','⚙️','Tetapan']
+  ];
+  $('#dashboard').innerHTML=`<div class="dash-shell agent-shell portal-shell">
+    <aside class="dash-side portal-side">
+      <div class="portal-role"><span>🤝</span><div><small>PORTAL</small><h3>Agent</h3></div></div>
+      <nav class="portal-menu">${agentNav.map(([k,i,l])=>`<a class="agent-nav ${k==='overview'?'active':''}" data-view="${k}"><span class="portal-menu-icon">${i}</span><span class="portal-menu-label">${l}</span></a>`).join('')}</nav>
+      <div class="portal-side-foot"><small>Kod Agent</small><b>${esc(code||'-')}</b></div>
+    </aside>
+    <section class="dash-main portal-main"><div id="agentView"></div></section>
+  </div>`;
 
   const views={
-    overview:()=>`<div class="dash-head"><div><small>Selamat datang, Agent</small><h2>${esc(p.name||p.email)} 👋</h2></div><span class="badge">Agent</span></div>
+    overview:()=>`<div class="dash-head portal-page-head"><div><small>Selamat datang, Agent</small><h2>${esc(p.name||p.email)} 👋</h2></div><span class="badge">Agent</span></div>
       <div class="agent-link-card"><div><small>Link referral unik anda</small><h3>Kongsi CilikGo dan bina rangkaian anda</h3><div class="copy-row"><input id="agentRefUrl" readonly value="${esc(refUrl)}"><button class="btn primary" id="copyAgentLink">Salin Link</button></div><p>Kod Agent: <b>${esc(code||'-')}</b></p></div><span class="agent-link-icon">🔗</span></div>
       <div class="agent-stat-grid"><div class="stat"><small>Pendaftaran referral</small><b>${referrals.length}</b></div><div class="stat"><small>Pembelian berjaya</small><b>${paidOrders.length}</b></div><div class="stat"><small>Conversion</small><b>${conversion}%</b></div><div class="stat"><small>Nilai jualan</small><b>RM${sales.toFixed(2)}</b></div><div class="stat"><small>Komisen pending</small><b>RM${pending.toFixed(2)}</b></div><div class="stat"><small>Komisen dibayar</small><b>RM${paidCommission.toFixed(2)}</b></div></div>
       <div class="agent-info-grid"><div class="recommend-card"><span class="recommend-icon">📣</span><div><small>Cara guna</small><h3>Kongsi link referral anda</h3><p>Apabila Penjaga membuka link anda dan mendaftar, kod Agent akan direkodkan pada akaun tersebut.</p></div></div><div class="strength-card"><small>Status pembayaran</small><h3>ToyyibPay masih KIV</h3><p>Pendaftaran referral sudah boleh direkod. Statistik jualan dan komisen sebenar akan mula bertambah selepas payment gateway diaktifkan.</p></div></div>`,
-    referrals:()=>`<div class="dash-head"><div><small>Affiliate network</small><h2>Senarai Referral</h2></div><span class="badge">${referrals.length} Penjaga</span></div><div class="agent-toolbar"><input id="agentSearch" placeholder="Cari nama atau e-mel…"><span>${referrals.length} pendaftaran</span></div><div id="referralTable">${referralRows}</div>`,
-    sales:()=>`<div class="dash-head"><div><small>Prestasi jualan</small><h2>Jualan Referral</h2></div><span class="badge">RM${sales.toFixed(2)}</span></div><div class="agent-stat-grid compact"><div class="stat"><small>Jumlah order</small><b>${myOrders.length}</b></div><div class="stat"><small>Berjaya</small><b>${paidOrders.length}</b></div><div class="stat"><small>Conversion</small><b>${conversion}%</b></div></div>${myOrders.length?`<div class="table-wrap"><table class="table"><tr><th>Order</th><th>Pelan</th><th>Nilai</th><th>Status</th></tr>${[...myOrders].reverse().map(o=>`<tr><td><code>${esc(o.id)}</code></td><td>${esc(o.plan||'-')}</td><td>RM${Number(o.amount||0).toFixed(2)}</td><td>${status(o.status)}</td></tr>`).join('')}</table></div>`:'<div class="empty-state">Belum ada jualan. ToyyibPay masih KIV.</div>'}`,
-    commission:()=>`<div class="dash-head"><div><small>Pendapatan affiliate</small><h2>Komisen</h2></div><span class="badge">RM${totalCommission.toFixed(2)}</span></div><div class="agent-stat-grid compact"><div class="stat"><small>Jumlah komisen</small><b>RM${totalCommission.toFixed(2)}</b></div><div class="stat"><small>Pending</small><b>RM${pending.toFixed(2)}</b></div><div class="stat"><small>Dibayar</small><b>RM${paidCommission.toFixed(2)}</b></div></div>${commissionRows}`
+    referrals:()=>`<div class="dash-head portal-page-head"><div><small>Affiliate network</small><h2>Senarai Referral</h2></div><span class="badge">${referrals.length} Penjaga</span></div><div class="agent-toolbar"><input id="agentSearch" placeholder="Cari nama atau e-mel…"><span>${referrals.length} pendaftaran</span></div><div id="referralTable">${referralRows}</div>`,
+    sales:()=>`<div class="dash-head portal-page-head"><div><small>Prestasi jualan</small><h2>Jualan Referral</h2></div><span class="badge">RM${sales.toFixed(2)}</span></div><div class="agent-stat-grid compact"><div class="stat"><small>Jumlah order</small><b>${myOrders.length}</b></div><div class="stat"><small>Berjaya</small><b>${paidOrders.length}</b></div><div class="stat"><small>Conversion</small><b>${conversion}%</b></div></div>${myOrders.length?`<div class="table-wrap"><table class="table"><tr><th>Order</th><th>Pelan</th><th>Nilai</th><th>Status</th></tr>${[...myOrders].reverse().map(o=>`<tr><td><code>${esc(o.id)}</code></td><td>${esc(o.plan||'-')}</td><td>RM${Number(o.amount||0).toFixed(2)}</td><td>${status(o.status)}</td></tr>`).join('')}</table></div>`:'<div class="empty-state">Belum ada jualan. ToyyibPay masih KIV.</div>'}`,
+    commission:()=>`<div class="dash-head portal-page-head"><div><small>Pendapatan affiliate</small><h2>Komisen</h2><p>Pantau jumlah komisen daripada jualan referral anda.</p></div><span class="badge">RM${totalCommission.toFixed(2)}</span></div><div class="agent-stat-grid compact"><div class="stat"><small>Jumlah komisen</small><b>RM${totalCommission.toFixed(2)}</b></div><div class="stat"><small>Pending</small><b>RM${pending.toFixed(2)}</b></div><div class="stat"><small>Dibayar</small><b>RM${paidCommission.toFixed(2)}</b></div></div>${commissionRows}`,
+    settings:()=>`<div class="dash-head portal-page-head"><div><small>Akaun Agent</small><h2>Tetapan</h2><p>Maklumat asas akaun dan pautan referral anda.</p></div><span class="badge">Agent</span></div>
+      <div class="portal-settings-grid">
+        <div class="portal-setting-card"><span>👤</span><div><small>NAMA AGENT</small><b>${esc(p.name||'-')}</b><p>${esc(p.email||'-')}</p></div></div>
+        <div class="portal-setting-card"><span>🔑</span><div><small>KOD AGENT</small><b>${esc(code||'-')}</b><p>Kod ini digunakan untuk merekod referral.</p></div></div>
+        <div class="portal-setting-card wide"><span>🔗</span><div><small>PAUTAN REFERRAL</small><b class="break-text">${esc(refUrl)}</b><p>Kongsi pautan ini kepada Penjaga yang ingin mendaftar CilikGo.</p><button class="btn primary small" id="copyAgentSettingsLink">Salin Pautan</button></div></div>
+      </div>
+      <div class="dash-note">🔒 Kata laluan dan keselamatan akaun diurus melalui Firebase Authentication. Maklumat sensitif tidak dipaparkan di dashboard.</div>`
   };
 
+  const copyReferral=async()=>{
+    try{await navigator.clipboard.writeText(refUrl);toast('Link referral berjaya disalin.');}
+    catch(e){
+      const input=$('#agentRefUrl');
+      if(input){input.select();document.execCommand('copy');toast('Link referral berjaya disalin.');}
+      else toast('Salin pautan secara manual: '+refUrl);
+    }
+  };
   const mount=view=>{
-    $('#agentView').innerHTML=views[view]();
-    document.querySelectorAll('.agent-nav').forEach(a=>a.classList.toggle('active',a.dataset.view===view));
-    if($('#copyAgentLink')) $('#copyAgentLink').onclick=async()=>{
-      try{await navigator.clipboard.writeText(refUrl);toast('Link referral berjaya disalin.');}
-      catch(e){$('#agentRefUrl').select();document.execCommand('copy');toast('Link referral berjaya disalin.');}
-    };
+    const selected=views[view]?view:'overview';
+    $('#agentView').innerHTML=views[selected]();
+    document.querySelectorAll('.agent-nav').forEach(a=>a.classList.toggle('active',a.dataset.view===selected));
+    const main=$('.agent-shell .portal-main'); if(main) main.scrollTop=0;
+    if($('#copyAgentLink')) $('#copyAgentLink').onclick=copyReferral;
+    if($('#copyAgentSettingsLink')) $('#copyAgentSettingsLink').onclick=copyReferral;
     if($('#agentSearch')) $('#agentSearch').oninput=()=>{
       const q=$('#agentSearch').value.toLowerCase();
       const list=referrals.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q));
@@ -985,8 +1010,8 @@ async function renderAgent(p){
 }
 
 async function renderAdminSubscriptions(){
-  const root=$('.dash-main');
-  root.innerHTML=`<div class="dash-head"><div><small>Pengurusan akses Penjaga</small><h2>Langganan</h2></div><span class="badge">Admin</span></div><div class="loading-skeleton" style="height:90px"></div>`;
+  const root=$('#adminContent')||$('.admin-shell .portal-main');
+  root.innerHTML=`<div class="dash-head portal-page-head"><div><small>Pengurusan akses Penjaga</small><h2>Langganan</h2></div><span class="badge">Admin</span></div><div class="loading-skeleton" style="height:90px"></div>`;
   try{
     const [usersSnap,ordersSnap]=await Promise.all([
       fb.getDocs(fb.collection(fb.db,'users')),
@@ -1016,7 +1041,7 @@ async function renderAdminSubscriptions(){
       <td>${u._orders.length}</td>
       <td><div class="admin-sub-actions"><button class="btn ghost sub-manage" data-uid="${u.id}" data-action="starter">+4 bulan</button><button class="btn ghost sub-manage" data-uid="${u.id}" data-action="renewal">+1 bulan</button><button class="btn ghost danger sub-manage" data-uid="${u.id}" data-action="expire">Tamatkan</button></div></td>
     </tr>`).join('')}</table></div>`:'<div class="empty-state">Tiada Penjaga sepadan.</div>';
-    root.innerHTML=`<div class="dash-head"><div><small>Pengurusan akses Penjaga</small><h2>Langganan</h2></div><span class="badge">${rows.length} Penjaga</span></div>
+    root.innerHTML=`<div class="dash-head portal-page-head"><div><small>Pengurusan akses Penjaga</small><h2>Langganan</h2></div><span class="badge">${rows.length} Penjaga</span></div>
       <div class="admin-stat-grid"><div class="stat"><small>Aktif</small><b>${activeCount}</b></div><div class="stat"><small>Tamat</small><b>${expiredCount}</b></div><div class="stat"><small>Belum aktif</small><b>${inactiveCount}</b></div></div>
       <div class="admin-sub-note">🛠️ <b>Mode Admin / Testing.</b> Perubahan manual direkodkan dalam audit log. ToyyibPay masih KIV.</div>
       <div class="agent-toolbar"><input id="subSearch" placeholder="Cari nama atau e-mel…"><select id="subFilter"><option value="all">Semua status</option><option value="active">Aktif</option><option value="expired">Tamat</option><option value="inactive">Belum aktif</option></select></div>
@@ -1079,11 +1104,28 @@ async function renderAdmin(p){
   const commissionTotal=commissions.reduce((s,c)=>s+Number(c.amount||0),0);
   const totalStars=progress.reduce((s,x)=>s+Number(x.stars||0),0);
 
-  const shell=(view,body)=>`<div class="dash-shell admin-shell"><aside class="dash-side"><h3>🛡️ Admin</h3>
-    ${[['overview','Overview'],['users','User / Penjaga'],['agents','Agent'],['children','Profil Anak'],['learning','Prestasi Pembelajaran'],['subscriptions','Langganan'],['transactions','Transaksi'],['commissions','Komisen'],['modules','CMS Kandungan'],['settings','Settings']].map(([k,l])=>`<a class="admin-nav ${view===k?'active':''}" data-view="${k}">${l}</a>`).join('')}
-    </aside><section class="dash-main">${body}</section></div>`;
+  const adminNav=[
+    ['overview','⌂','Ringkasan'],
+    ['users','👨‍👩‍👧','Penjaga'],
+    ['agents','🤝','Agent'],
+    ['children','🎒','Pelajar'],
+    ['learning','📊','Pembelajaran'],
+    ['subscriptions','💳','Langganan'],
+    ['transactions','🧾','Transaksi'],
+    ['commissions','💰','Komisen'],
+    ['modules','🗂️','CMS Legacy'],
+    ['settings','⚙️','Tetapan']
+  ];
+  const shell=(view,body)=>`<div class="dash-shell admin-shell portal-shell">
+    <aside class="dash-side portal-side">
+      <div class="portal-role"><span>🛡️</span><div><small>CONTROL CENTER</small><h3>Admin</h3></div></div>
+      <nav class="portal-menu">${adminNav.map(([k,i,l])=>`<a class="admin-nav ${view===k?'active':''}" data-view="${k}"><span class="portal-menu-icon">${i}</span><span class="portal-menu-label">${l}</span></a>`).join('')}</nav>
+      <div class="portal-side-foot"><small>Sistem</small><b>CilikGo Admin</b></div>
+    </aside>
+    <section class="dash-main portal-main"><div id="adminContent">${body}</div></section>
+  </div>`;
 
-  const head=(title,sub='CilikGo Control Center')=>`<div class="dash-head"><div><small>${sub}</small><h2>${title}</h2></div><span class="badge">Admin</span></div>`;
+  const head=(title,sub='CilikGo Control Center')=>`<div class="dash-head portal-page-head"><div><small>${sub}</small><h2>${title}</h2></div><span class="badge">Admin</span></div>`;
   const empty=t=>`<div class="empty-state">${t}</div>`;
   const statusBadge=s=>`<span class="badge ${s==='inactive'||s==='failed'?'status-inactive':''}">${esc(s||'-')}</span>`;
 
@@ -1093,15 +1135,19 @@ async function renderAdmin(p){
       <div class="stat"><small>Profil anak</small><b>${children.length}</b></div><div class="stat"><small>Langganan aktif</small><b>${activeSubs.length}</b></div>
       <div class="stat"><small>Jualan dibayar</small><b>RM${sales.toFixed(2)}</b></div><div class="stat"><small>⭐ Dikumpul</small><b>${totalStars}</b></div>
       </div><div class="admin-two-col"><div><h3>Akaun terkini</h3>${users.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>Role</th><th>Status</th></tr>${users.slice(-8).reverse().map(u=>`<tr><td>${esc(u.name||u.email||'-')}</td><td>${statusBadge(u.role)}</td><td>${statusBadge(u.subscriptionStatus||'n/a')}</td></tr>`).join('')}</table></div>`:empty('Tiada akaun.')}</div>
-      <div><h3>Ringkasan sistem</h3><div class="admin-summary"><p><b>${orders.length}</b> rekod transaksi</p><p><b>${commissions.length}</b> rekod komisen</p><p><b>RM${commissionTotal.toFixed(2)}</b> jumlah komisen</p><p><b>${progress.length}</b> rekod aktiviti 3M</p></div></div></div>`,
+      <div><h3>Ringkasan sistem</h3><div class="admin-summary"><p><b>${orders.length}</b> rekod transaksi</p><p><b>${commissions.length}</b> rekod komisen</p><p><b>RM${commissionTotal.toFixed(2)}</b> jumlah komisen</p><p><b>${progress.length}</b> rekod pembelajaran</p></div></div></div>`,
 
     users:()=>`${head('User / Penjaga','Pengurusan akaun')}<div class="admin-toolbar"><input id="adminSearch" placeholder="Cari nama atau e-mel…"><span>${customers.length} akaun</span></div><div id="adminUserTable">${renderUserRows(customers)}</div>`,
 
-    agents:()=>`${head('Agent','Pengurusan affiliate')}<div class="admin-toolbar"><input id="adminSearch" placeholder="Cari agent atau kod…"><span>${agents.length} agent</span></div>${agents.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>E-mel</th><th>Kod</th><th>Jualan</th><th>Komisen</th></tr>${agents.map(a=>{const ao=orders.filter(o=>o.agentUid===a.id), ac=commissions.filter(c=>c.agentUid===a.id);return `<tr><td>${esc(a.name||'-')}</td><td>${esc(a.email||'-')}</td><td><code>${esc(a.agentCode||'-')}</code></td><td>${ao.length}</td><td>RM${ac.reduce((s,c)=>s+Number(c.amount||0),0).toFixed(2)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada Agent.')}`,
+    agents:()=>`${head('Agent','Pengurusan affiliate')}<div class="admin-toolbar"><input id="adminSearch" placeholder="Cari nama, e-mel atau kod…"><span>${agents.length} agent</span></div><div id="adminAgentTable">${renderAgentRows(agents)}</div>`,
 
-    children:()=>`${head('Profil Anak','Pemantauan profil pembelajaran')}<div class="stat-grid"><div class="stat"><small>Jumlah profil</small><b>${children.length}</b></div><div class="stat"><small>Umur 4</small><b>${children.filter(c=>Number(c.age)===4).length}</b></div><div class="stat"><small>Umur 5–6</small><b>${children.filter(c=>Number(c.age)>=5).length}</b></div></div>${children.length?`<div class="table-wrap"><table class="table"><tr><th>Anak</th><th>Umur</th><th>Penjaga</th><th>⭐</th></tr>${children.map(c=>{const owner=users.find(u=>u.id===c.ownerUid);const stars=progress.filter(x=>x.childId===c.id).reduce((s,x)=>s+Number(x.stars||0),0);return `<tr><td>${esc(c.avatar||'🧒')} ${esc(c.name||'-')}</td><td>${esc(c.age||'-')}</td><td>${esc(owner?.name||owner?.email||'-')}</td><td>${stars}</td></tr>`}).join('')}</table></div>`:empty('Belum ada profil anak.')}`,
+    children:()=>`${head('Profil Pelajar','Pemantauan profil pembelajaran')}<div class="stat-grid"><div class="stat"><small>Jumlah profil</small><b>${children.length}</b></div><div class="stat"><small>Tahun 1</small><b>${children.filter(c=>Number(c.year||Math.max(1,Number(c.age||7)-6))===1).length}</b></div><div class="stat"><small>Tahun 2–6</small><b>${children.filter(c=>Number(c.year||Math.max(1,Number(c.age||7)-6))>=2).length}</b></div></div>${children.length?`<div class="table-wrap"><table class="table"><tr><th>Pelajar</th><th>Tahun</th><th>Penjaga</th><th>⭐</th></tr>${children.map(c=>{const owner=users.find(u=>u.id===c.ownerUid);const stars=progress.filter(x=>x.childId===c.id).reduce((s,x)=>s+Number(x.stars||0),0);const year=Number(c.year||Math.max(1,Number(c.age||7)-6));return `<tr><td>${esc(c.avatar||'🧒')} ${esc(c.name||'-')}</td><td>Tahun ${year}</td><td>${esc(owner?.name||owner?.email||'-')}</td><td>${stars}</td></tr>`}).join('')}</table></div>`:empty('Belum ada profil pelajar.')}`,
 
-    learning:()=>`${head('Prestasi Pembelajaran','Analitik pembelajaran')}<div class="admin-stat-grid">${['Membaca','Menulis','Mengira'].map(m=>{const rows=progress.filter(x=>x.module===m);return `<div class="stat"><small>${m}</small><b>${rows.reduce((s,x)=>s+Number(x.stars||0),0)} ⭐</b><span>${rows.length} aktiviti</span></div>`}).join('')}</div>${progress.length?`<div class="table-wrap"><table class="table"><tr><th>Modul</th><th>Level</th><th>⭐</th><th>Percubaan</th></tr>${progress.slice(-20).reverse().map(x=>`<tr><td>${esc(x.module||'-')}</td><td>${esc(x.level||'-')}</td><td>${Number(x.stars||0)}</td><td>${Number(x.attempts||0)}</td></tr>`).join('')}</table></div>`:empty('Belum ada rekod pembelajaran.')}`,
+    learning:()=>{
+      const subjectDefs=[['bm','Bahasa Melayu','🇲🇾'],['bi','Bahasa Inggeris','🔤'],['math','Matematik','➗'],['science','Sains','🔬']];
+      const cards=subjectDefs.map(([k,n,i])=>{const r=progress.filter(x=>x.subject===k);return `<div class="stat"><small>${i} ${n}</small><b>${r.reduce((s,x)=>s+Number(x.stars||0),0)} ⭐</b><span>${r.length} sesi</span></div>`}).join('');
+      return `${head('Prestasi Pembelajaran','Analitik Tahun 1 dan rekod pembelajaran')}<div class="admin-stat-grid subject-admin-stats">${cards}</div>${progress.length?`<div class="table-wrap"><table class="table"><tr><th>Pelajar</th><th>Subjek / Modul</th><th>Topik</th><th>⭐</th><th>Percubaan</th></tr>${progress.slice(-30).reverse().map(x=>{const child=children.find(c=>c.id===x.childId);return `<tr><td>${esc(child?.name||'-')}</td><td>${esc(x.module||x.subject||'-')}</td><td>${esc(x.topic||('Level '+(x.level||'-')))}</td><td>${Number(x.stars||0)}</td><td>${Number(x.attempts||0)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada rekod pembelajaran.')}`;
+    },
 
     subscriptions:()=>`${head('Langganan','Status akses Penjaga')}<div class="stat-grid"><div class="stat"><small>Aktif</small><b>${activeSubs.length}</b></div><div class="stat"><small>Tidak aktif</small><b>${customers.length-activeSubs.length}</b></div><div class="stat"><small>Jumlah Penjaga</small><b>${customers.length}</b></div></div>${customers.length?`<div class="table-wrap"><table class="table"><tr><th>Penjaga</th><th>Status</th><th>Tamat</th></tr>${customers.map(u=>`<tr><td>${esc(u.name||u.email||'-')}</td><td>${statusBadge(u.subscriptionStatus||'inactive')}</td><td>${formatDate(u.subscriptionEndsAt)}</td></tr>`).join('')}</table></div>`:empty('Tiada Penjaga.')}`,
 
@@ -1109,7 +1155,7 @@ async function renderAdmin(p){
 
     commissions:()=>`${head('Komisen','Rekod affiliate')}<div class="stat-grid"><div class="stat"><small>Rekod</small><b>${commissions.length}</b></div><div class="stat"><small>Jumlah</small><b>RM${commissionTotal.toFixed(2)}</b></div><div class="stat"><small>Pending</small><b>${commissions.filter(c=>c.status==='pending').length}</b></div></div>${commissions.length?`<div class="table-wrap"><table class="table"><tr><th>Agent</th><th>Jualan</th><th>Kadar</th><th>Komisen</th><th>Status</th></tr>${commissions.map(c=>{const a=users.find(u=>u.id===c.agentUid);return `<tr><td>${esc(a?.name||c.agentUid||'-')}</td><td>RM${Number(c.saleAmount||0).toFixed(2)}</td><td>${Number(c.ratePercent||0)}%</td><td>RM${Number(c.amount||0).toFixed(2)}</td><td>${statusBadge(c.status)}</td></tr>`}).join('')}</table></div>`:empty('Belum ada komisen.')}`,
 
-    modules:()=>`${head('CMS Kandungan','Urus bank soalan tanpa mengubah kod')}<div class="dash-note">Soalan aktif dalam CMS akan digunakan oleh permainan. Jika sesuatu Modul + Level belum mempunyai soalan CMS aktif, CilikGo akan menggunakan bank soalan terbina dalam sebagai fallback.</div>
+    modules:()=>`${head('CMS Soalan 3M (Legacy)','Bank lama untuk keserasian')}<div class="dash-note">ℹ️ CMS ini masih menggunakan struktur lama Modul 3M + Level. Kandungan KSSR Tahun 1 dalam Ruang Pelajar menggunakan bank Tahun/Subjek/Topik yang berasingan. Jangan anggap CMS legacy ini sebagai CMS KSSR.</div>
       <form id="questionForm" class="question-form">
         <input type="hidden" id="cmsQuestionId">
         <label>Modul<select id="cmsModule"><option>Membaca</option><option>Menulis</option><option>Mengira</option></select></label>
@@ -1135,6 +1181,10 @@ async function renderAdmin(p){
     return sorted.length?`<div class="table-wrap"><table class="table"><tr><th>Modul</th><th>Level</th><th>Soalan</th><th>Jawapan</th><th>Status</th><th>Tindakan</th></tr>${sorted.map(q=>`<tr><td>${esc(q.module||'-')}</td><td>${esc(q.level||'-')}</td><td>${esc(q.prompt||'-')}</td><td><b>${esc(q.correct||'-')}</b></td><td>${statusBadge(q.active===false?'inactive':'active')}</td><td><div class="row-actions"><button class="btn ghost admin-edit-question" data-id="${esc(q.id)}">Edit</button><button class="btn ghost admin-delete-question" data-id="${esc(q.id)}">Padam</button></div></td></tr>`).join('')}</table></div>`:empty('Belum ada soalan CMS. Permainan masih menggunakan bank soalan terbina dalam.');
   }
 
+  function renderAgentRows(list){
+    return list.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>E-mel</th><th>Kod</th><th>Jualan</th><th>Komisen</th></tr>${list.map(a=>{const ao=orders.filter(o=>o.agentUid===a.id),ac=commissions.filter(c=>c.agentUid===a.id);return `<tr><td>${esc(a.name||'-')}</td><td>${esc(a.email||'-')}</td><td><code>${esc(a.agentCode||'-')}</code></td><td>${ao.length}</td><td>RM${ac.reduce((s,c)=>s+Number(c.amount||0),0).toFixed(2)}</td></tr>`}).join('')}</table></div>`:empty('Tiada Agent ditemui.');
+  }
+
   function renderUserRows(list){
     return list.length?`<div class="table-wrap"><table class="table"><tr><th>Nama</th><th>E-mel</th><th>Langganan</th><th>Daftar melalui</th></tr>${list.map(u=>`<tr><td>${esc(u.name||'-')}</td><td>${esc(u.email||'-')}</td><td>${statusBadge(u.subscriptionStatus||'inactive')}</td><td>${esc(u.referredByCode||'Direct')}</td></tr>`).join('')}</table></div>`:empty('Tiada pengguna ditemui.');
   }
@@ -1145,9 +1195,10 @@ async function renderAdmin(p){
     $('#dashboard').innerHTML=shell(view,view==='subscriptions'?'':views[view]());
     if(view==='subscriptions') await renderAdminSubscriptions();
     document.querySelectorAll('.admin-nav').forEach(a=>a.onclick=()=>mount(a.dataset.view));
+    const main=$('.admin-shell .portal-main'); if(main) main.scrollTop=0;
     const search=$('#adminSearch');
     if(search&&view==='users') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminUserTable').innerHTML=renderUserRows(customers.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
-    if(search&&view==='agents') search.oninput=()=>{ /* jadual agent kekal ringkas; carian disediakan pada fasa seterusnya */ };
+    if(search&&view==='agents') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminAgentTable').innerHTML=renderAgentRows(agents.filter(a=>(a.name||'').toLowerCase().includes(q)||(a.email||'').toLowerCase().includes(q)||(a.agentCode||'').toLowerCase().includes(q)));};
     if(view==='modules'){
       const resetForm=()=>{
         $('#questionForm').reset(); $('#cmsQuestionId').value=''; $('#cmsOrder').value='1'; $('#cmsActive').checked=true;

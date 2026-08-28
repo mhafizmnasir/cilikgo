@@ -455,3 +455,191 @@ body.student-mode .learning-hub-page{max-width:1180px}
   .subject-section-head{display:block}.subject-section-head .mastery-chip{display:none}.subject-section-head h2{font-size:21px}
   .subject-topic-grid{grid-template-columns:1fr}.subject-topic-card{min-height:215px}
 }
+
+/* =========================================================
+   Admin + Agent portal layout fix / standardization
+   ========================================================= */
+body.app-mode:not(.student-mode) #dashboard{
+  overflow:hidden!important;
+}
+body.app-mode .portal-shell{
+  width:100%!important;
+  max-width:none!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  display:grid!important;
+  grid-template-columns:238px minmax(0,1fr)!important;
+  overflow:hidden!important;
+  background:var(--cg-bg,#f6f8fd)!important;
+}
+body.app-mode .portal-side{
+  position:relative;
+  height:100%!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  white-space:normal!important;
+  padding:18px 13px!important;
+  background:#fff!important;
+  color:#303247!important;
+  border-right:1px solid var(--cg-line,#e7e9f2)!important;
+}
+.portal-role{display:flex;align-items:center;gap:10px;padding:7px 8px 17px}
+.portal-role>span{width:38px;height:38px;border-radius:12px;background:#f0edff;display:grid;place-items:center;font-size:20px}
+.portal-role small{display:block;font-size:8px;letter-spacing:.12em;font-weight:900;color:#9a9eae}
+.portal-role h3{margin:1px 0!important;font-size:17px!important;color:#292b3d}
+.portal-menu{display:grid;gap:3px}
+body.app-mode .portal-side .portal-menu a{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%;
+  margin:0!important;
+  padding:10px 11px!important;
+  border-radius:10px!important;
+  color:#676b7c!important;
+  text-decoration:none!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  cursor:pointer;
+}
+body.app-mode .portal-side .portal-menu a:hover,
+body.app-mode .portal-side .portal-menu a.active{
+  background:#f0edff!important;
+  color:#5d4ddc!important;
+}
+.portal-menu-icon{width:22px;text-align:center;font-size:15px;flex:0 0 22px}
+.portal-menu-label{min-width:0}
+.portal-side-foot{position:absolute;left:18px;right:18px;bottom:16px;padding-top:12px;border-top:1px solid #eceef4}
+.portal-side-foot small{display:block;font-size:8px;color:#999dad;font-weight:800}.portal-side-foot b{display:block;margin-top:3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#565a6c}
+
+body.app-mode .portal-main{
+  height:100%!important;
+  min-height:0!important;
+  min-width:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:24px 26px 42px!important;
+  background:var(--cg-bg,#f6f8fd)!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+}
+#agentView,#adminContent{width:min(1180px,100%);margin:0 auto}
+.portal-page-head{align-items:flex-start!important;gap:18px}.portal-page-head h2{font-size:25px!important;margin:3px 0!important}.portal-page-head>div>small{font-size:9px;font-weight:900;letter-spacing:.08em;color:#8172e8}.portal-page-head p{margin:4px 0 0;color:var(--cg-muted,#74788a);font-size:11px}
+
+body.app-mode .portal-main .stat{
+  background:#fff!important;
+  border:1px solid var(--cg-line,#e7e9f2)!important;
+  border-radius:15px!important;
+  padding:15px!important;
+  box-shadow:0 7px 22px rgba(55,50,100,.035)!important;
+}
+body.app-mode .portal-main .stat b{font-size:22px!important}
+body.app-mode .admin-stat-grid,
+body.app-mode .agent-stat-grid{gap:10px!important;margin:16px 0!important}
+.subject-admin-stats{grid-template-columns:repeat(4,1fr)!important}
+
+body.app-mode .portal-main .table-wrap{
+  width:100%;
+  max-width:100%;
+  overflow:auto!important;
+  border-radius:14px!important;
+  background:#fff;
+}
+body.app-mode .portal-main .table{
+  min-width:680px;
+  background:#fff;
+}
+body.app-mode .portal-main .table th{
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:#f8f8fc!important;
+  font-size:10px;
+  color:#6f7384;
+}
+body.app-mode .portal-main .table td{font-size:11px}
+.admin-sub-table td:first-child small{display:block;color:#85899a;font-size:9px;margin-top:2px}
+.admin-sub-actions{display:flex;gap:5px;flex-wrap:wrap}
+.admin-sub-actions .btn{min-height:34px!important;padding:6px 8px!important;font-size:9px!important}
+
+body.app-mode .admin-toolbar,
+body.app-mode .agent-toolbar{background:#fff;border:1px solid var(--cg-line,#e7e9f2);border-radius:14px;padding:8px 10px;margin:14px 0!important}
+body.app-mode .admin-toolbar input,
+body.app-mode .agent-toolbar input,
+body.app-mode .agent-toolbar select{min-height:38px;border-radius:10px!important;font-size:12px!important}
+body.app-mode .agent-link-card{margin:15px 0!important;padding:18px!important;border-radius:17px!important}
+body.app-mode .agent-link-card h3{font-size:18px}
+body.app-mode .agent-info-grid{gap:10px!important;margin-top:12px!important}
+.break-text{word-break:break-all}
+
+.portal-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.portal-setting-card{display:flex;gap:12px;padding:17px;background:#fff;border:1px solid var(--cg-line,#e7e9f2);border-radius:16px;box-shadow:0 7px 20px rgba(55,50,100,.035)}
+.portal-setting-card.wide{grid-column:1/3}.portal-setting-card>span{font-size:24px}.portal-setting-card>div{min-width:0}.portal-setting-card small{display:block;font-size:8px;letter-spacing:.09em;font-weight:900;color:#8375e5}.portal-setting-card b{display:block;margin:3px 0;font-size:14px}.portal-setting-card p{margin:3px 0 9px;color:var(--cg-muted,#74788a);font-size:10px;line-height:1.5}
+
+body.app-mode .question-form{background:#fff!important;margin:14px 0!important;padding:15px!important;border-radius:15px!important}
+body.app-mode .settings-grid{gap:10px!important;margin:16px 0!important}
+body.app-mode .setting-card{background:#fff!important;padding:16px!important}
+
+/* Override legacy responsive rules that turned Admin/Agent into broken block layouts. */
+@media(max-width:980px){
+  body.app-mode .portal-shell{
+    grid-template-columns:82px minmax(0,1fr)!important;
+    display:grid!important;
+  }
+  body.app-mode .portal-side{display:block!important;padding:13px 8px!important;white-space:normal!important}
+  .portal-role{justify-content:center;padding:5px 0 15px}.portal-role div,.portal-side-foot,.portal-menu-label{display:none!important}
+  body.app-mode .portal-side .portal-menu a{display:flex!important;justify-content:center!important;padding:10px 7px!important;margin:0!important}
+  .portal-menu-icon{font-size:17px}
+  .subject-admin-stats{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:720px){
+  body.app-mode .portal-shell{
+    display:block!important;
+    height:100%!important;
+  }
+  body.app-mode .portal-side{
+    position:relative!important;
+    width:100%!important;
+    height:58px!important;
+    min-height:58px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    border-right:0!important;
+    border-bottom:1px solid var(--cg-line,#e7e9f2)!important;
+    padding:7px 9px!important;
+    white-space:nowrap!important;
+  }
+  .portal-role,.portal-side-foot{display:none!important}
+  .portal-menu{display:flex!important;gap:5px!important;width:max-content}
+  body.app-mode .portal-side .portal-menu a{
+    width:auto!important;
+    min-width:58px;
+    display:flex!important;
+    flex-direction:column;
+    justify-content:center!important;
+    gap:2px!important;
+    padding:5px 9px!important;
+  }
+  .portal-menu-label{display:block!important;font-size:8px!important}
+  .portal-menu-icon{font-size:14px!important;line-height:1}
+  body.app-mode .portal-main{
+    height:calc(100% - 58px)!important;
+    padding:16px 12px 38px!important;
+  }
+  .portal-page-head{display:flex!important}.portal-page-head h2{font-size:21px!important}
+  .admin-stat-grid,.agent-stat-grid,.agent-stat-grid.compact,.subject-admin-stats{grid-template-columns:1fr 1fr!important}
+  .admin-two-col,.agent-info-grid,.settings-grid,.portal-settings-grid{grid-template-columns:1fr!important}
+  .portal-setting-card.wide{grid-column:auto}
+  body.app-mode .admin-toolbar,body.app-mode .agent-toolbar{align-items:stretch!important;flex-direction:column!important}
+  body.app-mode .question-form{grid-template-columns:1fr!important}
+  body.app-mode .question-form .wide{grid-column:auto!important}
+}
+@media(max-width:480px){
+  .admin-stat-grid,.agent-stat-grid,.agent-stat-grid.compact,.subject-admin-stats{grid-template-columns:1fr!important}
+  .portal-page-head .badge{display:none}
+}
