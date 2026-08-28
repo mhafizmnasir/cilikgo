@@ -357,3 +357,101 @@ body.app-mode.student-mode .student-tip-card{
     padding-bottom:52px!important;
   }
 }
+
+/* =========================================================
+   CilikGo UI Standardization Audit
+   Shared Student / Subject / Dashboard visual system
+   ========================================================= */
+:root{
+  --cg-purple:#6857e7;
+  --cg-purple-2:#806cef;
+  --cg-ink:#25253b;
+  --cg-muted:#74788a;
+  --cg-bg:#f6f8fd;
+  --cg-card:#ffffff;
+  --cg-line:#e7e9f2;
+  --cg-radius:20px;
+  --cg-shadow:0 12px 34px rgba(54,48,105,.075);
+}
+
+/* Subject pages must behave like the Student Portal, not the old landing-page hub. */
+body.app-mode.student-mode #dashboard{
+  height:100dvh!important;
+  overflow:hidden!important;
+}
+.subject-hub-shell{
+  height:100dvh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  background:
+    radial-gradient(circle at 0 10%,rgba(108,92,231,.08),transparent 22%),
+    radial-gradient(circle at 100% 45%,rgba(75,184,234,.08),transparent 24%),
+    var(--cg-bg);
+  color:var(--cg-ink);
+}
+.subject-app-header{position:sticky;top:0;z-index:20}
+.subject-header-chip{font-size:10px;font-weight:900;padding:7px 10px;border-radius:999px;background:#f1efff;color:#5f4edb;white-space:nowrap}
+.subject-hub-main{width:min(1180px,calc(100% - 40px));margin:0 auto;padding:26px 0 64px}
+.subject-hero{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;background:linear-gradient(120deg,#6857e7,#806cf0);color:#fff;border-radius:26px;padding:24px 26px;box-shadow:0 18px 44px rgba(93,76,208,.2);overflow:hidden}
+.subject-hero:after{content:"";position:absolute;width:210px;height:210px;border-radius:50%;right:-70px;top:-110px;background:rgba(255,255,255,.12)}
+.subject-bi .subject-hero{background:linear-gradient(120deg,#317ec5,#48a7e7)}
+.subject-math .subject-hero{background:linear-gradient(120deg,#6350cf,#8068e8)}
+.subject-science .subject-hero{background:linear-gradient(120deg,#258a68,#45b68a)}
+.subject-bm .subject-hero{background:linear-gradient(120deg,#cf557e,#e67a99)}
+.subject-hero-icon{position:relative;z-index:1;width:68px;height:68px;border-radius:20px;background:rgba(255,255,255,.17);display:grid;place-items:center;font-size:35px;border:1px solid rgba(255,255,255,.2)}
+.subject-hero-copy{position:relative;z-index:1}.subject-hero-copy .student-kicker{color:rgba(255,255,255,.75)}.subject-hero-copy h1{font-size:30px;margin:4px 0 5px}.subject-hero-copy p{margin:0;max-width:680px;color:rgba(255,255,255,.84);font-size:12px;line-height:1.55}
+.subject-hero-progress{position:relative;z-index:1;text-align:center}.subject-hero-progress small{display:block;margin-top:5px;font-size:8px;font-weight:900;letter-spacing:.12em;color:rgba(255,255,255,.75)}
+.subject-progress-ring{--subject-progress:0;width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#fff calc(var(--subject-progress)*1%),rgba(255,255,255,.22) 0);position:relative}.subject-progress-ring:before{content:"";position:absolute;inset:7px;border-radius:50%;background:#7562e9}.subject-bi .subject-progress-ring:before{background:#3c91d5}.subject-math .subject-progress-ring:before{background:#725be0}.subject-science .subject-progress-ring:before{background:#349b77}.subject-bm .subject-progress-ring:before{background:#d8648a}.subject-progress-ring span{position:relative;font-size:12px;font-weight:950}
+
+.subject-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0 24px}
+.subject-stat{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--cg-line);border-radius:16px;padding:13px 15px;box-shadow:0 7px 20px rgba(55,50,100,.035)}
+.subject-stat>span{width:39px;height:39px;border-radius:12px;background:#f3f1ff;display:grid;place-items:center;font-size:19px}.subject-stat b{display:block;font-size:18px}.subject-stat small{font-size:9px;color:var(--cg-muted);font-weight:800}
+
+.subject-section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:13px}.subject-section-head .student-kicker{color:#7565e5}.subject-section-head h2{font-size:24px;margin:3px 0}.subject-section-head p{margin:0;color:var(--cg-muted);font-size:11px;max-width:650px;line-height:1.5}
+.subject-topic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.subject-topic-card{position:relative;display:flex;flex-direction:column;min-height:245px;padding:17px;background:#fff;border:1px solid var(--cg-line);border-radius:19px;box-shadow:var(--cg-shadow);overflow:hidden;transition:.18s transform,.18s box-shadow}
+.subject-topic-card:hover{transform:translateY(-2px);box-shadow:0 16px 38px rgba(54,48,105,.1)}
+.subject-topic-card.mastered{border-color:#bce7c9}
+.topic-card-head{display:flex;align-items:center;gap:8px}.topic-card-number{font-size:9px;font-weight:950;color:#9a9dad}.topic-card-icon{width:38px;height:38px;border-radius:12px;background:#f4f2ff;display:grid;place-items:center;font-size:21px}.topic-card-state{margin-left:auto;font-size:8px;font-weight:900;padding:5px 7px;border-radius:999px;background:#f2f3f7;color:#7d8090}.topic-card-state.done{background:#eaf8ef;color:#2e9257}
+.topic-card-copy{margin-top:13px}.topic-card-copy small{font-size:8px;color:#7766e9;font-weight:900;letter-spacing:.1em}.topic-card-copy h3{font-size:17px;margin:4px 0 6px}.topic-card-copy p{font-size:10px;line-height:1.55;color:var(--cg-muted);margin:0}
+.topic-card-progress{margin-top:auto;padding-top:14px}.topic-card-progress>div:first-child{display:flex;justify-content:space-between;gap:8px;font-size:9px;margin-bottom:6px}.topic-card-progress span{color:#818594}.topic-card-progress b{color:#4d5366}
+.subject-progress-bar{height:7px;background:#eff0f5;border-radius:999px;overflow:hidden}.subject-progress-bar>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#6b5ae6,#8b76f0)}
+.subject-bi .subject-progress-bar>span{background:linear-gradient(90deg,#368dcc,#55b5ed)}.subject-science .subject-progress-bar>span{background:linear-gradient(90deg,#2f9470,#57c293)}.subject-bm .subject-progress-bar>span{background:linear-gradient(90deg,#d35f86,#ee91aa)}
+.subject-topic-btn{margin-top:12px;border:0;border-radius:12px;min-height:40px;background:#6756e6;color:#fff;font:inherit;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer}.subject-topic-btn span{font-size:15px}.subject-bi .subject-topic-btn{background:#378fcf}.subject-science .subject-topic-btn{background:#319570}.subject-bm .subject-topic-btn{background:#d35d85}
+.subject-footer-note{display:flex;align-items:center;gap:10px;margin-top:15px;padding:11px 13px;border:1px solid #e3e5f1;background:rgba(255,255,255,.72);border-radius:14px}.subject-footer-note>span{font-size:20px}.subject-footer-note p{margin:0;font-size:9px;color:#686c7d}
+
+/* Standard quiz theme */
+.quiz-subject-chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:6px 9px;background:#f0edff;color:#6250dc;font-size:9px;font-weight:900}
+body.student-mode #gameModal .kssr-quiz-head{border-bottom:1px solid #eceef5;padding-bottom:13px}
+body.student-mode #gameModal .kssr-quiz-head h2{font-size:22px}
+body.student-mode #gameModal .level-progress{height:8px;border-radius:999px;background:#eeeef5;overflow:hidden}
+body.student-mode #gameModal .level-progress span{display:block;height:100%;background:linear-gradient(90deg,#6655e7,#8b74ef)}
+body.student-mode #gameModal .answer{border:1px solid #e4e6ef;background:#fff;box-shadow:0 6px 18px rgba(55,50,100,.035)}
+body.student-mode #gameModal .answer:hover{border-color:#a99ff4;background:#faf9ff}
+
+/* Admin + Agent use the same shell spacing and visual language. */
+body.app-mode .admin-shell,body.app-mode .agent-shell{background:var(--cg-bg)!important}
+body.app-mode .admin-shell .dash-side,body.app-mode .agent-shell .dash-side{background:#fff!important;border-right:1px solid var(--cg-line)!important;padding:18px 12px!important}
+body.app-mode .admin-shell .dash-side a,body.app-mode .agent-shell .dash-side a{border-radius:10px!important;margin:3px 0!important;font-size:12px!important}
+body.app-mode .admin-shell .dash-side a.active,body.app-mode .agent-shell .dash-side a.active{background:#f0edff!important;color:#5f4fe0!important}
+body.app-mode .admin-shell .dash-main,body.app-mode .agent-shell .dash-main{background:var(--cg-bg)!important;padding:24px 26px!important}
+body.app-mode .dash-head{margin-bottom:18px!important}.dash-head h2{font-size:24px!important}
+body.app-mode .stat,body.app-mode .recommend-card,body.app-mode .strength-card,body.app-mode .agent-link-card,body.app-mode .setting-card{border-radius:16px!important;border-color:var(--cg-line)!important;box-shadow:0 7px 20px rgba(55,50,100,.035)!important}
+
+/* Avoid old hub rules interfering with standardized subject views. */
+body.student-mode .learning-hub-page{max-width:1180px}
+
+@media(max-width:900px){
+  .subject-topic-grid{grid-template-columns:repeat(2,1fr)}
+  .subject-hub-main{width:min(100% - 28px,1180px)}
+}
+@media(max-width:680px){
+  .subject-app-header{grid-template-columns:auto 1fr}.subject-app-header .student-brand{display:none}.subject-header-chip{display:none}
+  .subject-hub-main{width:calc(100% - 24px);padding-top:16px;padding-bottom:50px}
+  .subject-hero{grid-template-columns:auto 1fr;padding:18px;border-radius:21px}.subject-hero-progress{display:none}.subject-hero-icon{width:52px;height:52px;font-size:27px}.subject-hero-copy h1{font-size:23px}.subject-hero-copy p{font-size:10px}
+  .subject-stat-row{grid-template-columns:repeat(3,1fr);gap:7px}.subject-stat{display:block;text-align:center;padding:9px 5px}.subject-stat>span{margin:0 auto 5px;width:32px;height:32px}.subject-stat b{font-size:15px}.subject-stat small{font-size:7px}
+  .subject-section-head{display:block}.subject-section-head .mastery-chip{display:none}.subject-section-head h2{font-size:21px}
+  .subject-topic-grid{grid-template-columns:1fr}.subject-topic-card{min-height:215px}
+}

@@ -267,8 +267,8 @@ function renderParentSubscriptionView(p){
   const price=active?'RM15':expired?'RM15':'RM69';
   const period=active?'renewal 1 bulan':expired?'untuk 1 bulan':'untuk 4 bulan pertama';
   const desc=active
-    ?`Akses penuh Modul 3M sedang aktif. Anda mempunyai ${days} hari lagi.`
-    :expired?'Akses Modul 3M dikunci sehingga langganan diperbaharui.':'Aktifkan akses penuh Membaca, Menulis dan Mengira untuk anak anda.';
+    ?`Akses penuh latihan CilikGo sedang aktif. Anda mempunyai ${days} hari lagi.`
+    :expired?'Akses latihan CilikGo dikunci sehingga langganan diperbaharui.':'Aktifkan akses penuh latihan Tahun 1–6 untuk anak anda.';
   $('#dashboard').innerHTML=`<section class="parent-sub-page container">
     <button class="btn ghost parent-sub-back">← Kembali ke Dashboard</button>
     <div class="parent-sub-hero">
@@ -291,7 +291,7 @@ function renderParentSubscriptionView(p){
         <small>ToyyibPay masih KIV</small>
       </div>
     </div>
-    <div class="parent-sub-info"><b>${active?'✓ Akses anda sedang aktif':'ℹ Pembayaran belum diaktifkan'}</b><p>${active?'Anda boleh menggunakan semua Modul 3M sehingga tarikh tamat di atas.':'Buat masa ini Admin boleh mengaktifkan langganan secara manual untuk tujuan testing.'}</p></div>
+    <div class="parent-sub-info"><b>${active?'✓ Akses anda sedang aktif':'ℹ Pembayaran belum diaktifkan'}</b><p>${active?'Anda boleh menggunakan semua latihan CilikGo sehingga tarikh tamat di atas.':'Buat masa ini Admin boleh mengaktifkan langganan secara manual untuk tujuan testing.'}</p></div>
   </section>`;
   $('.parent-sub-back').onclick=()=>renderUser(p);
 }
@@ -461,34 +461,101 @@ async function renderStudentPortal(p){
   $('#continueLearning').onclick=()=>openSubject(lastSubject.key);
   document.querySelectorAll('[data-student-subject]').forEach(b=>b.onclick=()=>openSubject(b.dataset.studentSubject));
 }
-async function renderScienceYear1Hub(p){
-  if(!fb?.auth.currentUser){openAuth('login');return;}
-  if(!subscriptionState(p).active){showSubscriptionGate(p,'count');return;}
+
+function year1SubjectConfig(key){
+  return {
+    bm:{name:'Bahasa Melayu',short:'BM',icon:'🇲🇾',theme:'bm',bank:bmYear1Bank,activity:'kssr_bm_y1_',start:startBmYear1Topic,back:'Semua Subjek',kicker:'BAHASA MELAYU TAHUN 1',heading:'Pilih topik Bahasa Melayu',intro:'Pilih satu topik dan lengkapkan 5 soalan. Rekod terbaik digunakan untuk menunjukkan penguasaan.',startLabel:'Mula Latihan',againLabel:'Latih Lagi',notStarted:'Belum dimainkan',bestLabel:'Rekod terbaik'},
+    bi:{name:'Bahasa Inggeris',short:'BI',icon:'🔤',theme:'bi',bank:biYear1Bank,activity:'kssr_bi_y1_',start:startBiYear1Topic,back:'Semua Subjek',kicker:'ENGLISH YEAR 1',heading:'Choose an English topic',intro:'Choose one topic and complete 5 questions. Your best score is used to show topic mastery.',startLabel:'Start Practice',againLabel:'Practise Again',notStarted:'Not attempted yet',bestLabel:'Best score'},
+    math:{name:'Matematik',short:'MT',icon:'➗',theme:'math',bank:mathYear1Bank,activity:'kssr_math_y1_',start:startMathYear1Topic,back:'Semua Subjek',kicker:'MATEMATIK TAHUN 1',heading:'Pilih topik Matematik',intro:'Pilih satu topik dan lengkapkan 5 soalan. Rekod terbaik digunakan untuk menunjukkan penguasaan.',startLabel:'Mula Latihan',againLabel:'Latih Lagi',notStarted:'Belum dimainkan',bestLabel:'Rekod terbaik'},
+    science:{name:'Sains',short:'SN',icon:'🔬',theme:'science',bank:scienceYear1Bank,activity:'kssr_science_y1_',start:startScienceYear1Topic,back:'Semua Subjek',kicker:'SAINS TAHUN 1',heading:'Pilih topik Sains',intro:'Pilih satu topik dan lengkapkan 5 soalan. Rekod terbaik digunakan untuk menunjukkan penguasaan.',startLabel:'Mula Latihan',againLabel:'Latih Lagi',notStarted:'Belum dimainkan',bestLabel:'Rekod terbaik'}
+  }[key];
+}
+
+async function renderYear1SubjectHub(p,key){
+  if(!fb?.auth.currentUser){showAuthPage('login');return;}
+  if(p.role!=='user'){toast('Ruang pembelajaran hanya melalui akaun Penjaga.');return;}
+  if(!subscriptionState(p).active){showDashboardPage();showSubscriptionGate(p,'count');return;}
   if(!activeChild){toast('Pilih profil anak dahulu.');return;}
   const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
-  if(year!==1){toast('Pilot Sains ini untuk murid Tahun 1.');return;}
-  const root=$('#dashboard'), rows=await loadProgress(p.uid,activeChild.id);
-  const keys=Object.keys(scienceYear1Bank);
+  if(year!==1){toast('Kandungan ini tersedia untuk murid Tahun 1.');return;}
+  const cfg=year1SubjectConfig(key);
+  if(!cfg)return;
+
+  showStudentPage();
+  const root=$('#dashboard'),rows=await loadProgress(p.uid,activeChild.id);
+  const keys=Object.keys(cfg.bank);
   const bestFor=k=>{
-    const vals=rows.filter(r=>r.activity===`kssr_science_y1_${k}`).map(r=>Number(r.stars||0));
+    const vals=rows.filter(r=>r.activity===`${cfg.activity}${k}`).map(r=>Number(r.stars||0));
     return vals.length?Math.max(...vals):0;
   };
+  const playedFor=k=>rows.filter(r=>r.activity===`${cfg.activity}${k}`).length;
   const completed=keys.filter(k=>bestFor(k)>=8).length;
-  root.innerHTML=`<section class="container learning-hub-page">
-    <div class="hub-top"><button class="btn ghost science-back">← Semua Subjek</button><span class="badge">Sains Tahun 1 · Pilot</span></div>
-    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>SAINS TAHUN 1</small><h1>${esc(activeChild.name)}</h1><p>🔬 ${completed}/${keys.length} topik mencapai sekurang-kurangnya ⭐ 8/15</p></div></div>
-    <div class="kssr-progress-summary"><div><b>${completed}</b><span>Topik dikuasai</span></div><div><b>${keys.length}</b><span>Topik tersedia</span></div><div><b>${Math.round(completed/keys.length*100)}%</b><span>Kemajuan</span></div></div>
-    <div class="hub-heading"><div><small>LATIHAN TOPIKAL</small><h2>Pilih topik Sains</h2></div><p>Setiap sesi mengandungi 5 soalan rawak. Rekod terbaik digunakan untuk menunjukkan penguasaan topik.</p></div>
-    <div class="kssr-topic-grid">${keys.map(k=>{const t=scienceYear1Bank[k],best=bestFor(k);return `<article class="kssr-topic-card ${best>=8?'passed':''}">
-      <div class="topic-icon">${t.icon}</div><div><small>TAHUN 1</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
-      <div class="topic-score">${best?`Rekod terbaik <b>⭐ ${best}/15</b>`:'Belum dimainkan'}</div>
-      <button class="btn ${best>=8?'success':'primary'} science-topic-start" data-topic="${k}">${best?'Latih Lagi':'Mula Latihan'}</button>
-    </article>`}).join('')}</div>
-    <div class="hub-note">📘 Latihan ini ialah kandungan original CilikGo yang disusun mengikut kemahiran dan kandungan asas Sains Tahun 1. Ia bukan salinan kertas peperiksaan dan tidak dilabel sebagai soalan rasmi KPM.</div>
+  const totalBest=keys.reduce((n,k)=>n+bestFor(k),0);
+  const progressPct=Math.round(completed/keys.length*100);
+
+  root.innerHTML=`<section class="subject-hub-shell subject-${cfg.theme}">
+    <header class="student-header interactive-header subject-app-header">
+      <button class="student-back subject-back">← ${cfg.back}</button>
+      <div class="student-brand"><span class="brand-badge">CG</span><b>CilikGo Pelajar</b></div>
+      <div class="student-profile-wrap">
+        <div class="subject-header-chip">${cfg.icon} ${esc(cfg.name)}</div>
+        <div class="student-profile">${esc(activeChild.avatar||'🧒')} <span>${esc(activeChild.name)}</span><b>Tahun 1</b></div>
+      </div>
+    </header>
+
+    <main class="subject-hub-main">
+      <section class="subject-hero">
+        <div class="subject-hero-icon">${cfg.icon}</div>
+        <div class="subject-hero-copy">
+          <span class="student-kicker">${cfg.kicker}</span>
+          <h1>${esc(cfg.name)}</h1>
+          <p>${cfg.intro}</p>
+        </div>
+        <div class="subject-hero-progress">
+          <div class="subject-progress-ring" style="--subject-progress:${progressPct}"><span>${progressPct}%</span></div>
+          <small>KEMAJUAN</small>
+        </div>
+      </section>
+
+      <section class="subject-stat-row">
+        <div class="subject-stat"><span>🏅</span><div><b>${completed}/${keys.length}</b><small>Topik dikuasai</small></div></div>
+        <div class="subject-stat"><span>⭐</span><div><b>${totalBest}</b><small>Jumlah skor terbaik</small></div></div>
+        <div class="subject-stat"><span>📝</span><div><b>${keys.reduce((n,k)=>n+playedFor(k),0)}</b><small>Sesi latihan</small></div></div>
+      </section>
+
+      <section class="subject-topic-section">
+        <div class="subject-section-head">
+          <div><span class="student-kicker">LATIHAN TOPIKAL</span><h2>${cfg.heading}</h2><p>${cfg.intro}</p></div>
+          <div class="mastery-chip">⭐ Sasaran penguasaan 8/15</div>
+        </div>
+        <div class="subject-topic-grid">${keys.map((k,i)=>{
+          const t=cfg.bank[k],best=bestFor(k),played=playedFor(k),mastered=best>=8;
+          const pct=Math.round(best/15*100);
+          return `<article class="subject-topic-card ${mastered?'mastered':''}">
+            <div class="topic-card-head">
+              <span class="topic-card-number">${String(i+1).padStart(2,'0')}</span>
+              <span class="topic-card-icon">${t.icon}</span>
+              <span class="topic-card-state ${mastered?'done':''}">${mastered?'✓ Dikuasai':played?'Sedang belajar':'Belum mula'}</span>
+            </div>
+            <div class="topic-card-copy"><small>TOPIK ${i+1}</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
+            <div class="topic-card-progress">
+              <div><span>${played?`${cfg.bestLabel}:`:'Status:'}</span><b>${played?`⭐ ${best}/15`:cfg.notStarted}</b></div>
+              <div class="subject-progress-bar"><span style="width:${pct}%"></span></div>
+            </div>
+            <button class="subject-topic-btn" data-subject-topic="${k}">${played?cfg.againLabel:cfg.startLabel}<span>→</span></button>
+          </article>`;
+        }).join('')}</div>
+      </section>
+
+      <section class="subject-footer-note"><span>💡</span><p><b>Tip:</b> Buat satu topik pada satu masa. Pelajar boleh mencuba semula sehingga mendapat jawapan yang betul.</p></section>
+    </main>
   </section>`;
-  $('.science-back').onclick=()=>renderParentLearningHub(p);
-  document.querySelectorAll('.science-topic-start').forEach(b=>b.onclick=()=>startScienceYear1Topic(b.dataset.topic));
+
+  $('.subject-back').onclick=()=>renderStudentPortal(p);
+  document.querySelectorAll('[data-subject-topic]').forEach(b=>b.onclick=()=>cfg.start(b.dataset.subjectTopic));
 }
+
+async function renderScienceYear1Hub(p){ return renderYear1SubjectHub(p,'science'); }
 
 async function startScienceYear1Topic(topicKey){
   if(!fb?.auth.currentUser){openAuth('login');return;}
@@ -503,7 +570,7 @@ async function startScienceYear1Topic(topicKey){
   const render=()=>{
     const q=questions[index]; let attempts=0,completed=false;
     const pct=Math.round(index/questions.length*100);
-    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="badge">Sains Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
+    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="quiz-subject-chip">🔬 Sains · Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
       <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
       <div class="level-progress"><span style="width:${pct}%"></span></div>
       <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Baca atau dengar soalan, kemudian pilih jawapan terbaik.</span></div>
@@ -534,7 +601,7 @@ async function startScienceYear1Topic(topicKey){
   const finish=async()=>{
     const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
     $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <span class="badge">Sains Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
+      <span class="quiz-subject-chip">🔬 Sains · Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
       <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
       <div class="result-stars">⭐ ${scoreStars} / 15</div>
       <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
@@ -557,34 +624,7 @@ async function startScienceYear1Topic(topicKey){
   render();
 }
 
-async function renderBiYear1Hub(p){
-  if(!fb?.auth.currentUser){openAuth('login');return;}
-  if(!subscriptionState(p).active){showSubscriptionGate(p,'read');return;}
-  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-  const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
-  if(year!==1){toast('Pilot Bahasa Inggeris ini untuk murid Tahun 1.');return;}
-  const root=$('#dashboard'), rows=await loadProgress(p.uid,activeChild.id);
-  const keys=Object.keys(biYear1Bank);
-  const bestFor=k=>{
-    const vals=rows.filter(r=>r.activity===`kssr_bi_y1_${k}`).map(r=>Number(r.stars||0));
-    return vals.length?Math.max(...vals):0;
-  };
-  const completed=keys.filter(k=>bestFor(k)>=8).length;
-  root.innerHTML=`<section class="container learning-hub-page">
-    <div class="hub-top"><button class="btn ghost bi-back">← Semua Subjek</button><span class="badge">Bahasa Inggeris Tahun 1 · Pilot</span></div>
-    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>BAHASA INGGERIS TAHUN 1</small><h1>${esc(activeChild.name)}</h1><p>📚 ${completed}/${keys.length} topik mencapai sekurang-kurangnya ⭐ 8/15</p></div></div>
-    <div class="kssr-progress-summary"><div><b>${completed}</b><span>Topik dikuasai</span></div><div><b>${keys.length}</b><span>Topik tersedia</span></div><div><b>${Math.round(completed/keys.length*100)}%</b><span>Kemajuan</span></div></div>
-    <div class="hub-heading"><div><small>TOPICAL PRACTICE</small><h2>Choose an English topic</h2></div><p>Each session contains 5 random questions. The best score is used to show topic mastery.</p></div>
-    <div class="kssr-topic-grid">${keys.map(k=>{const t=biYear1Bank[k],best=bestFor(k);return `<article class="kssr-topic-card ${best>=8?'passed':''}">
-      <div class="topic-icon">${t.icon}</div><div><small>YEAR 1</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
-      <div class="topic-score">${best?`Best score <b>⭐ ${best}/15</b>`:'Not attempted yet'}</div>
-      <button class="btn ${best>=8?'success':'primary'} bi-topic-start" data-topic="${k}">${best?'Practise Again':'Start Practice'}</button>
-    </article>`}).join('')}</div>
-    <div class="hub-note">📘 This is original CilikGo practice content for Year 1 English skills such as reading, vocabulary, grammar, writing and simple communication. It is not copied from examination papers and is not labelled as “official KPM questions”.</div>
-  </section>`;
-  $('.bi-back').onclick=()=>renderParentLearningHub(p);
-  document.querySelectorAll('.bi-topic-start').forEach(b=>b.onclick=()=>startBiYear1Topic(b.dataset.topic));
-}
+async function renderBiYear1Hub(p){ return renderYear1SubjectHub(p,'bi'); }
 
 async function startBiYear1Topic(topicKey){
   if(!fb?.auth.currentUser){openAuth('login');return;}
@@ -610,7 +650,7 @@ async function startBiYear1Topic(topicKey){
   const render=()=>{
     const q=questions[index]; let attempts=0,completed=false;
     const pct=Math.round(index/questions.length*100);
-    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="badge">Bahasa Inggeris Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
+    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="quiz-subject-chip">🔤 Bahasa Inggeris · Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
       <div class="learning-hud"><div><b>Question ${index+1}/${questions.length}</b><small>${pct}% complete</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
       <div class="level-progress"><span style="width:${pct}%"></span></div>
       <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Listen</button><span>Read or listen, then choose the best answer.</span></div>
@@ -641,7 +681,7 @@ async function startBiYear1Topic(topicKey){
   const finish=async()=>{
     const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
     $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <span class="badge">Bahasa Inggeris Tahun 1</span><h2>${passed?'Well done!':'Keep practising!'}</h2>
+      <span class="quiz-subject-chip">🔤 Bahasa Inggeris · Tahun 1</span><h2>${passed?'Well done!':'Keep practising!'}</h2>
       <p>${esc(activeChild.name)} has completed <b>${esc(topic.title)}</b>.</p>
       <div class="result-stars">⭐ ${scoreStars} / 15</div>
       <div class="result-grid"><div><b>${correctCount}/5</b><small>Questions completed</small></div><div><b>${totalAttempts}</b><small>Attempts</small></div><div><b>${pct}%</b><small>Star score</small></div></div>
@@ -664,34 +704,7 @@ async function startBiYear1Topic(topicKey){
   render();
 }
 
-async function renderBmYear1Hub(p){
-  if(!fb?.auth.currentUser){openAuth('login');return;}
-  if(!subscriptionState(p).active){showSubscriptionGate(p,'read');return;}
-  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-  const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
-  if(year!==1){toast('Pilot Bahasa Melayu ini untuk murid Tahun 1.');return;}
-  const root=$('#dashboard'), rows=await loadProgress(p.uid,activeChild.id);
-  const keys=Object.keys(bmYear1Bank);
-  const bestFor=k=>{
-    const vals=rows.filter(r=>r.activity===`kssr_bm_y1_${k}`).map(r=>Number(r.stars||0));
-    return vals.length?Math.max(...vals):0;
-  };
-  const completed=keys.filter(k=>bestFor(k)>=8).length;
-  root.innerHTML=`<section class="container learning-hub-page">
-    <div class="hub-top"><button class="btn ghost bm-back">← Semua Subjek</button><span class="badge">Bahasa Melayu Tahun 1 · Pilot</span></div>
-    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>BAHASA MELAYU TAHUN 1</small><h1>${esc(activeChild.name)}</h1><p>📚 ${completed}/${keys.length} topik mencapai sekurang-kurangnya ⭐ 8/15</p></div></div>
-    <div class="kssr-progress-summary"><div><b>${completed}</b><span>Topik dikuasai</span></div><div><b>${keys.length}</b><span>Topik tersedia</span></div><div><b>${Math.round(completed/keys.length*100)}%</b><span>Kemajuan</span></div></div>
-    <div class="hub-heading"><div><small>LATIHAN TOPIKAL</small><h2>Pilih topik Bahasa Melayu</h2></div><p>Setiap sesi mengandungi 5 soalan rawak. Gunakan butang 🔊 Dengar untuk membantu kemahiran mendengar dan sebutan.</p></div>
-    <div class="kssr-topic-grid">${keys.map(k=>{const t=bmYear1Bank[k],best=bestFor(k);return `<article class="kssr-topic-card ${best>=8?'passed':''}">
-      <div class="topic-icon">${t.icon}</div><div><small>TAHUN 1</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
-      <div class="topic-score">${best?`Rekod terbaik <b>⭐ ${best}/15</b>`:'Belum dimainkan'}</div>
-      <button class="btn ${best>=8?'success':'primary'} bm-topic-start" data-topic="${k}">${best?'Latih Lagi':'Mula Latihan'}</button>
-    </article>`}).join('')}</div>
-    <div class="hub-note">📘 Kandungan ini ialah latihan original CilikGo yang disusun berasaskan kemahiran Bahasa Melayu Tahap I seperti membaca, menulis, kosa kata, tatabahasa dan penggunaan bahasa. Ia bukan salinan kertas peperiksaan atau “soalan rasmi KPM”.</div>
-  </section>`;
-  $('.bm-back').onclick=()=>renderParentLearningHub(p);
-  document.querySelectorAll('.bm-topic-start').forEach(b=>b.onclick=()=>startBmYear1Topic(b.dataset.topic));
-}
+async function renderBmYear1Hub(p){ return renderYear1SubjectHub(p,'bm'); }
 
 async function startBmYear1Topic(topicKey){
   if(!fb?.auth.currentUser){openAuth('login');return;}
@@ -706,7 +719,7 @@ async function startBmYear1Topic(topicKey){
   const render=()=>{
     const q=questions[index]; let attempts=0,completed=false;
     const pct=Math.round(index/questions.length*100);
-    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="badge">Bahasa Melayu Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
+    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="quiz-subject-chip">🇲🇾 Bahasa Melayu · Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
       <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
       <div class="level-progress"><span style="width:${pct}%"></span></div>
       <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Baca atau dengar soalan, kemudian pilih jawapan.</span></div>
@@ -737,7 +750,7 @@ async function startBmYear1Topic(topicKey){
   const finish=async()=>{
     const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
     $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <span class="badge">Bahasa Melayu Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
+      <span class="quiz-subject-chip">🇲🇾 Bahasa Melayu · Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
       <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
       <div class="result-stars">⭐ ${scoreStars} / 15</div>
       <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
@@ -760,34 +773,7 @@ async function startBmYear1Topic(topicKey){
   render();
 }
 
-async function renderMathYear1Hub(p){
-  if(!fb?.auth.currentUser){openAuth('login');return;}
-  if(!subscriptionState(p).active){showSubscriptionGate(p,'count');return;}
-  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
-  const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
-  if(year!==1){toast('Pilot Matematik ini untuk murid Tahun 1.');return;}
-  const root=$('#dashboard'), rows=await loadProgress(p.uid,activeChild.id);
-  const keys=Object.keys(mathYear1Bank);
-  const bestFor=k=>{
-    const vals=rows.filter(r=>r.activity===`kssr_math_y1_${k}`).map(r=>Number(r.stars||0));
-    return vals.length?Math.max(...vals):0;
-  };
-  const completed=keys.filter(k=>bestFor(k)>=8).length;
-  root.innerHTML=`<section class="container learning-hub-page">
-    <div class="hub-top"><button class="btn ghost math-back">← Semua Subjek</button><span class="badge">Matematik Tahun 1 · Pilot</span></div>
-    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>MATEMATIK TAHUN 1</small><h1>${esc(activeChild.name)}</h1><p>📚 ${completed}/${keys.length} topik mencapai sekurang-kurangnya ⭐ 8/15</p></div></div>
-    <div class="kssr-progress-summary"><div><b>${completed}</b><span>Topik dikuasai</span></div><div><b>${keys.length}</b><span>Topik tersedia</span></div><div><b>${Math.round(completed/keys.length*100)}%</b><span>Kemajuan</span></div></div>
-    <div class="hub-heading"><div><small>LATIHAN TOPIKAL</small><h2>Pilih topik latihan</h2></div><p>Setiap sesi mengandungi 5 soalan rawak. Rekod terbaik digunakan untuk menunjukkan penguasaan topik.</p></div>
-    <div class="kssr-topic-grid">${keys.map(k=>{const t=mathYear1Bank[k],best=bestFor(k);return `<article class="kssr-topic-card ${best>=8?'passed':''}">
-      <div class="topic-icon">${t.icon}</div><div><small>TAHUN 1</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
-      <div class="topic-score">${best?`Rekod terbaik <b>⭐ ${best}/15</b>`:'Belum dimainkan'}</div>
-      <button class="btn ${best>=8?'success':'primary'} math-topic-start" data-topic="${k}">${best?'Latih Lagi':'Mula Latihan'}</button>
-    </article>`}).join('')}</div>
-    <div class="hub-note">📘 Soalan pilot ini ialah kandungan original CilikGo berdasarkan kemahiran Matematik Tahap I. Ia tidak dilabel sebagai soalan rasmi KPM atau salinan kertas peperiksaan.</div>
-  </section>`;
-  $('.math-back').onclick=()=>renderParentLearningHub(p);
-  document.querySelectorAll('.math-topic-start').forEach(b=>b.onclick=()=>startMathYear1Topic(b.dataset.topic));
-}
+async function renderMathYear1Hub(p){ return renderYear1SubjectHub(p,'math'); }
 
 async function startMathYear1Topic(topicKey){
   if(!fb?.auth.currentUser){openAuth('login');return;}
@@ -802,7 +788,7 @@ async function startMathYear1Topic(topicKey){
   const render=()=>{
     const q=questions[index]; let attempts=0,completed=false;
     const pct=Math.round(index/questions.length*100);
-    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="badge">Matematik Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
+    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="quiz-subject-chip">➗ Matematik · Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
       <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
       <div class="level-progress"><span style="width:${pct}%"></span></div>
       <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Cuba sehingga mendapat jawapan yang betul.</span></div>
@@ -833,7 +819,7 @@ async function startMathYear1Topic(topicKey){
   const finish=async()=>{
     const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
     $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
-      <span class="badge">Matematik Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
+      <span class="quiz-subject-chip">➗ Matematik · Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
       <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
       <div class="result-stars">⭐ ${scoreStars} / 15</div>
       <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
