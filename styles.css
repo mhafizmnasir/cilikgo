@@ -2207,3 +2207,69 @@ body{
   .reference-quiz .quiz-answer{grid-template-columns:28px minmax(0,1fr) 28px!important}
   .reference-quiz .quiz-answer-visual{width:28px;height:28px;font-size:20px}
 }
+
+/* =========================================================
+   Next Button Reliability Fix
+   Native disabled removed to avoid stale mobile/browser state.
+   ========================================================= */
+.reference-quiz .quiz-next-btn.locked{
+  background:#d8dae6!important;
+  border-color:#ececf2!important;
+  box-shadow:none!important;
+  color:#9295a3!important;
+  cursor:not-allowed!important;
+  opacity:.92;
+}
+.reference-quiz .quiz-next-btn.ready{
+  background:linear-gradient(135deg,#7549ef,#8e5af7)!important;
+  border-color:#e5dcff!important;
+  color:#fff!important;
+  cursor:pointer!important;
+  opacity:1!important;
+  box-shadow:0 10px 23px rgba(104,70,218,.28)!important;
+  animation:quizNextReady .42s cubic-bezier(.2,.8,.2,1);
+}
+.reference-quiz .quiz-next-btn.ready:active{
+  transform:scale(.98);
+}
+.reference-quiz .quiz-next-btn.locked-nudge{
+  animation:quizLockedNudge .26s ease;
+}
+.reference-quiz .quiz-next-btn.advancing{
+  transform:scale(.98);
+  opacity:.82;
+}
+.quiz-celebrate-burst{
+  position:fixed;
+  z-index:160;
+  left:50%;
+  top:46%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  display:flex;
+  gap:18px;
+  font-size:30px;
+}
+.quiz-celebrate-burst i{
+  font-style:normal;
+  animation:quizStarBurst .82s ease-out forwards;
+}
+.quiz-celebrate-burst i:nth-child(2){animation-delay:.05s}
+.quiz-celebrate-burst i:nth-child(3){animation-delay:.1s}
+.quiz-celebrate-burst i:nth-child(4){animation-delay:.15s}
+.quiz-celebrate-burst i:nth-child(5){animation-delay:.2s}
+@keyframes quizNextReady{
+  0%{transform:scale(.96)}
+  60%{transform:scale(1.035)}
+  100%{transform:scale(1)}
+}
+@keyframes quizLockedNudge{
+  0%,100%{transform:translateX(0)}
+  35%{transform:translateX(-4px)}
+  70%{transform:translateX(4px)}
+}
+@keyframes quizStarBurst{
+  0%{opacity:0;transform:translateY(10px) scale(.5)}
+  25%{opacity:1}
+  100%{opacity:0;transform:translateY(-65px) scale(1.25) rotate(12deg)}
+}

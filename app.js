@@ -657,6 +657,16 @@ function speakCilikGo(text,lang='ms-MY',button=null){
   },60);
 }
 
+function celebrate(){
+  const shell=$('#gameContent .quiz-fullscreen-shell');
+  if(!shell)return;
+  const burst=document.createElement('div');
+  burst.className='quiz-celebrate-burst';
+  burst.innerHTML='<i>⭐</i><i>✨</i><i>🌟</i><i>✨</i><i>⭐</i>';
+  shell.appendChild(burst);
+  setTimeout(()=>burst.remove(),900);
+}
+
 function quizScreenEffect(type){
   const stage=$('#gameContent .quiz-fullscreen-shell');
   if(!stage)return;
@@ -1014,7 +1024,7 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
           <div class="quiz-feedback" id="gameMsg" aria-live="polite"></div>
 
           <div class="quiz-next-row ref-next-row">
-            <button class="quiz-next-btn" id="quizNextBtn" disabled>${cfg.next}<span>→</span></button>
+            <button class="quiz-next-btn locked" id="quizNextBtn" type="button" aria-disabled="true">${cfg.next}<span>→</span></button>
           </div>
         </section>
       </main>
@@ -1056,12 +1066,23 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
       $('.quiz-score-box b').textContent=scoreStars;
       $('.quiz-progress-track span').style.width=`${Math.round((index+1)/questions.length*100)}%`;
       nextBtn.disabled=false;
+      nextBtn.removeAttribute('disabled');
+      nextBtn.classList.remove('locked');
+      nextBtn.classList.add('ready');
+      nextBtn.setAttribute('aria-disabled','false');
       quizScreenEffect('correct');
       celebrate();
+      setTimeout(()=>nextBtn.scrollIntoView({behavior:'smooth',block:'nearest'}),120);
     });
 
-    nextBtn.onclick=()=>{
-      if(!answeredCorrectly)return;
+    nextBtn.onclick=e=>{
+      e.preventDefault();
+      if(!answeredCorrectly){
+        nextBtn.classList.add('locked-nudge');
+        setTimeout(()=>nextBtn.classList.remove('locked-nudge'),280);
+        return;
+      }
+      nextBtn.classList.add('advancing');
       index++;
       if(index<questions.length)renderQuestion();
       else finishQuiz();
