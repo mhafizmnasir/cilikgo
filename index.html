@@ -7,7 +7,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#6c5ce7" />
-  <title>CilikGo — Belajar 3M Dengan Gembira</title>
+  <title>CilikGo — Latihan Sekolah Rendah Tahun 1–6</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -15,19 +15,19 @@
   <header class="topbar">
     <a class="brand" href="#home"><span class="brand-badge">CG</span><span>CilikGo</span></a>
     <nav id="mainNav">
-      <a href="#home">Utama</a><a href="#modules">Modul 3M</a><a href="#pricing">Harga</a><a href="#agent">Jadi Agent</a>
+      <a href="#home">Utama</a><a href="#modules">Silibus</a><a href="#pricing">Harga</a><a href="#agent">Jadi Agent</a>
     </nav>
-    <div class="top-actions" id="guestActions"><button class="btn ghost" data-open="loginModal">Log Masuk</button><button class="btn primary" data-open="registerModal">Daftar</button></div><div class="top-actions hidden" id="memberActions"><span id="memberName" class="member-name"></span><button class="btn ghost" id="dashboardBtn">Dashboard</button><button class="btn primary" id="logoutBtn">Log Keluar</button></div>
+    <div class="top-actions" id="guestActions"><button class="btn ghost" data-auth="login">Log Masuk</button><button class="btn primary" data-auth="register">Daftar</button></div><div class="top-actions hidden" id="memberActions"><span id="memberName" class="member-name"></span><button class="btn ghost" id="dashboardBtn">Dashboard</button><button class="btn primary" id="logoutBtn">Log Keluar</button></div>
   </header>
 
   <main>
     <section id="home" class="hero section">
       <div class="hero-copy">
-        <div class="pill">Untuk kanak-kanak 4–6 tahun</div>
-        <h1>Belajar <span>3M</span> jadi seronok setiap hari.</h1>
-        <p>CilikGo membantu anak belajar Membaca, Menulis dan Mengira melalui aktiviti ringkas, permainan interaktif dan kemajuan yang mudah dipantau ibu bapa.</p>
-        <div class="hero-actions"><button class="btn primary big" data-open="registerModal">Mulakan RM69 / 4 bulan</button><a class="btn ghost big" href="#modules">Cuba Aktiviti</a></div>
-        <div class="trust"><span>✓ Mesra kanak-kanak</span><span>✓ Pantau kemajuan</span><span>✓ Akaun penjaga</span></div>
+        <div class="pill">Latihan sekolah rendah Tahun 1–6</div>
+        <h1>Belajar ikut <span>tahun & subjek</span>, lebih teratur.</h1>
+        <p>CilikGo menyediakan ruang latihan yang mudah untuk murid dan dashboard ringkas untuk Penjaga memantau pembelajaran. Tahun 1 kini tersedia untuk Bahasa Melayu, Bahasa Inggeris, Matematik dan Sains.</p>
+        <div class="hero-actions"><button class="btn primary big" data-auth="register">Buka Akaun Penjaga</button><button class="btn ghost big" data-auth="login">Log Masuk</button></div>
+        <div class="trust"><span>✓ Tahun 1–6</span><span>✓ Latihan topikal</span><span>✓ Rekod kemajuan</span></div>
       </div>
       <div class="hero-card">
         <div class="mascot">🚀</div><h3>Misi Hari Ini</h3>
@@ -39,17 +39,18 @@
     </section>
 
     <section id="modules" class="section alt">
-      <div class="section-head"><div class="pill">Modul 3M</div><h2>Tiga asas, satu perjalanan pembelajaran.</h2><p>Tekan mana-mana aktiviti demo di bawah.</p></div>
-      <div class="cards three">
-        <article class="learn-card purple"><div class="icon">📖</div><h3>Membaca</h3><p>Kenal huruf, suku kata, perkataan mudah dan bacaan pendek.</p><button class="btn light" data-game="read">Main Demo</button></article>
-        <article class="learn-card coral"><div class="icon">✏️</div><h3>Menulis</h3><p>Latihan bentuk huruf, ejaan ringkas dan susunan perkataan.</p><button class="btn light" data-game="write">Main Demo</button></article>
-        <article class="learn-card green"><div class="icon">🧮</div><h3>Mengira</h3><p>Nombor, kuantiti, tambah dan tolak asas melalui objek visual.</p><button class="btn light" data-game="count">Main Demo</button></article>
+      <div class="section-head"><div class="pill">Silibus CilikGo</div><h2>Belajar mengikut tahun, subjek dan topik.</h2><p>Tahun 1 tersedia sekarang. Tahun 2–6 akan dibuka secara berperingkat.</p></div>
+      <div class="cards four curriculum-preview">
+        <article class="learn-card purple"><div class="icon">🇲🇾</div><h3>Bahasa Melayu</h3><p>Membaca, kosa kata, tatabahasa, pemahaman dan penulisan.</p><span class="subject-ready">Tahun 1 tersedia</span></article>
+        <article class="learn-card coral"><div class="icon">🔤</div><h3>Bahasa Inggeris</h3><p>Letters, vocabulary, grammar, reading, writing and communication.</p><span class="subject-ready">Tahun 1 tersedia</span></article>
+        <article class="learn-card green"><div class="icon">➗</div><h3>Matematik</h3><p>Nombor, operasi, wang, masa, ukuran, bentuk dan data.</p><span class="subject-ready">Tahun 1 tersedia</span></article>
+        <article class="learn-card blue"><div class="icon">🔬</div><h3>Sains</h3><p>Kemahiran sains, manusia, hidupan, bahan dan bumi.</p><span class="subject-ready">Tahun 1 tersedia</span></article>
       </div>
     </section>
 
     <section id="pricing" class="section">
       <div class="section-head"><div class="pill">Pelan CilikGo</div><h2>Mudah untuk bermula.</h2></div>
-      <div class="pricing-card"><div><span class="tag">Permulaan</span><h3>4 Bulan Akses Penuh</h3><p>Semua modul 3M, rekod kemajuan, profil anak dan aktiviti baharu.</p></div><div class="price"><strong>RM69</strong><small>untuk 4 bulan pertama</small><p>Selepas itu <b>RM15/bulan</b></p><button id="buyBtn" class="btn primary big">Langgan Sekarang</button></div></div>
+      <div class="pricing-card"><div><span class="tag">Permulaan</span><h3>4 Bulan Akses Penuh</h3><p>Ruang Pelajar, latihan mengikut subjek, rekod kemajuan dan profil anak.</p></div><div class="price"><strong>RM69</strong><small>untuk 4 bulan pertama</small><p>Selepas itu <b>RM15/bulan</b></p><button id="buyBtn" class="btn primary big">Langgan Sekarang</button></div></div>
     </section>
 
     <section id="agent" class="section alt">
@@ -57,16 +58,58 @@
     </section>
 
     <section class="section dashboard-demo" id="portal">
+      <div class="app-topbar">
+        <a class="app-brand" href="#dashboard"><span class="brand-badge">CG</span><span>CilikGo</span></a>
+        <div class="app-user"><span id="appMemberName"></span><button class="btn ghost small" id="appHomeBtn">Laman Utama</button><button class="btn primary small" id="appLogoutBtn">Log Keluar</button></div>
+      </div>
       <div class="section-head"><div class="pill">Portal CilikGo</div><h2 id="portalTitle">Dashboard anda.</h2><p id="portalSubtitle">Log masuk untuk membuka dashboard mengikut peranan akaun anda.</p></div>
-      <div id="dashboard"><div class="portal-locked"><div class="lock-icon">🔐</div><h3>Portal dilindungi</h3><p>Log masuk sebagai User/Penjaga, Agent atau Admin untuk melihat paparan anda.</p><button class="btn primary" data-open="loginModal">Log Masuk</button></div></div>
+      <div id="dashboard"><div class="portal-locked"><div class="lock-icon">🔐</div><h3>Portal dilindungi</h3><p>Log masuk untuk membuka dashboard.</p><button class="btn primary" data-auth="login">Log Masuk</button></div></div>
     </section>
   </main>
 
   <footer><div class="brand"><span class="brand-badge">CG</span><span>CilikGo</span></div><p>Belajar hari ini, yakin esok.</p><div><a href="#">Privasi</a> · <a href="#">Terma</a> · <a href="#">Bantuan</a></div></footer>
+  <section id="authScreen" class="auth-screen hidden" aria-label="Akaun CilikGo">
+    <div class="auth-brand-panel">
+      <a class="auth-brand" href="#home"><span class="brand-badge">CG</span><span>CilikGo</span></a>
+      <div class="auth-brand-copy">
+        <span class="auth-kicker">CILIKGO LEARNING PORTAL</span>
+        <h1>Satu akaun untuk Penjaga, Agent dan Admin.</h1>
+        <p>Penjaga mengurus profil anak dan kemajuan. Pelajar mendapat ruang belajar yang ringkas tanpa gangguan.</p>
+        <div class="auth-benefits"><span>🎒 Tahun 1–6</span><span>📚 Latihan topikal</span><span>⭐ Rekod prestasi</span></div>
+      </div>
+      <button class="auth-home-link" id="authBackHome">← Kembali ke laman utama</button>
+    </div>
+    <div class="auth-form-panel">
+      <div class="auth-card">
+        <div id="authLoginPanel">
+          <span class="auth-eyebrow">SELAMAT DATANG</span>
+          <h2>Log masuk ke CilikGo</h2>
+          <p class="auth-intro">Penjaga, Agent dan Admin menggunakan ruang log masuk yang sama.</p>
+          <label>E-mel<input id="loginEmail" type="email" autocomplete="email" placeholder="nama@email.com" required></label>
+          <label>Kata laluan<input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••" required></label>
+          <button type="button" id="loginBtn" class="btn primary full auth-main-btn">Log Masuk</button>
+          <button type="button" id="forgotBtn" class="link-btn">Lupa kata laluan?</button>
+          <div class="auth-switch">Belum ada akaun? <button type="button" id="showRegisterBtn">Daftar Penjaga / Agent</button></div>
+        </div>
+        <div id="authRegisterPanel" class="hidden">
+          <span class="auth-eyebrow">AKAUN BAHARU</span>
+          <h2>Daftar CilikGo</h2>
+          <p class="auth-intro">Pilih jenis akaun yang ingin didaftarkan.</p>
+          <div class="role-switch">
+            <button type="button" class="role-choice active" data-role-choice="user">👨‍👩‍👧 Penjaga</button>
+            <button type="button" class="role-choice" data-role-choice="agent">🤝 Agent</button>
+          </div>
+          <label>Nama penuh<input id="regName" autocomplete="name" required></label>
+          <label>E-mel<input id="regEmail" type="email" autocomplete="email" required></label>
+          <label>Kata laluan<input id="regPassword" type="password" minlength="6" autocomplete="new-password" required></label>
+          <input id="regRole" type="hidden" value="user">
+          <button type="button" id="registerBtn" class="btn primary full auth-main-btn">Daftar Akaun</button>
+          <div class="auth-switch">Sudah ada akaun? <button type="button" id="showLoginBtn">Log masuk</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <dialog id="loginModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Log Masuk</h2><label>E-mel<input id="loginEmail" type="email" placeholder="nama@email.com" required></label><label>Kata laluan<input id="loginPassword" type="password" placeholder="••••••••" required></label><button type="button" id="loginBtn" class="btn primary full">Log Masuk</button><button type="button" id="forgotBtn" class="link-btn">Lupa kata laluan?</button><p class="muted">Gunakan akaun yang telah didaftarkan melalui Firebase Authentication.</p></form></dialog>
-
-  <dialog id="registerModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Buka Akaun CilikGo</h2><label>Nama penuh<input id="regName" required></label><label>E-mel<input id="regEmail" type="email" required></label><label>Kata laluan<input id="regPassword" type="password" minlength="6" required></label><label>Daftar sebagai<select id="regRole"><option value="user">Ibu/Bapa/Penjaga</option><option value="agent">Agent</option></select></label><button type="button" id="registerBtn" class="btn primary full">Daftar Akaun</button></form></dialog>
 
   <dialog id="childModal"><form method="dialog" class="modal-form"><button class="x">×</button><h2>Tambah Profil Anak</h2><label>Nama panggilan anak<input id="childName" maxlength="40" required></label><label>Tahun / Darjah<select id="childYear"><option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option><option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option></select></label><label>Avatar<select id="childAvatar"><option value="🧒">🧒 Ceria</option><option value="👧">👧 Puteri</option><option value="👦">👦 Wira</option><option value="🐯">🐯 Harimau</option><option value="🚀">🚀 Angkasawan</option></select></label><button type="button" id="saveChildBtn" class="btn primary full">Simpan Profil</button></form></dialog>
 
