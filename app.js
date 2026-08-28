@@ -670,55 +670,136 @@ function quizScreenEffect(type){
   setTimeout(()=>stage.classList.remove(cls),650);
 }
 
-function makeQuizDistractor(question,isEnglish=false){
-  const existing=[...(question.answers||[])].map(v=>String(v).trim());
-  const correct=String(question.correct??'').trim();
-  const all=new Set([...existing,correct].map(v=>v.toLowerCase()));
-  if(existing.every(v=>/^-?\d+(?:\.\d+)?$/.test(v))&&/^-?\d+(?:\.\d+)?$/.test(correct)){
-    const base=Number(correct);
-    for(const d of [1,-1,2,-2,3,-3,4]){const c=String(base+d);if(!all.has(c.toLowerCase()))return c;}
-  }
-  if(/^[A-Za-zÀ-ÿ-]{2,14}$/.test(correct)){
-    const upper=correct.toUpperCase(),vowels=isEnglish?['A','E','I','O','U']:['A','I','U','E','O'];
-    for(let i=upper.length-1;i>=0;i--)if(/[AEIOU]/.test(upper[i]))for(const v of vowels){
-      const c=upper.slice(0,i)+v+upper.slice(i+1);
-      if(c!==upper&&!all.has(c.toLowerCase()))return c;
-    }
-  }
-  const pool=isEnglish?['pencil','window','garden','chair','school','apple','river','book','table','flower']:
-    ['pensel','tingkap','taman','kerusi','sekolah','epal','sungai','buku','meja','bunga'];
-  return pool.find(v=>!all.has(v.toLowerCase()))||'Pilihan D';
-}
-function fourQuizChoices(question,isEnglish=false){
-  const blocked=new Set([['tidak','pasti'].join(' '),['not','sure'].join(' ')]);
-  const choices=[...(question.answers||[])].map(v=>String(v).trim()).filter(v=>v&&!blocked.has(v.toLowerCase()));
-  while(choices.length<4){
-    const d=makeQuizDistractor({...question,answers:choices},isEnglish);
-    if(!choices.some(v=>v.toLowerCase()===d.toLowerCase())&&String(question.correct).toLowerCase()!==d.toLowerCase())choices.push(d);
-    else choices.push(isEnglish?`Choice ${choices.length+1}`:`Pilihan ${choices.length+1}`);
-  }
-  return choices.slice(0,4).sort(()=>Math.random()-.5);
+function quizChoiceShape(value){
+  const s=String(value??'').trim();
+  if(/^-?\d+(?:\.\d+)?$/.test(s))return 'number';
+  if(s.length===1&&/^[A-Za-z]$/.test(s))return 'letter';
+  if(!/\s/.test(s)&&s.length<=14)return 'word';
+  return 'phrase';
 }
 
-function normalizeQuizText(v=''){return String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();}
-function findIllustrationEmoji(text=''){
-  const t=normalizeQuizText(text);
-  const map=[
-    ['BAJU','👕'],['BOLA','⚽'],['BUKU','📚'],['BUNGA','🌸'],['MATA','👀'],['IKAN','🐟'],['KUCING','🐱'],['KUDA','🐴'],
-    ['NASI','🍚'],['ROTI','🍞'],['TOPI','🧢'],['KERETA','🚗'],['SEKOLAH','🏫'],['RAMA-RAMA','🦋'],['BASIKAL','🚲'],['HARIMAU','🐯'],
-    ['AYAM','🐔'],['BURUNG','🐦'],['ARNAB','🐰'],['POKOK','🌳'],['DAUN','🍃'],['AKAR','🌱'],['BUAH','🍎'],['AIR','💧'],['SUNGAI','🏞️'],
-    ['BUKIT','⛰️'],['MAGNET','🧲'],['SPAN','🧽'],['TISU','🧻'],['PAYUNG','☂️'],['BESI','🔩'],['TELINGA','👂'],['HIDUNG','👃'],['LIDAH','👅'],
-    ['CAT','🐱'],['DOG','🐶'],['FISH','🐟'],['BIRD','🐦'],['BOOK','📚'],['BALL','⚽'],['FLOWER','🌸'],['TREE','🌳'],['APPLE','🍎'],['SCHOOL','🏫']
-  ];
-  for(const [k,e] of map)if(t.includes(k))return e;
-  return String(text).match(/[\p{Extended_Pictographic}]/u)?.[0]||'⭐';
+function generatedQuizDistractors(correct,prompt=''){
+  const value=String(correct??'').trim();
+  const out=[];
+  if(/^-?\d+(?:\.\d+)?$/.test(value)){
+    const n=Number(value);
+    [n-1,n+1,n+2,n-2,n+10].forEach(x=>out.push(String(x)));
+    return out;
+  }
+  if(value.length===1&&/^[A-Za-z]$/.test(value)){
+    const code=value.toUpperCase().charCodeAt(0);
+    [-2,-1,1,2,3].forEach(d=>{
+      const c=code+d;
+      if(c>=65&&c<=90)out.push(String.fromCharCode(c));
+    });
+    return out;
+  }
+  if(/^[A-Za-zÀ-ÿ-]+$/.test(value)&&value.length>=2){
+    const vowels=/[aeiouAEIOU]/;
+    const swaps=['A','I','U','E','O'];
+    const chars=[...value];
+    const pos=chars.findIndex(ch=>vowels.test(ch));
+    if(pos>=0){
+      swaps.forEach(v=>{
+        const next=[...chars];
+        next[pos]=chars[pos]===chars[pos].toUpperCase()?v:v.toLowerCase();
+        out.push(next.join(''));
+      });
+    }
+    if(chars.length>2){
+      const next=[...chars];
+      [next[next.length-1],next[next.length-2]]=[next[next.length-2],next[next.length-1]];
+      out.push(next.join(''));
+    }
+  }
+  return out;
 }
-function quizIllustration(q,cfg,topic){
-  const obj=findIllustrationEmoji(`${q.prompt||''} ${q.correct||''} ${topic?.title||''}`);
-  const kid={bm:'👧🏻',bi:'🧒🏽',math:'🤓',science:'👩‍🔬'}[cfg.key]||'🧒';
-  const icon={bm:'📖',bi:'🔤',math:'🧮',science:'🔬'}[cfg.key]||'⭐';
-  const label=cfg.lang.startsWith('en')?'Look, think and choose!':'Lihat, fikir dan pilih!';
-  return `<div class="quiz-cartoon-scene" aria-hidden="true"><div class="cartoon-cloud c1">☁️</div><div class="cartoon-cloud c2">☁️</div><div class="cartoon-character">${kid}</div><div class="cartoon-bubble"><span>${icon}</span><b>${label}</b></div><div class="cartoon-object">${obj}</div><div class="cartoon-spark s1">★</div><div class="cartoon-spark s2">✦</div></div>`;
+
+function fourQuizChoices(question,topic){
+  const correct=String(question.correct);
+  const choices=[];
+  const add=value=>{
+    const s=String(value??'').trim();
+    if(s&&s!==correct&&!choices.includes(s))choices.push(s);
+  };
+
+  (question.answers||[]).forEach(add);
+
+  const shape=quizChoiceShape(correct);
+  const related=[];
+  (topic?.questions||[]).forEach(q=>{
+    [...(q.answers||[]),q.correct].forEach(v=>{
+      const s=String(v??'').trim();
+      if(s&&s!==correct&&quizChoiceShape(s)===shape&&!related.includes(s))related.push(s);
+    });
+  });
+  related.sort(()=>Math.random()-.5).forEach(add);
+  generatedQuizDistractors(correct,question.prompt).forEach(add);
+
+  // Correct answer + tiga distractor sebenar. Tiada pilihan "".
+  const final=[correct,...choices.slice(0,3)];
+  return final.sort(()=>Math.random()-.5);
+}
+
+function questionNatureScene(subjectKey,topicKey,question){
+  const map={
+    bm:{
+      huruf:['🦉','🐰','🔤','Rimba Huruf'],
+      kosa:['🦊','🐿️','🌼','Rimba Kosa Kata'],
+      tatabahasa:['🦉','📚','🍃','Rimba Bahasa'],
+      faham:['🐿️','📖','🌳','Sudut Membaca'],
+      menulis:['🐰','✏️','🌻','Taman Menulis'],
+      santun:['🦜','🦊','💬','Taman Bahasa Santun']
+    },
+    bi:{
+      alphabet:['🦉','🐰','🔤','Forest Letters'],
+      vocabulary:['🦊','🐿️','🌼','Forest Words'],
+      grammar:['🦉','📚','🍃','Grammar Garden'],
+      reading:['🐿️','📖','🌳','Reading Forest'],
+      writing:['🐰','✏️','🌻','Writing Garden'],
+      communication:['🦜','🦊','💬','Friendly Forest']
+    },
+    math:{
+      numbers:['🐰','🔢','🍎','Rimba Nombor'],
+      addsub:['🐿️','➕','🍎','Rimba Operasi'],
+      money:['🦊','🪙','🍓','Pasar Rimba'],
+      time:['🦉','🕒','🌙','Rimba Masa'],
+      measure:['🦒','📏','🌿','Rimba Ukuran'],
+      shapes:['🐢','🔷','🌼','Taman Bentuk'],
+      data:['🦜','📊','🌳','Rimba Data']
+    },
+    science:{
+      skills:['🦉','🔍','🍃','Makmal Rimba'],
+      living:['🐰','🌱','🐞','Rimba Hidupan'],
+      human:['🐵','👀','🌼','Rimba Deria'],
+      organisms:['🦋','🌳','🐿️','Rimba Haiwan & Tumbuhan'],
+      materials:['🦊','🧲','💧','Rimba Bahan'],
+      earthdesign:['🐢','🌍','🌱','Rimba Bumi']
+    }
+  };
+  const scene=map?.[subjectKey]?.[topicKey]||['🦉','🐰','🌿','Rimba CilikGo'];
+  return {left:scene[0],right:scene[1],accent:scene[2],label:scene[3]};
+}
+
+function quizAnswerEmoji(answer){
+  const key=String(answer||'').trim().toLowerCase();
+  const exact={
+    'baju':'👕','bola':'⚽','buku':'📚','kucing':'🐱','ayam':'🐔','ikan':'🐟',
+    'sekolah':'🏫','pasar':'🛒','hospital':'🏥','pisang':'🍌','epal':'🍎','anggur':'🍇',
+    'kaki':'🦶','tangan':'✋','kepala':'🙂','payung':'☂️','bantal':'🛏️','sudu':'🥄',
+    'kereta':'🚗','bas':'🚌','basikal':'🚲','pokok bunga':'🌼','bunga':'🌼',
+    'burung':'🐦','bird':'🐦','cat':'🐱','dog':'🐶','fish':'🐟','apple':'🍎',
+    'school':'🏫','pencil':'✏️','book':'📘','house':'🏠','ball':'⚽','sun':'☀️',
+    'eyes':'👀','ears':'👂','feet':'🦶','kitchen':'🍳','blue':'🔵','red':'🔴',
+    'green':'🟢','mata':'👀','hidung':'👃','telinga':'👂','lidah':'👅','kulit':'✋',
+    'air':'💧','water':'💧','akar':'🌱','daun':'🍃','buah':'🍎','sayap':'🪽',
+    'sirip':'🐟','magnet':'🧲','plastik':'🥤','kain':'🧵','span':'🧽',
+    'sungai':'🏞️','bukit':'⛰️','laut':'🌊','tasik':'🏞️','batu':'🪨'
+  };
+  if(exact[key])return exact[key];
+  if(/^\d+$/.test(key))return '🔢';
+  if(key.length===1&&/[a-z]/i.test(key))return '🔤';
+  return '';
 }
 
 function year1QuizRuntimeConfig(subjectKey){
@@ -789,7 +870,8 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
     let answeredCorrectly=false;
     const pct=Math.round(index/questions.length*100);
     const isEnglish=cfg.lang.startsWith('en');
-    const choices=fourQuizChoices(q,isEnglish);
+    const choices=fourQuizChoices(q,topic);
+    const scene=questionNatureScene(subjectKey,topicKey,q);
     const letters=['A','B','C','D'];
 
     $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell subject-${cfg.key}">
@@ -809,17 +891,28 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
           <div class="quiz-progress-track"><span style="width:${pct}%"></span></div>
         </div>
 
-        <section class="quiz-question-panel">
-          <button class="quiz-listen-btn" id="speakQuestion">🔊 ${cfg.listen}</button>
-          <p class="quiz-audio-hint">${cfg.hint}</p>
-          ${quizIllustration(q,cfg,topic)}
-          <h2 class="quiz-question-text">${esc(q.prompt)}</h2>
+        <section class="quiz-question-panel nature-quiz-panel">
+          <div class="quiz-listen-wrap">
+            <button class="quiz-listen-btn" id="speakQuestion">🔊 ${cfg.listen}</button>
+            <p class="quiz-audio-hint">${cfg.hint}</p>
+          </div>
 
-          <div class="quiz-answer-grid">
-            ${choices.map((answer,i)=>`<button class="quiz-answer" data-answer="${esc(answer)}">
+          <div class="quiz-nature-board">
+            <span class="nature-character nature-left">${scene.left}</span>
+            <span class="nature-character nature-right">${scene.right}</span>
+            <span class="nature-accent">${scene.accent}</span>
+            <div class="nature-board-copy">
+              <small>${scene.label}</small>
+              <h2 class="quiz-question-text">${esc(q.prompt)}</h2>
+            </div>
+          </div>
+
+          <div class="quiz-answer-grid colorful-answer-grid">
+            ${choices.map((answer,i)=>{const icon=quizAnswerEmoji(answer);return `<button class="quiz-answer" data-answer="${esc(answer)}">
               <span class="quiz-answer-letter">${letters[i]}</span>
               <span class="quiz-answer-text">${esc(answer)}</span>
-            </button>`).join('')}
+              ${icon?`<span class="quiz-answer-visual">${icon}</span>`:''}
+            </button>`}).join('')}
           </div>
 
           <div class="quiz-feedback" id="gameMsg" aria-live="polite"></div>
@@ -2131,7 +2224,7 @@ const mathYear1Bank={
       {prompt:'50 sen + 50 sen = ?',answers:['RM1','RM2','RM5'],correct:'RM1',success:'Betul! 50 sen tambah 50 sen ialah RM1.'},
       {prompt:'RM2 + RM3 = ?',answers:['RM4','RM5','RM6'],correct:'RM5',success:'Hebat! RM2 tambah RM3 ialah RM5.'},
       {prompt:'Harga pensel RM1. Ali bayar RM2. Baki ialah…',answers:['RM1','RM2','RM3'],correct:'RM1',success:'Betul! Bakinya RM1.'},
-      {prompt:'Harga buku RM4. Duit Siti RM5. Adakah duitnya cukup?',answers:['Ya','Tidak','Perlu RM9'],correct:'Ya',success:'Betul! RM5 cukup untuk membeli buku RM4.'},
+      {prompt:'Harga buku RM4. Duit Siti RM5. Adakah duitnya cukup?',answers:['Ya','Tidak',''],correct:'Ya',success:'Betul! RM5 cukup untuk membeli buku RM4.'},
       {prompt:'Pilih jumlah yang lebih banyak.',answers:['RM2','RM5','RM1'],correct:'RM5',success:'Betul! RM5 paling banyak.'},
       {prompt:'Dua keping RM1 bernilai…',answers:['RM1','RM2','RM10'],correct:'RM2',success:'Betul! Dua keping RM1 ialah RM2.'},
       {prompt:'10 sen + 20 sen + 20 sen = ?',answers:['40 sen','50 sen','60 sen'],correct:'50 sen',success:'Bagus! Jumlahnya 50 sen.'}
