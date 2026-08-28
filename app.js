@@ -75,11 +75,14 @@ window.addEventListener('resize',()=>{if(window.innerWidth>1024){setMobileNav(fa
 function setRoleNav(open){
   const drawer=document.querySelector('#dashboard .role-drawer');
   const btn=$('#roleMenuBtn'),backdrop=$('#roleNavBackdrop');
-  if(!drawer){ document.body.classList.remove('role-nav-open'); return; }
-  document.body.classList.toggle('role-nav-open',!!open);
-  drawer.classList.toggle('role-drawer-open',!!open);
-  backdrop?.classList.toggle('show',!!open);
-  btn?.setAttribute('aria-expanded',open?'true':'false');
+  const shouldOpen=!!open&&!!drawer;
+
+  // Sentiasa reset overlay/body walaupun drawer lama telah diganti oleh render baharu.
+  document.body.classList.toggle('role-nav-open',shouldOpen);
+  backdrop?.classList.toggle('show',shouldOpen);
+  btn?.setAttribute('aria-expanded',shouldOpen?'true':'false');
+
+  if(drawer) drawer.classList.toggle('role-drawer-open',shouldOpen);
 }
 $('#roleMenuBtn')?.addEventListener('click',e=>{
   e.stopPropagation();
@@ -884,6 +887,7 @@ async function startMathYear1Topic(topicKey){
 }
 
 async function renderUser(p){
+  setRoleNav(false);
   document.body.classList.remove('student-mode');
   showDashboardPage();
   const kids=await loadChildren(p.uid);
@@ -939,18 +943,20 @@ async function renderUser(p){
     </section>
   </div>`;
 
-  const openChild=()=>$('#childModal').showModal();
+  const openChild=()=>{setRoleNav(false);$('#childModal').showModal();};
   $('#addChildBtn')?.addEventListener('click',openChild);
   $('#addChildSide')?.addEventListener('click',e=>{e.preventDefault();openChild();});
   $('#emptyAddChild')?.addEventListener('click',openChild);
   const enterStudent=async e=>{
     e?.preventDefault();
+    setRoleNav(false);
     if(!activeChild)return toast('Pilih profil anak dahulu.');
     if(!active)return showSubscriptionGate(p,'count');
     await renderStudentPortal(p);
   };
   $('#enterStudentBtn')?.addEventListener('click',enterStudent);
   $('#enterStudentNav')?.addEventListener('click',enterStudent);
+  document.querySelector('[data-parent-view="overview"]')?.addEventListener('click',e=>{e.preventDefault();setRoleNav(false);});
   document.querySelectorAll('[data-child]').forEach(b=>b.onclick=async()=>{
     const selectedChild=kids.find(c=>c.id===b.dataset.child);
     if(!selectedChild)return;
@@ -960,6 +966,7 @@ async function renderUser(p){
   });
 }
 async function renderAgent(p){
+  setRoleNav(false);
   document.body.classList.remove('student-mode'); showDashboardPage();
   const safeDocs=async(name)=>{
     try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
@@ -1051,7 +1058,7 @@ async function renderAgent(p){
       $('#referralTable').innerHTML=list.length?`<div class="table-wrap"><table class="table"><tr><th>Penjaga</th><th>E-mel</th><th>Langganan</th></tr>${list.map(u=>`<tr><td>${esc(u.name||'-')}</td><td>${esc(u.email||'-')}</td><td>${status(u.subscriptionStatus||'inactive')}</td></tr>`).join('')}</table></div>`:'<div class="empty-state">Tiada referral sepadan.</div>';
     };
   };
-  document.querySelectorAll('.agent-nav').forEach(a=>a.onclick=()=>mount(a.dataset.view));
+  document.querySelectorAll('.agent-nav').forEach(a=>a.onclick=()=>{setRoleNav(false);mount(a.dataset.view);});
   mount('overview');
 }
 
@@ -1135,6 +1142,7 @@ async function renderAdminSubscriptions(){
 }
 
 async function renderAdmin(p){
+  setRoleNav(false);
   document.body.classList.remove('student-mode'); showDashboardPage();
   const safeDocs=async(name)=>{
     try{return (await fb.getDocs(fb.collection(fb.db,name))).docs.map(d=>({id:d.id,...d.data()}));}
@@ -1234,7 +1242,7 @@ async function renderAdmin(p){
     currentView=view;
     $('#dashboard').innerHTML=shell(view,view==='subscriptions'?'':views[view]());
     if(view==='subscriptions') await renderAdminSubscriptions();
-    document.querySelectorAll('.admin-nav').forEach(a=>a.onclick=()=>mount(a.dataset.view));
+    document.querySelectorAll('.admin-nav').forEach(a=>a.onclick=()=>{setRoleNav(false);mount(a.dataset.view);});
     const main=$('.admin-shell .portal-main'); if(main) main.scrollTop=0;
     const search=$('#adminSearch');
     if(search&&view==='users') search.oninput=()=>{const q=search.value.toLowerCase();$('#adminUserTable').innerHTML=renderUserRows(customers.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
@@ -1753,7 +1761,7 @@ function showSubscriptionGate(profile,context='latihan'){
 
 document.addEventListener('click',e=>{
   const a=e.target.closest?.('.parent-subscription-nav,#parentSubscriptionLink');
-  if(a && currentProfile?.role==='user'){e.preventDefault();renderParentSubscriptionView(currentProfile);}
+  if(a && currentProfile?.role==='user'){e.preventDefault();setRoleNav(false);renderParentSubscriptionView(currentProfile);}
 });
 
 

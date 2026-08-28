@@ -983,3 +983,25 @@ body.app-mode .setting-card{background:#fff!important;padding:16px!important}
   body.app-mode:not(.student-mode) .app-mobile-account{padding:8px 9px 10px;border-bottom:1px solid #eceef4}
   body.app-mode:not(.student-mode) .app-mobile-menu button{border:0;background:#fff;padding:10px;text-align:left;border-radius:10px;font:inherit;font-size:11px;font-weight:850;color:#505366}
 }
+
+/* Role drawer stale-overlay fix */
+.role-nav-backdrop{
+  pointer-events:none!important;
+}
+.role-nav-backdrop.show{
+  pointer-events:auto!important;
+}
+body:not(.role-nav-open) .role-nav-backdrop{
+  opacity:0!important;
+  visibility:hidden!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+body:not(.role-nav-open) #dashboard .role-drawer{
+  transform:translateX(-104%)!important;
+}
+@media(min-width:1025px){
+  body:not(.role-nav-open) #dashboard .role-drawer{
+    transform:none!important;
+  }
+}
