@@ -678,3 +678,95 @@ body.app-mode .setting-card{background:#fff!important;padding:16px!important}
   .content-subject-grid{grid-template-columns:1fr}
   .admin-year-grid{grid-template-columns:repeat(2,1fr)}
 }
+
+/* =========================================================
+   Mobile + Tablet First Responsive Refresh
+   ========================================================= */
+.mobile-menu-btn,.mobile-nav-drawer,.mobile-nav-backdrop,.app-menu-btn,.app-mobile-menu{display:none}
+
+/* Tablet/mobile public navigation */
+@media(max-width:1024px){
+  .topbar{height:64px;padding:0 18px;z-index:110}
+  .topbar .brand{font-size:19px}.topbar .brand-badge{width:36px;height:36px;border-radius:11px}
+  .desktop-nav,.desktop-actions{display:none!important}
+  .mobile-menu-btn{display:flex;width:44px;height:44px;border:0;border-radius:13px;background:#f1efff;align-items:center;justify-content:center;flex-direction:column;gap:4px;cursor:pointer;padding:0}
+  .mobile-menu-btn span{display:block;width:19px;height:2px;border-radius:9px;background:#5f4edb;transition:.2s}
+  body.mobile-nav-open{overflow:hidden}
+  body.mobile-nav-open .mobile-menu-btn span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+  body.mobile-nav-open .mobile-menu-btn span:nth-child(2){opacity:0}
+  body.mobile-nav-open .mobile-menu-btn span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+  .mobile-nav-backdrop{display:block;position:fixed;inset:0;background:rgba(25,23,47,.42);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:.22s;z-index:115}
+  .mobile-nav-backdrop.show{opacity:1;visibility:visible}
+  .mobile-nav-drawer{display:flex;position:fixed;right:0;top:0;bottom:0;width:min(86vw,370px);background:#fff;z-index:120;transform:translateX(104%);transition:transform .24s ease;box-shadow:-24px 0 70px rgba(34,30,80,.16);padding:18px;flex-direction:column;overflow-y:auto}
+  .mobile-nav-drawer.open{transform:none}
+  .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:15px;border-bottom:1px solid #eceef4}
+  .mobile-nav-head .brand{font-size:19px}.mobile-nav-close{width:40px;height:40px;border:0;background:#f3f4f8;border-radius:12px;font-size:26px;color:#626678;cursor:pointer}
+  .mobile-nav-links{display:grid;gap:7px;padding:17px 0}
+  .mobile-nav-links a{display:grid;grid-template-columns:42px 1fr;gap:11px;align-items:center;padding:11px;border-radius:14px;color:#37394e;text-decoration:none;border:1px solid transparent}
+  .mobile-nav-links a:hover,.mobile-nav-links a:active{background:#f7f5ff;border-color:#e3dfff}
+  .mobile-nav-links a>span{width:42px;height:42px;border-radius:13px;background:#f1efff;display:grid;place-items:center;font-size:19px}
+  .mobile-nav-links b{display:block;font-size:13px}.mobile-nav-links small{display:block;font-size:9px;color:#8b8e9f;margin-top:2px}
+  .mobile-nav-actions{display:grid;gap:8px;margin-top:auto;padding-top:15px;border-top:1px solid #eceef4}
+  .mobile-member-card{display:flex;align-items:center;gap:9px;padding:11px;background:#f7f7fb;border-radius:13px;margin-bottom:2px}.mobile-member-card>span{font-size:20px}.mobile-member-card small{display:block;font-size:8px;color:#8d91a1;font-weight:900;letter-spacing:.08em}.mobile-member-card b{display:block;max-width:210px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .section{padding:64px 28px}
+  .hero{min-height:auto;grid-template-columns:1fr;gap:34px;padding-top:56px;padding-bottom:56px}
+  .hero-copy{text-align:center}.hero-copy>p{margin-left:auto;margin-right:auto}.hero-actions,.trust{justify-content:center}
+  .hero-card{width:min(100%,560px);margin:0 auto;transform:none}
+  .pricing-card,.split{grid-template-columns:1fr!important;gap:24px}
+  .affiliate-preview{max-width:none}
+  .year-portal-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(max-width:760px){
+  .section{padding:48px 18px;scroll-margin-top:64px}
+  .hero{padding-top:42px}.hero h1{font-size:clamp(38px,11vw,56px);line-height:1.02;margin:15px 0 17px}.hero p{font-size:15px;line-height:1.65}
+  .pill,.tag{font-size:10px;padding:6px 9px}
+  .hero-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.hero-actions .btn{width:100%}
+  .trust{gap:9px 13px;margin-top:20px;font-size:10px}
+  .hero-card{padding:22px;border-radius:24px}.mascot{font-size:52px}.hero-card h3{font-size:18px}.mission{font-size:11px}
+  .section-head{margin-bottom:24px}.section-head h2{font-size:30px}.section-head p{font-size:13px;line-height:1.55}
+  .year-portal-grid{grid-template-columns:1fr;gap:9px}.year-portal-card{padding:13px;border-radius:15px}.year-portal-card>span{width:42px;height:42px}.year-portal-card h3{font-size:16px}
+  .core-subject-strip{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.core-subject-strip span{white-space:nowrap}
+  .pricing-card{padding:22px;border-radius:22px}.price strong{font-size:42px}
+  .split{gap:18px}.affiliate-preview{padding:20px;border-radius:20px;overflow:hidden}.affiliate-preview code{display:block;overflow-wrap:anywhere;font-size:11px}
+  footer{padding:28px 18px;display:grid;gap:8px;text-align:center;justify-content:center}
+
+  /* Compact app topbar */
+  .desktop-app-actions{display:none!important}
+  .app-topbar{height:58px!important;padding:0 12px!important;position:relative;z-index:45}
+  .app-brand{font-size:14px}.app-brand .brand-badge{width:34px;height:34px;border-radius:10px}
+  .app-menu-btn{display:grid;place-items:center;width:42px;height:42px;border:0;border-radius:12px;background:#f1efff;color:#604fdc;font-size:20px;cursor:pointer}
+  .app-mobile-menu{display:none;position:absolute;right:12px;top:52px;width:min(82vw,280px);background:#fff;border:1px solid #e6e8f0;border-radius:16px;padding:10px;box-shadow:0 18px 44px rgba(34,30,80,.15);z-index:60}
+  .app-mobile-menu.open{display:grid;gap:5px}
+  .app-mobile-account{padding:8px 9px 10px;border-bottom:1px solid #eceef4;margin-bottom:3px}.app-mobile-account small{display:block;font-size:8px;color:#999dad;font-weight:900;letter-spacing:.08em}.app-mobile-account b{display:block;font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .app-mobile-menu button{border:0;background:#fff;padding:10px;text-align:left;border-radius:10px;font:inherit;font-size:11px;font-weight:850;color:#505366;cursor:pointer}.app-mobile-menu button:hover{background:#f5f3ff;color:#604fdc}
+  body.app-mode #dashboard{height:calc(100dvh - 58px)!important}
+}
+
+@media(max-width:520px){
+  .topbar{padding:0 12px}.topbar .brand span:last-child{font-size:18px}
+  .mobile-nav-drawer{width:min(91vw,360px);padding:15px}
+  .hero-actions{grid-template-columns:1fr}
+  .trust{display:grid;grid-template-columns:1fr 1fr;text-align:left}
+  .pricing-card{padding:18px}.pricing-card .price{text-align:left}
+  .mini-stats{grid-template-columns:repeat(3,1fr);gap:5px}.mini-stats b{font-size:16px}.mini-stats small{font-size:8px}
+}
+
+/* Tablet/dashboard density improvements */
+@media(min-width:761px) and (max-width:1024px){
+  body.app-mode .app-topbar{height:60px;padding:0 16px}
+  body.app-mode #dashboard{height:calc(100dvh - 60px)}
+  body.app-mode .portal-shell{grid-template-columns:82px minmax(0,1fr)!important}
+  body.app-mode .portal-main{padding:20px 18px 36px!important}
+  .student-main,.subject-hub-main{max-width:100%}
+}
+
+/* Safer tap targets + no accidental horizontal page overflow */
+@media(max-width:1024px){
+  html,body{max-width:100%;overflow-x:hidden}
+  button,a{min-height:44px}
+  img,svg,video,canvas{max-width:100%;height:auto}
+  .table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .table{min-width:660px}
+}

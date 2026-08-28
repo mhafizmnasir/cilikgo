@@ -13,12 +13,26 @@
 <body>
   <div id="toast" class="toast"></div>
   <header class="topbar">
-    <a class="brand" href="#home"><span class="brand-badge">CG</span><span>CilikGo</span></a>
-    <nav id="mainNav">
-      <a href="#home">Utama</a><a href="#modules">Silibus</a><a href="#pricing">Harga</a><a href="#agent">Jadi Agent</a>
+    <a class="brand" href="#home" aria-label="CilikGo - Laman Utama"><span class="brand-badge">CG</span><span>CilikGo</span></a>
+    <nav id="mainNav" class="desktop-nav" aria-label="Navigasi utama">
+      <a href="#home">Utama</a><a href="#modules">Tahun 1–6</a><a href="#pricing">Harga</a><a href="#agent">Jadi Agent</a>
     </nav>
-    <div class="top-actions" id="guestActions"><button class="btn ghost" data-auth="login">Log Masuk</button><button class="btn primary" data-auth="register">Daftar</button></div><div class="top-actions hidden" id="memberActions"><span id="memberName" class="member-name"></span><button class="btn ghost" id="dashboardBtn">Dashboard</button><button class="btn primary" id="logoutBtn">Log Keluar</button></div>
+    <div class="top-actions desktop-actions" id="guestActions"><button class="btn ghost" data-auth="login">Log Masuk</button><button class="btn primary" data-auth="register">Daftar</button></div>
+    <div class="top-actions desktop-actions hidden" id="memberActions"><span id="memberName" class="member-name"></span><button class="btn ghost" id="dashboardBtn">Dashboard</button><button class="btn primary" id="logoutBtn">Log Keluar</button></div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Buka menu" aria-controls="mobileNavDrawer" aria-expanded="false"><span></span><span></span><span></span></button>
   </header>
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+  <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
+    <div class="mobile-nav-head"><a class="brand" href="#home"><span class="brand-badge">CG</span><span>CilikGo</span></a><button class="mobile-nav-close" id="mobileNavClose" aria-label="Tutup menu">×</button></div>
+    <nav class="mobile-nav-links" aria-label="Menu mudah alih">
+      <a href="#home"><span>⌂</span><div><b>Utama</b><small>Laman utama CilikGo</small></div></a>
+      <a href="#modules"><span>🎒</span><div><b>Tahun 1–6</b><small>Struktur portal pembelajaran</small></div></a>
+      <a href="#pricing"><span>💳</span><div><b>Harga</b><small>Pelan langganan CilikGo</small></div></a>
+      <a href="#agent"><span>🤝</span><div><b>Jadi Agent</b><small>Program affiliate CilikGo</small></div></a>
+    </nav>
+    <div class="mobile-nav-actions" id="mobileGuestActions"><button class="btn ghost full" data-auth="login">Log Masuk</button><button class="btn primary full" data-auth="register">Daftar Akaun</button></div>
+    <div class="mobile-nav-actions hidden" id="mobileMemberActions"><div class="mobile-member-card"><span>👤</span><div><small>AKAUN</small><b id="mobileMemberName">Pengguna CilikGo</b></div></div><button class="btn ghost full" id="mobileDashboardBtn">Buka Dashboard</button><button class="btn primary full" id="mobileLogoutBtn">Log Keluar</button></div>
+  </aside>
 
   <main>
     <section id="home" class="hero section">
@@ -63,7 +77,13 @@
     <section class="section dashboard-demo" id="portal">
       <div class="app-topbar">
         <a class="app-brand" href="#dashboard"><span class="brand-badge">CG</span><span>CilikGo</span></a>
-        <div class="app-user"><span id="appMemberName"></span><button class="btn ghost small" id="appHomeBtn">Laman Utama</button><button class="btn primary small" id="appLogoutBtn">Log Keluar</button></div>
+        <div class="app-user desktop-app-actions"><span id="appMemberName"></span><button class="btn ghost small" id="appHomeBtn">Laman Utama</button><button class="btn primary small" id="appLogoutBtn">Log Keluar</button></div>
+        <button class="app-menu-btn" id="appMenuBtn" aria-label="Buka menu akaun" aria-expanded="false">☰</button>
+        <div class="app-mobile-menu" id="appMobileMenu">
+          <div class="app-mobile-account"><small>AKAUN</small><b id="appMobileMemberName">CilikGo</b></div>
+          <button id="appMobileHomeBtn">⌂ Laman Utama</button>
+          <button id="appMobileLogoutBtn">↪ Log Keluar</button>
+        </div>
       </div>
       <div class="section-head"><div class="pill">Portal CilikGo</div><h2 id="portalTitle">Dashboard anda.</h2><p id="portalSubtitle">Log masuk untuk membuka dashboard mengikut peranan akaun anda.</p></div>
       <div id="dashboard"><div class="portal-locked"><div class="lock-icon">🔐</div><h3>Portal dilindungi</h3><p>Log masuk untuk membuka dashboard.</p><button class="btn primary" data-auth="login">Log Masuk</button></div></div>

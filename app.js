@@ -56,6 +56,35 @@ document.querySelectorAll('dialog .x').forEach(b=>b.onclick=()=>b.closest('dialo
 
 document.querySelectorAll('[data-auth]').forEach(b=>b.onclick=()=>showAuthPage(b.dataset.auth||'login'));
 
+const mobileMenuBtn=$('#mobileMenuBtn'), mobileNavDrawer=$('#mobileNavDrawer'), mobileNavBackdrop=$('#mobileNavBackdrop');
+function setMobileNav(open){
+  if(!mobileNavDrawer)return;
+  document.body.classList.toggle('mobile-nav-open',!!open);
+  mobileNavDrawer.classList.toggle('open',!!open);
+  mobileNavBackdrop?.classList.toggle('show',!!open);
+  mobileNavDrawer.setAttribute('aria-hidden',open?'false':'true');
+  mobileMenuBtn?.setAttribute('aria-expanded',open?'true':'false');
+}
+mobileMenuBtn?.addEventListener('click',()=>setMobileNav(!mobileNavDrawer.classList.contains('open')));
+$('#mobileNavClose')?.addEventListener('click',()=>setMobileNav(false));
+mobileNavBackdrop?.addEventListener('click',()=>setMobileNav(false));
+document.querySelectorAll('.mobile-nav-links a,.mobile-nav-actions [data-auth]').forEach(el=>el.addEventListener('click',()=>setMobileNav(false)));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){setMobileNav(false);setAppMobileMenu(false);}});
+window.addEventListener('resize',()=>{if(window.innerWidth>1024)setMobileNav(false);if(window.innerWidth>760)setAppMobileMenu(false);});
+
+function setAppMobileMenu(open){
+  const menu=$('#appMobileMenu'),btn=$('#appMenuBtn');
+  if(!menu)return;
+  menu.classList.toggle('open',!!open);
+  btn?.setAttribute('aria-expanded',open?'true':'false');
+}
+$('#appMenuBtn')?.addEventListener('click',e=>{e.stopPropagation();setAppMobileMenu(!$('#appMobileMenu')?.classList.contains('open'));});
+document.addEventListener('click',e=>{
+  const menu=$('#appMobileMenu'),btn=$('#appMenuBtn');
+  if(menu?.classList.contains('open')&&!menu.contains(e.target)&&!btn?.contains(e.target))setAppMobileMenu(false);
+});
+
+
 function setAuthRole(role='user'){
   const value=role==='agent'?'agent':'user';
   const input=$('#regRole');
@@ -63,6 +92,7 @@ function setAuthRole(role='user'){
   document.querySelectorAll('.role-choice').forEach(b=>b.classList.toggle('active',b.dataset.roleChoice===value));
 }
 function showAuthPage(mode='login',role='user'){
+  setMobileNav(false); setAppMobileMenu(false);
   document.body.classList.remove('app-mode','student-mode');
   document.body.classList.add('auth-mode');
   $('#authScreen')?.classList.remove('hidden');
@@ -79,6 +109,7 @@ function showPublicPage(){
   $('#authScreen')?.classList.add('hidden');
 }
 function showDashboardPage(){
+  setMobileNav(false); setAppMobileMenu(false);
   document.body.classList.remove('auth-mode','student-mode');
   document.body.classList.add('app-mode');
   $('#authScreen')?.classList.add('hidden');
@@ -154,9 +185,14 @@ async function logoutCilikGo(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 $('#logoutBtn').onclick=logoutCilikGo;
+$('#mobileLogoutBtn').onclick=logoutCilikGo;
 $('#appLogoutBtn').onclick=logoutCilikGo;
-$('#dashboardBtn').onclick=async()=>{ if(!currentProfile)return showAuthPage('login'); showDashboardPage(); await renderPortal(currentProfile); };
-$('#appHomeBtn').onclick=()=>{ history.pushState(null,'','#home'); showPublicPage(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('#appMobileLogoutBtn').onclick=logoutCilikGo;
+$('#dashboardBtn').onclick=async()=>{ if(!currentProfile)return showAuthPage('login'); setMobileNav(false); showDashboardPage(); await renderPortal(currentProfile); };
+$('#mobileDashboardBtn').onclick=async()=>{ if(!currentProfile)return showAuthPage('login'); setMobileNav(false); showDashboardPage(); await renderPortal(currentProfile); };
+const goPublicHome=()=>{ setAppMobileMenu(false); history.pushState(null,'','#home'); showPublicPage(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('#appHomeBtn').onclick=goPublicHome;
+$('#appMobileHomeBtn').onclick=goPublicHome;
 
 async function getProfile(user){
   const snap=await fb.getDoc(fb.doc(fb.db,'users',user.uid));
@@ -1194,6 +1230,8 @@ if(fb) fb.onAuthStateChanged(fb.auth, async user=>{
     currentProfile=null;
     $('#guestActions').classList.remove('hidden');
     $('#memberActions').classList.add('hidden');
+    $('#mobileGuestActions')?.classList.remove('hidden');
+    $('#mobileMemberActions')?.classList.add('hidden');
     $('#portalTitle').textContent='Dashboard anda.';
     $('#portalSubtitle').textContent='Log masuk untuk membuka dashboard mengikut peranan akaun anda.';
     $('#dashboard').innerHTML='<div class="portal-locked"><div class="lock-icon">🔐</div><h3>Portal dilindungi</h3><p>Log masuk untuk membuka dashboard.</p><button class="btn primary" id="lockedLogin">Log Masuk</button></div>';
@@ -1207,8 +1245,13 @@ if(fb) fb.onAuthStateChanged(fb.auth, async user=>{
     currentProfile=await getProfile(user);
     $('#guestActions').classList.add('hidden');
     $('#memberActions').classList.remove('hidden');
-    $('#memberName').textContent=currentProfile.name||user.email;
-    $('#appMemberName').textContent=currentProfile.name||user.email;
+    $('#mobileGuestActions')?.classList.add('hidden');
+    $('#mobileMemberActions')?.classList.remove('hidden');
+    const displayName=currentProfile.name||user.email;
+    $('#memberName').textContent=displayName;
+    $('#mobileMemberName').textContent=displayName;
+    $('#appMemberName').textContent=displayName;
+    $('#appMobileMemberName').textContent=displayName;
     await renderPortal(currentProfile);
   }catch(e){
     console.error(e);
