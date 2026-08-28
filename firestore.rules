@@ -46,25 +46,33 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    function validChildProfile(data) {
+      return data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 60
+        && data.age is int
+        && (
+          // Profil lama CilikGo 3M.
+          (data.age >= 4 && data.age <= 6 && !('year' in data))
+          ||
+          // Profil KSSR baharu: Tahun 1-6, umur kompatibiliti 7-12.
+          ('year' in data
+            && data.year is int
+            && data.year >= 1
+            && data.year <= 6
+            && data.age == data.year + 6)
+        );
+    }
+
     match /children/{childId} {
       allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
       allow create: if signedIn()
         && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.name is string
-        && request.resource.data.name.size() >= 1
-        && request.resource.data.name.size() <= 60
-        && request.resource.data.age is int
-        && request.resource.data.age >= 4
-        && request.resource.data.age <= 6;
+        && validChildProfile(request.resource.data);
       allow update: if signedIn()
         && (resource.data.ownerUid == request.auth.uid || isAdmin())
         && request.resource.data.ownerUid == resource.data.ownerUid
-        && request.resource.data.name is string
-        && request.resource.data.name.size() >= 1
-        && request.resource.data.name.size() <= 60
-        && request.resource.data.age is int
-        && request.resource.data.age >= 4
-        && request.resource.data.age <= 6;
+        && validChildProfile(request.resource.data);
       allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
     }
 

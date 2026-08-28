@@ -284,10 +284,108 @@ async function renderParentLearningHub(p){
   document.querySelectorAll('.kssr-subject').forEach(b=>b.onclick=()=>{
     const names={bm:'Bahasa Melayu',bi:'Bahasa Inggeris',math:'Matematik',science:'Sains'};
     const key=b.dataset.subject;
-    root.querySelector('.hub-note').innerHTML=`🚧 <b>${names[key]} Tahun 1:</b> seni bina topik sudah tersedia. Bank latihan KSSR untuk subjek ini akan diisi dalam fasa kandungan seterusnya.`;
+    if(year===1&&key==='math'){ renderMathYear1Hub(p); return; }
+    root.querySelector('.hub-note').innerHTML=`🚧 <b>${names[key]} Tahun 1:</b> kandungan pilot belum diaktifkan. Matematik Tahun 1 tersedia untuk diuji sekarang.`;
     root.querySelector('.hub-note').scrollIntoView({behavior:'smooth',block:'center'});
   });
 }
+
+async function renderMathYear1Hub(p){
+  if(!fb?.auth.currentUser){openAuth('login');return;}
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'count');return;}
+  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+  const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
+  if(year!==1){toast('Pilot Matematik ini untuk murid Tahun 1.');return;}
+  const root=$('#dashboard'), rows=await loadProgress(p.uid,activeChild.id);
+  const keys=Object.keys(mathYear1Bank);
+  const bestFor=k=>{
+    const vals=rows.filter(r=>r.activity===`kssr_math_y1_${k}`).map(r=>Number(r.stars||0));
+    return vals.length?Math.max(...vals):0;
+  };
+  const completed=keys.filter(k=>bestFor(k)>=8).length;
+  root.innerHTML=`<section class="container learning-hub-page">
+    <div class="hub-top"><button class="btn ghost math-back">← Semua Subjek</button><span class="badge">Matematik Tahun 1 · Pilot</span></div>
+    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>MATEMATIK TAHUN 1</small><h1>${esc(activeChild.name)}</h1><p>📚 ${completed}/${keys.length} topik mencapai sekurang-kurangnya ⭐ 8/15</p></div></div>
+    <div class="kssr-progress-summary"><div><b>${completed}</b><span>Topik dikuasai</span></div><div><b>${keys.length}</b><span>Topik tersedia</span></div><div><b>${Math.round(completed/keys.length*100)}%</b><span>Kemajuan</span></div></div>
+    <div class="hub-heading"><div><small>LATIHAN TOPIKAL</small><h2>Pilih topik latihan</h2></div><p>Setiap sesi mengandungi 5 soalan rawak. Rekod terbaik digunakan untuk menunjukkan penguasaan topik.</p></div>
+    <div class="kssr-topic-grid">${keys.map(k=>{const t=mathYear1Bank[k],best=bestFor(k);return `<article class="kssr-topic-card ${best>=8?'passed':''}">
+      <div class="topic-icon">${t.icon}</div><div><small>TAHUN 1</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
+      <div class="topic-score">${best?`Rekod terbaik <b>⭐ ${best}/15</b>`:'Belum dimainkan'}</div>
+      <button class="btn ${best>=8?'success':'primary'} math-topic-start" data-topic="${k}">${best?'Latih Lagi':'Mula Latihan'}</button>
+    </article>`}).join('')}</div>
+    <div class="hub-note">📘 Soalan pilot ini ialah kandungan original CilikGo berdasarkan kemahiran Matematik Tahap I. Ia tidak dilabel sebagai soalan rasmi KPM atau salinan kertas peperiksaan.</div>
+  </section>`;
+  $('.math-back').onclick=()=>renderParentLearningHub(p);
+  document.querySelectorAll('.math-topic-start').forEach(b=>b.onclick=()=>startMathYear1Topic(b.dataset.topic));
+}
+
+async function startMathYear1Topic(topicKey){
+  if(!fb?.auth.currentUser){openAuth('login');return;}
+  const p=currentProfile||await getProfile(fb.auth.currentUser);
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'count');return;}
+  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+  const topic=mathYear1Bank[topicKey];
+  if(!topic){toast('Topik tidak dijumpai.');return;}
+  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
+  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
+
+  const render=()=>{
+    const q=questions[index]; let attempts=0,completed=false;
+    const pct=Math.round(index/questions.length*100);
+    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="badge">Matematik Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
+      <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
+      <div class="level-progress"><span style="width:${pct}%"></span></div>
+      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Cuba sehingga mendapat jawapan yang betul.</span></div>
+      <div class="game-prompt">${esc(q.prompt)}</div>
+      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
+      <div id="gameMsg"></div>`;
+    if(!$('#gameModal').open) $('#gameModal').showModal();
+    $('#speakQuestion').onclick=()=>speakBM(q.prompt);
+    document.querySelectorAll('.answer').forEach(btn=>btn.onclick=()=>{
+      if(completed)return;
+      attempts++; totalAttempts++;
+      if(btn.textContent!==q.correct){
+        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),450);
+        $('#gameMsg').innerHTML=`<div class="try-again">💪 Belum tepat. Cuba lagi! <small>Percubaan ${attempts}</small></div>`;
+        speakBM('Cuba lagi'); return;
+      }
+      completed=true; correctCount++;
+      const earned=attempts===1?3:attempts===2?2:1;
+      scoreStars+=earned;
+      btn.classList.add('correct');
+      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
+      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Betul!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(earned)}</strong></div>`;
+      celebrate(); speakBM(q.success||'Betul');
+      setTimeout(()=>{index++;index<questions.length?render():finish();},1200);
+    });
+  };
+
+  const finish=async()=>{
+    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
+    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
+      <span class="badge">Matematik Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
+      <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
+      <div class="result-stars">⭐ ${scoreStars} / 15</div>
+      <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
+      <div class="result-actions"><button class="btn primary" id="mathAgain">Latih Lagi</button><button class="btn ghost" id="mathTopics">Pilih Topik</button></div>
+      <p class="result-tip">${passed?'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik.':'Sasarkan sekurang-kurangnya ⭐ 8/15.'}</p></div>`;
+    celebrate(); speakBM(passed?'Syabas, hebat!':'Teruskan latihan');
+    try{
+      await fb.addDoc(fb.collection(fb.db,'progress'),{
+        ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,
+        module:'KSSR Matematik Tahun 1',activity:`kssr_math_y1_${topicKey}`,
+        level:1,year:1,subject:'math',topic:topicKey,questions:5,
+        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
+        createdAt:fb.serverTimestamp()
+      });
+      toast(`⭐ Rekod ${topic.title} disimpan.`);
+    }catch(e){console.error(e);toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');}
+    $('#mathAgain').onclick=()=>startMathYear1Topic(topicKey);
+    $('#mathTopics').onclick=()=>{$('#gameModal').close();renderMathYear1Hub(p);};
+  };
+  render();
+}
+
 async function renderUser(p){
   const kids=await loadChildren(p.uid);
   const progress=await loadAllProgress(p.uid);
@@ -307,7 +405,7 @@ async function renderUser(p){
   const childCards=kids.map(c=>{
     const cp=progress.filter(x=>x.childId===c.id);
     const st=cp.reduce((s,x)=>s+Number(x.stars||0),0);
-    return `<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>${esc(c.year||Math.max(1,Number(c.age||7)-6))} · Tahun · ⭐ ${st}</small></button>`;
+    return `<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>Tahun ${esc(c.year||Math.max(1,Number(c.age||7)-6))} · ⭐ ${st}</small></button>`;
   }).join('');
 
   $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 Penjaga</h3><a class="active">Perkembangan</a><a href="#" class="parent-learning-nav">Latihan KSSR</a><a href="#" id="parentSubscriptionLink">Langganan</a><a href="#settings">Settings</a></aside>
@@ -664,6 +762,105 @@ const kssrArchitecture={
     sejarah:{name:'Sejarah',icon:'🏛️'}
   },
   questionSchema:['year','subject','topic','contentStandard','learningStandard','difficulty','questionType','prompt','answers','correct','explanation','sourceType']
+};
+
+const mathYear1Bank={
+  numbers:{
+    title:'Nombor hingga 100',icon:'🔢',
+    desc:'Kenal, susun, banding dan nilai tempat nombor.',
+    questions:[
+      {prompt:'Nombor selepas 29 ialah…',answers:['28','30','31'],correct:'30',success:'Betul! Selepas 29 ialah 30.'},
+      {prompt:'Nombor sebelum 50 ialah…',answers:['48','49','51'],correct:'49',success:'Betul! Sebelum 50 ialah 49.'},
+      {prompt:'Pilih nombor paling besar.',answers:['37','73','27'],correct:'73',success:'Hebat! 73 ialah nombor paling besar.'},
+      {prompt:'Pilih nombor paling kecil.',answers:['46','16','61'],correct:'16',success:'Betul! 16 ialah nombor paling kecil.'},
+      {prompt:'Lengkapkan turutan: 12, 13, 14, __',answers:['15','16','17'],correct:'15',success:'Bagus! Selepas 14 ialah 15.'},
+      {prompt:'Lengkapkan turutan: 40, 50, 60, __',answers:['65','70','80'],correct:'70',success:'Tepat! Turutan bertambah 10.'},
+      {prompt:'Dalam nombor 42, digit puluh ialah…',answers:['2','4','6'],correct:'4',success:'Betul! 42 mempunyai 4 puluh.'},
+      {prompt:'Dalam nombor 68, digit sa ialah…',answers:['6','8','14'],correct:'8',success:'Betul! Digit sa bagi 68 ialah 8.'},
+      {prompt:'3 puluh dan 5 sa menjadi…',answers:['30','35','53'],correct:'35',success:'Hebat! 3 puluh dan 5 sa ialah 35.'},
+      {prompt:'Manakah sama dengan 80?',answers:['8 puluh','8 sa','18 puluh'],correct:'8 puluh',success:'Betul! 8 puluh bersamaan 80.'}
+    ]
+  },
+  addsub:{
+    title:'Tambah & Tolak',icon:'➕',
+    desc:'Operasi tambah dan tolak asas dalam lingkungan 100.',
+    questions:[
+      {prompt:'7 + 5 = ?',answers:['11','12','13'],correct:'12',success:'Betul! 7 tambah 5 ialah 12.'},
+      {prompt:'14 + 3 = ?',answers:['16','17','18'],correct:'17',success:'Betul! 14 tambah 3 ialah 17.'},
+      {prompt:'20 + 6 = ?',answers:['24','26','28'],correct:'26',success:'Hebat! 20 tambah 6 ialah 26.'},
+      {prompt:'32 + 10 = ?',answers:['40','42','52'],correct:'42',success:'Betul! 32 tambah 10 ialah 42.'},
+      {prompt:'15 - 4 = ?',answers:['9','11','12'],correct:'11',success:'Betul! 15 tolak 4 ialah 11.'},
+      {prompt:'28 - 8 = ?',answers:['18','20','22'],correct:'20',success:'Tepat! 28 tolak 8 ialah 20.'},
+      {prompt:'40 - 10 = ?',answers:['20','30','50'],correct:'30',success:'Bagus! 40 tolak 10 ialah 30.'},
+      {prompt:'Ali ada 6 guli. Dia mendapat 3 lagi. Jumlah guli?',answers:['8','9','10'],correct:'9',success:'Betul! 6 tambah 3 ialah 9 guli.'},
+      {prompt:'Siti ada 12 epal. Dia beri 2 epal. Tinggal?',answers:['9','10','14'],correct:'10',success:'Betul! 12 tolak 2 tinggal 10.'},
+      {prompt:'Manakah ayat matematik yang jawapannya 15?',answers:['10 + 5','10 + 4','10 - 5'],correct:'10 + 5',success:'Hebat! 10 tambah 5 ialah 15.'}
+    ]
+  },
+  money:{
+    title:'Wang',icon:'💰',
+    desc:'Kenal duit Malaysia dan kira nilai wang mudah.',
+    questions:[
+      {prompt:'Syiling manakah bernilai paling besar?',answers:['10 sen','20 sen','50 sen'],correct:'50 sen',success:'Betul! 50 sen paling besar.'},
+      {prompt:'RM1 bersamaan berapa sen?',answers:['10 sen','50 sen','100 sen'],correct:'100 sen',success:'Betul! RM1 bersamaan 100 sen.'},
+      {prompt:'20 sen + 20 sen = ?',answers:['30 sen','40 sen','50 sen'],correct:'40 sen',success:'Tepat! Jumlahnya 40 sen.'},
+      {prompt:'50 sen + 50 sen = ?',answers:['RM1','RM2','RM5'],correct:'RM1',success:'Betul! 50 sen tambah 50 sen ialah RM1.'},
+      {prompt:'RM2 + RM3 = ?',answers:['RM4','RM5','RM6'],correct:'RM5',success:'Hebat! RM2 tambah RM3 ialah RM5.'},
+      {prompt:'Harga pensel RM1. Ali bayar RM2. Baki ialah…',answers:['RM1','RM2','RM3'],correct:'RM1',success:'Betul! Bakinya RM1.'},
+      {prompt:'Harga buku RM4. Duit Siti RM5. Adakah duitnya cukup?',answers:['Ya','Tidak','Tidak pasti'],correct:'Ya',success:'Betul! RM5 cukup untuk membeli buku RM4.'},
+      {prompt:'Pilih jumlah yang lebih banyak.',answers:['RM2','RM5','RM1'],correct:'RM5',success:'Betul! RM5 paling banyak.'},
+      {prompt:'Dua keping RM1 bernilai…',answers:['RM1','RM2','RM10'],correct:'RM2',success:'Betul! Dua keping RM1 ialah RM2.'},
+      {prompt:'10 sen + 20 sen + 20 sen = ?',answers:['40 sen','50 sen','60 sen'],correct:'50 sen',success:'Bagus! Jumlahnya 50 sen.'}
+    ]
+  },
+  time:{
+    title:'Masa & Waktu',icon:'🕒',
+    desc:'Jam, hari dan urutan aktiviti harian.',
+    questions:[
+      {prompt:'Jika jarum pendek pada 3 dan jarum panjang pada 12, waktunya…',answers:['2:00','3:00','3:30'],correct:'3:00',success:'Betul! Waktunya pukul 3.'},
+      {prompt:'1 jam mempunyai berapa minit?',answers:['30','60','100'],correct:'60',success:'Betul! 1 jam mempunyai 60 minit.'},
+      {prompt:'Hari selepas Isnin ialah…',answers:['Ahad','Selasa','Rabu'],correct:'Selasa',success:'Betul! Selepas Isnin ialah Selasa.'},
+      {prompt:'Hari sebelum Jumaat ialah…',answers:['Rabu','Khamis','Sabtu'],correct:'Khamis',success:'Betul! Sebelum Jumaat ialah Khamis.'},
+      {prompt:'Biasanya kita sarapan pada waktu…',answers:['pagi','petang','malam'],correct:'pagi',success:'Betul! Sarapan biasanya pada waktu pagi.'},
+      {prompt:'Biasanya kita tidur pada waktu…',answers:['pagi','tengah hari','malam'],correct:'malam',success:'Betul! Kita biasanya tidur pada waktu malam.'},
+      {prompt:'Pukul 7:00 dibaca sebagai…',answers:['pukul tujuh','pukul lapan','pukul tujuh setengah'],correct:'pukul tujuh',success:'Betul! 7:00 ialah pukul tujuh.'},
+      {prompt:'Jika sekarang pukul 2:00, satu jam kemudian ialah…',answers:['1:00','3:00','4:00'],correct:'3:00',success:'Betul! Satu jam selepas 2:00 ialah 3:00.'},
+      {prompt:'Antara berikut, manakah lebih lama?',answers:['1 minit','1 jam','10 minit'],correct:'1 jam',success:'Betul! 1 jam lebih lama.'},
+      {prompt:'Susunan hari yang betul ialah…',answers:['Isnin, Selasa, Rabu','Isnin, Rabu, Selasa','Selasa, Isnin, Rabu'],correct:'Isnin, Selasa, Rabu',success:'Betul! Itu susunan hari yang betul.'}
+    ]
+  },
+  measure:{
+    title:'Ukuran & Sukatan',icon:'📏',
+    desc:'Banding panjang, jisim dan isi padu secara asas.',
+    questions:[
+      {prompt:'Pensel 15 cm dan pemadam 5 cm. Yang lebih panjang ialah…',answers:['pensel','pemadam','sama panjang'],correct:'pensel',success:'Betul! Pensel lebih panjang.'},
+      {prompt:'Gajah dan kucing. Yang lebih berat ialah…',answers:['kucing','gajah','sama berat'],correct:'gajah',success:'Betul! Gajah lebih berat.'},
+      {prompt:'Baldi dan cawan. Yang boleh mengisi lebih banyak air ialah…',answers:['cawan','baldi','sama banyak'],correct:'baldi',success:'Betul! Baldi mempunyai kapasiti lebih besar.'},
+      {prompt:'Unit yang sesuai untuk mengukur panjang buku ialah…',answers:['sentimeter','ringgit','jam'],correct:'sentimeter',success:'Betul! Sentimeter sesuai untuk panjang buku.'},
+      {prompt:'Antara 9 cm dan 12 cm, yang lebih panjang ialah…',answers:['9 cm','12 cm','sama'],correct:'12 cm',success:'Tepat! 12 cm lebih panjang.'},
+      {prompt:'Beg berisi 5 buku dan beg berisi 1 buku. Yang biasanya lebih berat ialah…',answers:['beg 5 buku','beg 1 buku','sama'],correct:'beg 5 buku',success:'Betul! Beg dengan 5 buku biasanya lebih berat.'},
+      {prompt:'Botol penuh dan botol separuh penuh. Yang mempunyai lebih banyak air ialah…',answers:['botol penuh','botol separuh','sama'],correct:'botol penuh',success:'Betul! Botol penuh mempunyai lebih banyak air.'},
+      {prompt:'Pilih objek yang biasanya paling pendek.',answers:['pemadam','pintu','meja'],correct:'pemadam',success:'Betul! Pemadam biasanya paling pendek.'},
+      {prompt:'Pilih objek yang biasanya paling ringan.',answers:['bulu','kerusi','peti ais'],correct:'bulu',success:'Betul! Bulu biasanya paling ringan.'},
+      {prompt:'Bekas A muat 2 cawan air. Bekas B muat 5 cawan. Yang lebih besar kapasitinya ialah…',answers:['Bekas A','Bekas B','sama'],correct:'Bekas B',success:'Betul! Bekas B mempunyai kapasiti lebih besar.'}
+    ]
+  },
+  shapes:{
+    title:'Bentuk & Data',icon:'🔷',
+    desc:'Kenal bentuk asas dan baca maklumat mudah.',
+    questions:[
+      {prompt:'Bentuk yang mempunyai 3 sisi ialah…',answers:['bulatan','segi tiga','segi empat sama'],correct:'segi tiga',success:'Betul! Segi tiga mempunyai 3 sisi.'},
+      {prompt:'Bentuk yang mempunyai 4 sisi sama panjang ialah…',answers:['segi empat sama','bulatan','segi tiga'],correct:'segi empat sama',success:'Betul! Segi empat sama mempunyai 4 sisi sama panjang.'},
+      {prompt:'Bentuk yang tiada sisi lurus ialah…',answers:['bulatan','segi tiga','segi empat tepat'],correct:'bulatan',success:'Betul! Bulatan tiada sisi lurus.'},
+      {prompt:'Objek manakah menyerupai sfera?',answers:['bola','buku','pintu'],correct:'bola',success:'Betul! Bola menyerupai sfera.'},
+      {prompt:'Objek manakah menyerupai kubus?',answers:['dadu','pinggan','pensel'],correct:'dadu',success:'Betul! Dadu menyerupai kubus.'},
+      {prompt:'Data buah: Epal 4, Oren 2, Pisang 3. Buah paling banyak ialah…',answers:['Epal','Oren','Pisang'],correct:'Epal',success:'Betul! Epal paling banyak.'},
+      {prompt:'Data buku: Ali 2, Siti 5. Siapa mempunyai lebih banyak buku?',answers:['Ali','Siti','Sama'],correct:'Siti',success:'Betul! Siti mempunyai lebih banyak buku.'},
+      {prompt:'Ada 3 bulatan dan 1 segi tiga. Bentuk paling banyak ialah…',answers:['bulatan','segi tiga','sama'],correct:'bulatan',success:'Betul! Bulatan paling banyak.'},
+      {prompt:'Segi empat tepat mempunyai berapa sisi?',answers:['3','4','5'],correct:'4',success:'Betul! Segi empat tepat mempunyai 4 sisi.'},
+      {prompt:'Antara berikut, yang manakah bentuk 3D?',answers:['kubus','segi tiga','bulatan'],correct:'kubus',success:'Betul! Kubus ialah bentuk tiga dimensi.'}
+    ]
+  }
 };
 
 const curriculum={
