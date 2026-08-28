@@ -125,3 +125,6 @@ input,select,textarea{font-size:16px}
 
 /* Bahasa Inggeris Tahun 1 Pilot */
 .kssr-quiz-head .badge{display:inline-flex}
+
+/* Sains Tahun 1 Pilot */
+.science-topic-start{min-height:42px}

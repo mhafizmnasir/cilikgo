@@ -287,12 +287,110 @@ async function renderParentLearningHub(p){
     if(year===1&&key==='bm'){ renderBmYear1Hub(p); return; }
     if(year===1&&key==='bi'){ renderBiYear1Hub(p); return; }
     if(year===1&&key==='math'){ renderMathYear1Hub(p); return; }
-    root.querySelector('.hub-note').innerHTML=`🚧 <b>${names[key]} Tahun 1:</b> kandungan pilot belum diaktifkan. Bahasa Melayu, Bahasa Inggeris dan Matematik Tahun 1 tersedia untuk diuji sekarang.`;
+    if(year===1&&key==='science'){ renderScienceYear1Hub(p); return; }
+    root.querySelector('.hub-note').innerHTML=`📘 <b>${names[key]} Tahun 1:</b> kandungan pilot tersedia untuk diuji.`;
     root.querySelector('.hub-note').scrollIntoView({behavior:'smooth',block:'center'});
   });
 }
 
 
+
+
+async function renderScienceYear1Hub(p){
+  if(!fb?.auth.currentUser){openAuth('login');return;}
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'count');return;}
+  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+  const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
+  if(year!==1){toast('Pilot Sains ini untuk murid Tahun 1.');return;}
+  const root=$('#dashboard'), rows=await loadProgress(p.uid,activeChild.id);
+  const keys=Object.keys(scienceYear1Bank);
+  const bestFor=k=>{
+    const vals=rows.filter(r=>r.activity===`kssr_science_y1_${k}`).map(r=>Number(r.stars||0));
+    return vals.length?Math.max(...vals):0;
+  };
+  const completed=keys.filter(k=>bestFor(k)>=8).length;
+  root.innerHTML=`<section class="container learning-hub-page">
+    <div class="hub-top"><button class="btn ghost science-back">← Semua Subjek</button><span class="badge">Sains Tahun 1 · Pilot</span></div>
+    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>SAINS TAHUN 1</small><h1>${esc(activeChild.name)}</h1><p>🔬 ${completed}/${keys.length} topik mencapai sekurang-kurangnya ⭐ 8/15</p></div></div>
+    <div class="kssr-progress-summary"><div><b>${completed}</b><span>Topik dikuasai</span></div><div><b>${keys.length}</b><span>Topik tersedia</span></div><div><b>${Math.round(completed/keys.length*100)}%</b><span>Kemajuan</span></div></div>
+    <div class="hub-heading"><div><small>LATIHAN TOPIKAL</small><h2>Pilih topik Sains</h2></div><p>Setiap sesi mengandungi 5 soalan rawak. Rekod terbaik digunakan untuk menunjukkan penguasaan topik.</p></div>
+    <div class="kssr-topic-grid">${keys.map(k=>{const t=scienceYear1Bank[k],best=bestFor(k);return `<article class="kssr-topic-card ${best>=8?'passed':''}">
+      <div class="topic-icon">${t.icon}</div><div><small>TAHUN 1</small><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>
+      <div class="topic-score">${best?`Rekod terbaik <b>⭐ ${best}/15</b>`:'Belum dimainkan'}</div>
+      <button class="btn ${best>=8?'success':'primary'} science-topic-start" data-topic="${k}">${best?'Latih Lagi':'Mula Latihan'}</button>
+    </article>`}).join('')}</div>
+    <div class="hub-note">📘 Latihan ini ialah kandungan original CilikGo yang disusun mengikut kemahiran dan kandungan asas Sains Tahun 1. Ia bukan salinan kertas peperiksaan dan tidak dilabel sebagai soalan rasmi KPM.</div>
+  </section>`;
+  $('.science-back').onclick=()=>renderParentLearningHub(p);
+  document.querySelectorAll('.science-topic-start').forEach(b=>b.onclick=()=>startScienceYear1Topic(b.dataset.topic));
+}
+
+async function startScienceYear1Topic(topicKey){
+  if(!fb?.auth.currentUser){openAuth('login');return;}
+  const p=currentProfile||await getProfile(fb.auth.currentUser);
+  if(!subscriptionState(p).active){showSubscriptionGate(p,'count');return;}
+  if(!activeChild){toast('Pilih profil anak dahulu.');return;}
+  const topic=scienceYear1Bank[topicKey];
+  if(!topic){toast('Topik tidak dijumpai.');return;}
+  const questions=[...topic.questions].sort(()=>Math.random()-.5).slice(0,5);
+  let index=0,scoreStars=0,totalAttempts=0,correctCount=0;
+
+  const render=()=>{
+    const q=questions[index]; let attempts=0,completed=false;
+    const pct=Math.round(index/questions.length*100);
+    $('#gameContent').innerHTML=`<div class="kssr-quiz-head"><span class="badge">Sains Tahun 1</span><h2>${topic.icon} ${esc(topic.title)}</h2><p>${esc(activeChild.avatar||'🧒')} ${esc(activeChild.name)}</p></div>
+      <div class="learning-hud"><div><b>Soalan ${index+1}/${questions.length}</b><small>${pct}% selesai</small></div><div class="hud-stars">⭐ ${scoreStars}</div></div>
+      <div class="level-progress"><span style="width:${pct}%"></span></div>
+      <div class="audio-row"><button class="audio-btn" id="speakQuestion">🔊 Dengar</button><span>Baca atau dengar soalan, kemudian pilih jawapan terbaik.</span></div>
+      <div class="game-prompt">${esc(q.prompt)}</div>
+      <div class="answers">${q.answers.map(a=>`<button class="answer">${esc(a)}</button>`).join('')}</div>
+      <div id="gameMsg"></div>`;
+    if(!$('#gameModal').open) $('#gameModal').showModal();
+    $('#speakQuestion').onclick=()=>speakBM(q.prompt);
+    document.querySelectorAll('.answer').forEach(btn=>btn.onclick=()=>{
+      if(completed)return;
+      attempts++; totalAttempts++;
+      if(btn.textContent!==q.correct){
+        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),450);
+        $('#gameMsg').innerHTML=`<div class="try-again">💪 Belum tepat. Cuba lagi! <small>Percubaan ${attempts}</small></div>`;
+        speakBM('Cuba lagi'); return;
+      }
+      completed=true; correctCount++;
+      const earned=attempts===1?3:attempts===2?2:1;
+      scoreStars+=earned;
+      btn.classList.add('correct');
+      document.querySelectorAll('.answer').forEach(a=>a.disabled=true);
+      $('#gameMsg').innerHTML=`<div class="correct-feedback"><b>🎉 Betul!</b><span>${esc(q.success)}</span><strong>${'⭐'.repeat(earned)}</strong></div>`;
+      celebrate(); speakBM(q.success||'Betul');
+      setTimeout(()=>{index++;index<questions.length?render():finish();},1200);
+    });
+  };
+
+  const finish=async()=>{
+    const passed=scoreStars>=8,pct=Math.round(scoreStars/15*100);
+    $('#gameContent').innerHTML=`<div class="result-card"><div class="result-emoji">${pct>=85?'🏆':pct>=65?'🌟':'💪'}</div>
+      <span class="badge">Sains Tahun 1</span><h2>${passed?'Syabas!':'Teruskan latihan!'}</h2>
+      <p>${esc(activeChild.name)} telah menamatkan topik <b>${esc(topic.title)}</b>.</p>
+      <div class="result-stars">⭐ ${scoreStars} / 15</div>
+      <div class="result-grid"><div><b>${correctCount}/5</b><small>Soalan selesai</small></div><div><b>${totalAttempts}</b><small>Percubaan</small></div><div><b>${pct}%</b><small>Skor bintang</small></div></div>
+      <div class="result-actions"><button class="btn primary" id="scienceAgain">Latih Lagi</button><button class="btn ghost" id="scienceTopics">Pilih Topik</button></div>
+      <p class="result-tip">${passed?'⭐ Topik ini ditanda dikuasai berdasarkan rekod terbaik.':'Sasarkan sekurang-kurangnya ⭐ 8/15.'}</p></div>`;
+    celebrate(); speakBM(passed?'Syabas, hebat!':'Teruskan latihan');
+    try{
+      await fb.addDoc(fb.collection(fb.db,'progress'),{
+        ownerUid:fb.auth.currentUser.uid,childId:activeChild.id,
+        module:'KSSR Sains Tahun 1',activity:`kssr_science_y1_${topicKey}`,
+        level:1,year:1,subject:'science',topic:topicKey,questions:5,
+        correct:true,correctCount,attempts:totalAttempts,stars:scoreStars,passed,
+        createdAt:fb.serverTimestamp()
+      });
+      toast(`⭐ Rekod ${topic.title} disimpan.`);
+    }catch(e){console.error(e);toast('Latihan selesai, tetapi rekod kemajuan gagal disimpan.');}
+    $('#scienceAgain').onclick=()=>startScienceYear1Topic(topicKey);
+    $('#scienceTopics').onclick=()=>{$('#gameModal').close();renderScienceYear1Hub(p);};
+  };
+  render();
+}
 
 async function renderBiYear1Hub(p){
   if(!fb?.auth.currentUser){openAuth('login');return;}
@@ -969,6 +1067,105 @@ const kssrArchitecture={
     sejarah:{name:'Sejarah',icon:'🏛️'}
   },
   questionSchema:['year','subject','topic','contentStandard','learningStandard','difficulty','questionType','prompt','answers','correct','explanation','sourceType']
+};
+
+const scienceYear1Bank={
+  skills:{
+    title:'Kemahiran Sains & Keselamatan',icon:'🔍',
+    desc:'Memerhati, membanding, mengelas dan mengamalkan peraturan keselamatan.',
+    questions:[
+      {prompt:'Apakah deria utama yang digunakan untuk melihat warna bunga?',answers:['mata','telinga','hidung'],correct:'mata',success:'Betul! Mata digunakan untuk melihat.'},
+      {prompt:'Apakah alat yang sesuai untuk melihat objek kecil dengan lebih jelas?',answers:['kanta pembesar','pembaris','sudu'],correct:'kanta pembesar',success:'Betul! Kanta pembesar membantu melihat objek kecil.'},
+      {prompt:'Kita mengumpulkan daun mengikut warna. Kemahiran ini disebut…',answers:['mengelas','menjerit','melompat'],correct:'mengelas',success:'Betul! Mengumpulkan mengikut ciri ialah mengelas.'},
+      {prompt:'Dua objek dibandingkan dari segi panjang. Apakah yang kita lakukan?',answers:['membanding','memasak','melukis'],correct:'membanding',success:'Betul! Kita sedang membandingkan objek.'},
+      {prompt:'Sebelum menjalankan aktiviti sains, kita perlu…',answers:['mendengar arahan guru','berlari di bilik sains','bermain dengan alat'],correct:'mendengar arahan guru',success:'Betul! Keselamatan bermula dengan mematuhi arahan.'},
+      {prompt:'Jika air tertumpah di lantai bilik sains, kita perlu…',answers:['beritahu guru','biarkan sahaja','berlari melaluinya'],correct:'beritahu guru',success:'Betul! Maklumkan kepada guru supaya keadaan selamat.'},
+      {prompt:'Apakah tindakan yang selamat dengan bahan yang tidak dikenali?',answers:['jangan rasa atau hidu sesuka hati','rasa sedikit','bawa pulang'],correct:'jangan rasa atau hidu sesuka hati',success:'Betul! Jangan rasa atau hidu bahan yang tidak dikenali.'},
+      {prompt:'Apabila selesai menggunakan alat, kita perlu…',answers:['simpan dengan kemas','tinggalkan di lantai','campak ke dalam kotak'],correct:'simpan dengan kemas',success:'Betul! Alat perlu disimpan dengan kemas.'},
+      {prompt:'Kita mencatat bilangan biji benih yang tumbuh. Ini membantu kita…',answers:['merekod pemerhatian','bermain','meneka tanpa melihat'],correct:'merekod pemerhatian',success:'Betul! Rekod membantu menyimpan hasil pemerhatian.'},
+      {prompt:'Yang manakah contoh pemerhatian?',answers:['Daun itu berwarna hijau.','Saya rasa daun itu suka hujan.','Daun itu pasti gembira.'],correct:'Daun itu berwarna hijau.',success:'Betul! Warna hijau boleh diperhatikan secara langsung.'}
+    ]
+  },
+  living:{
+    title:'Benda Hidup & Bukan Hidup',icon:'🌱',
+    desc:'Kenal ciri benda hidup dan keperluan asas untuk hidup.',
+    questions:[
+      {prompt:'Yang manakah benda hidup?',answers:['kucing','batu','meja'],correct:'kucing',success:'Betul! Kucing ialah benda hidup.'},
+      {prompt:'Yang manakah benda bukan hidup?',answers:['pokok','ikan','kerusi'],correct:'kerusi',success:'Betul! Kerusi ialah benda bukan hidup.'},
+      {prompt:'Benda hidup memerlukan ___ untuk terus hidup.',answers:['air','plastik','cat'],correct:'air',success:'Betul! Air ialah salah satu keperluan asas benda hidup.'},
+      {prompt:'Haiwan memerlukan makanan untuk…',answers:['mendapat tenaga','menjadi batu','bertukar menjadi meja'],correct:'mendapat tenaga',success:'Betul! Makanan membekalkan tenaga.'},
+      {prompt:'Tumbuhan memerlukan cahaya untuk membantu…',answers:['tumbuh','menjadi mainan','berbunyi'],correct:'tumbuh',success:'Betul! Cahaya membantu tumbuhan hidup dan tumbuh.'},
+      {prompt:'Antara berikut, yang manakah boleh membesar?',answers:['anak ayam','pensel','cawan'],correct:'anak ayam',success:'Betul! Anak ayam ialah benda hidup dan boleh membesar.'},
+      {prompt:'Benda hidup boleh…',answers:['membiak','menjadi plastik','tidak berubah langsung'],correct:'membiak',success:'Betul! Membiak ialah salah satu ciri benda hidup.'},
+      {prompt:'Pokok layu kerana tidak disiram. Apakah yang kurang?',answers:['air','batu','kertas'],correct:'air',success:'Betul! Tumbuhan memerlukan air.'},
+      {prompt:'Ikan biasanya hidup di…',answers:['air','pasir kering','atas meja'],correct:'air',success:'Betul! Ikan hidup di dalam air.'},
+      {prompt:'Mengapakah manusia perlu bernafas?',answers:['untuk hidup','untuk menjadi lebih tinggi serta-merta','untuk bertukar warna'],correct:'untuk hidup',success:'Betul! Bernafas ialah keperluan asas manusia.'}
+    ]
+  },
+  human:{
+    title:'Manusia & Deria',icon:'👀',
+    desc:'Kenal anggota badan, deria dan cara menjaga diri.',
+    questions:[
+      {prompt:'Kita melihat menggunakan…',answers:['mata','hidung','lidah'],correct:'mata',success:'Betul! Mata ialah organ deria penglihatan.'},
+      {prompt:'Kita mendengar menggunakan…',answers:['telinga','mata','kulit'],correct:'telinga',success:'Betul! Telinga digunakan untuk mendengar.'},
+      {prompt:'Kita menghidu bau menggunakan…',answers:['hidung','tangan','kaki'],correct:'hidung',success:'Betul! Hidung digunakan untuk menghidu.'},
+      {prompt:'Kita merasa rasa makanan menggunakan…',answers:['lidah','rambut','kuku'],correct:'lidah',success:'Betul! Lidah digunakan untuk merasa.'},
+      {prompt:'Kita merasa sentuhan menggunakan…',answers:['kulit','gigi','rambut'],correct:'kulit',success:'Betul! Kulit membantu kita merasa sentuhan.'},
+      {prompt:'Bunyi loceng dikesan oleh deria…',answers:['pendengaran','penglihatan','rasa'],correct:'pendengaran',success:'Betul! Bunyi dikesan melalui pendengaran.'},
+      {prompt:'Warna merah dikesan oleh deria…',answers:['penglihatan','bau','rasa'],correct:'penglihatan',success:'Betul! Warna dilihat menggunakan mata.'},
+      {prompt:'Ais terasa sejuk apabila disentuh. Deria yang digunakan ialah…',answers:['sentuhan','bau','pendengaran'],correct:'sentuhan',success:'Betul! Kulit membantu merasa sejuk.'},
+      {prompt:'Cara yang baik menjaga mata ialah…',answers:['membaca dengan cahaya yang cukup','melihat skrin terlalu dekat','menggosok mata dengan tangan kotor'],correct:'membaca dengan cahaya yang cukup',success:'Betul! Cahaya yang cukup membantu menjaga mata.'},
+      {prompt:'Cara menjaga kebersihan badan ialah…',answers:['mandi setiap hari','tidak membasuh tangan','memakai pakaian kotor'],correct:'mandi setiap hari',success:'Betul! Mandi membantu menjaga kebersihan badan.'}
+    ]
+  },
+  organisms:{
+    title:'Haiwan & Tumbuhan',icon:'🐾',
+    desc:'Kenal bahagian, ciri dan keperluan haiwan serta tumbuhan.',
+    questions:[
+      {prompt:'Burung menggunakan ___ untuk terbang.',answers:['sayap','sirip','akar'],correct:'sayap',success:'Betul! Burung menggunakan sayap untuk terbang.'},
+      {prompt:'Ikan bergerak di dalam air menggunakan…',answers:['sirip','sayap','akar'],correct:'sirip',success:'Betul! Sirip membantu ikan berenang.'},
+      {prompt:'Bahagian tumbuhan yang menyerap air dari tanah ialah…',answers:['akar','bunga','buah'],correct:'akar',success:'Betul! Akar menyerap air dari tanah.'},
+      {prompt:'Bahagian tumbuhan yang biasanya berwarna hijau ialah…',answers:['daun','akar','tanah'],correct:'daun',success:'Betul! Daun biasanya berwarna hijau.'},
+      {prompt:'Bunga boleh berkembang menjadi…',answers:['buah','batu','kertas'],correct:'buah',success:'Betul! Bunga boleh berkembang menjadi buah.'},
+      {prompt:'Yang manakah haiwan berkaki empat?',answers:['kucing','ikan','ular'],correct:'kucing',success:'Betul! Kucing mempunyai empat kaki.'},
+      {prompt:'Yang manakah haiwan yang hidup di air?',answers:['ikan','ayam','kucing'],correct:'ikan',success:'Betul! Ikan hidup di air.'},
+      {prompt:'Tumbuhan yang tidak mendapat air mencukupi boleh…',answers:['layu','menjadi besi','berbunyi'],correct:'layu',success:'Betul! Kekurangan air boleh menyebabkan tumbuhan layu.'},
+      {prompt:'Apakah persamaan ayam dan kucing?',answers:['kedua-duanya haiwan','kedua-duanya tumbuhan','kedua-duanya benda bukan hidup'],correct:'kedua-duanya haiwan',success:'Betul! Ayam dan kucing ialah haiwan.'},
+      {prompt:'Apakah yang diperlukan oleh haiwan dan tumbuhan?',answers:['air','plastik','kaca'],correct:'air',success:'Betul! Haiwan dan tumbuhan memerlukan air.'}
+    ]
+  },
+  materials:{
+    title:'Magnet & Penyerapan',icon:'🧲',
+    desc:'Kenal tarikan magnet dan bahan yang menyerap atau tidak menyerap air.',
+    questions:[
+      {prompt:'Magnet boleh menarik objek yang diperbuat daripada…',answers:['besi','kertas','kain'],correct:'besi',success:'Betul! Magnet boleh menarik banyak objek besi.'},
+      {prompt:'Yang manakah biasanya boleh ditarik oleh magnet?',answers:['klip kertas besi','pemadam','kertas'],correct:'klip kertas besi',success:'Betul! Klip kertas besi boleh ditarik magnet.'},
+      {prompt:'Dua kutub magnet yang sama akan…',answers:['menolak','melekat kuat','hilang'],correct:'menolak',success:'Betul! Kutub yang sama saling menolak.'},
+      {prompt:'Dua kutub magnet yang berlainan akan…',answers:['menarik','menolak','mencair'],correct:'menarik',success:'Betul! Kutub berlainan saling menarik.'},
+      {prompt:'Bahan manakah mudah menyerap air?',answers:['span','plastik','kaca'],correct:'span',success:'Betul! Span mudah menyerap air.'},
+      {prompt:'Bahan manakah tidak mudah menyerap air?',answers:['plastik','tisu','kain'],correct:'plastik',success:'Betul! Plastik tidak mudah menyerap air.'},
+      {prompt:'Tisu terkena air akan…',answers:['menyerap air','menolak air sepenuhnya','menjadi magnet'],correct:'menyerap air',success:'Betul! Tisu menyerap air.'},
+      {prompt:'Payung sesuai dibuat daripada bahan yang…',answers:['tidak mudah menyerap air','sangat mudah menyerap air','mudah koyak apabila basah'],correct:'tidak mudah menyerap air',success:'Betul! Bahan payung perlu menghalang air.'},
+      {prompt:'Jika magnet didekatkan kepada sudu plastik, biasanya sudu itu…',answers:['tidak ditarik','ditarik kuat','berubah warna'],correct:'tidak ditarik',success:'Betul! Plastik biasanya tidak ditarik magnet.'},
+      {prompt:'Kain dan plastik diuji dengan air. Yang biasanya lebih menyerap air ialah…',answers:['kain','plastik','kedua-duanya sama sahaja'],correct:'kain',success:'Betul! Kain biasanya lebih menyerap air.'}
+    ]
+  },
+  earthdesign:{
+    title:'Bumi & Reka Bentuk Asas',icon:'🌍',
+    desc:'Kenal permukaan bumi, sumber semula jadi dan binaan ringkas yang kukuh.',
+    questions:[
+      {prompt:'Permukaan bumi mempunyai kawasan daratan dan…',answers:['air','api','plastik'],correct:'air',success:'Betul! Bumi mempunyai daratan dan kawasan air.'},
+      {prompt:'Yang manakah contoh kawasan air?',answers:['sungai','jalan raya','padang'],correct:'sungai',success:'Betul! Sungai ialah kawasan air.'},
+      {prompt:'Yang manakah contoh daratan?',answers:['bukit','laut','tasik'],correct:'bukit',success:'Betul! Bukit ialah kawasan daratan.'},
+      {prompt:'Batu dan tanah ialah bahan yang boleh ditemui secara…',answers:['semula jadi','hanya di kilang','hanya dalam komputer'],correct:'semula jadi',success:'Betul! Batu dan tanah terdapat secara semula jadi.'},
+      {prompt:'Untuk membina menara blok yang stabil, tapaknya perlu…',answers:['kukuh dan seimbang','sangat kecil','senget'],correct:'kukuh dan seimbang',success:'Betul! Tapak yang kukuh membantu binaan stabil.'},
+      {prompt:'Menara blok sering tumbang kerana…',answers:['tidak seimbang','terlalu kemas','tapaknya lebar'],correct:'tidak seimbang',success:'Betul! Binaan yang tidak seimbang mudah tumbang.'},
+      {prompt:'Bentuk manakah sesuai dijadikan tapak binaan yang stabil?',answers:['permukaan rata','permukaan sangat senget','permukaan bergerak'],correct:'permukaan rata',success:'Betul! Permukaan rata membantu kestabilan.'},
+      {prompt:'Apabila binaan gagal, tindakan saintifik yang baik ialah…',answers:['cuba baiki dan uji semula','terus buang semua bahan','tidak mahu mencuba lagi'],correct:'cuba baiki dan uji semula',success:'Betul! Kita boleh membaiki reka bentuk dan menguji semula.'},
+      {prompt:'Yang manakah sumber semula jadi?',answers:['air','botol plastik','komputer'],correct:'air',success:'Betul! Air ialah sumber semula jadi.'},
+      {prompt:'Kita perlu menggunakan air dengan…',answers:['berhemah','membazir','membiarkan paip terbuka'],correct:'berhemah',success:'Betul! Air perlu digunakan dengan berhemah.'}
+    ]
+  }
 };
 
 const biYear1Bank={
