@@ -252,43 +252,42 @@ async function renderParentLearningHub(p){
     activeChild=kids[0]||null;
   }
   if(!activeChild){
-    root.innerHTML=`<section class="container learning-hub-page"><button class="btn ghost hub-back">← Kembali ke Dashboard</button><div class="empty-state"><h2>Tambah profil anak dahulu</h2><p>Profil anak diperlukan sebelum memulakan Modul 3M.</p></div></section>`;
-    $('.hub-back').onclick=()=>renderUser(p);
-    return;
+    root.innerHTML=`<section class="container learning-hub-page"><button class="btn ghost hub-back">← Kembali ke Dashboard</button><div class="empty-state"><h2>Tambah profil anak dahulu</h2><p>Pilih Tahun 1 hingga Tahun 6 semasa menambah profil.</p></div></section>`;
+    $('.hub-back').onclick=()=>renderUser(p); return;
   }
-  const progress=await loadProgress(p.uid,activeChild.id);
-  const modules=[
-    {key:'read',name:'Membaca',icon:'📖',desc:'Huruf, suku kata dan bacaan mudah.'},
-    {key:'write',name:'Menulis',icon:'✏️',desc:'Bentuk huruf, ejaan dan susunan perkataan.'},
-    {key:'count',name:'Mengira',icon:'🧮',desc:'Nombor, kuantiti, tambah dan tolak asas.'}
+  const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
+  const subjects=[
+    {key:'bm',name:'Bahasa Melayu',icon:'🇲🇾',desc:'Pemahaman, tatabahasa, kosa kata dan penulisan.'},
+    {key:'bi',name:'Bahasa Inggeris',icon:'🔤',desc:'Reading, vocabulary, grammar and writing.'},
+    {key:'math',name:'Matematik',icon:'➗',desc:'Nombor, operasi, wang, masa, ukuran dan penyelesaian masalah.'},
+    {key:'science',name:'Sains',icon:'🔬',desc:'Kemahiran saintifik, manusia, haiwan, tumbuhan dan dunia sekeliling.'}
   ];
-  const total=modules.reduce((n,m)=>n+moduleStars(progress,gameKeyToModule[m.key]),0);
-  const rank=learningRank(total);
+  const topics={
+    bm:['Kemahiran Membaca','Tatabahasa','Kosa Kata','Kemahiran Menulis'],
+    bi:['Reading','Vocabulary','Grammar','Writing'],
+    math:['Nombor & Operasi','Tambah & Tolak','Wang','Masa & Waktu'],
+    science:['Kemahiran Saintifik','Manusia','Haiwan','Tumbuhan']
+  };
   root.innerHTML=`<section class="container learning-hub-page">
-    <div class="hub-top"><button class="btn ghost hub-back">← Dashboard</button><span class="badge">Learning Hub</span></div>
-    <div class="hub-child">
-      <div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div>
-      <div><small>Sedang belajar</small><h1>${esc(activeChild.name)}</h1><p>${rank.icon} ${rank.name} · ⭐ ${total} bintang keseluruhan</p></div>
-    </div>
-    <div class="hub-heading"><div><small>MODUL 3M</small><h2>Pilih pembelajaran hari ini</h2></div><p>Setiap level memerlukan sekurang-kurangnya ⭐ 8/15 untuk membuka level seterusnya.</p></div>
-    <div class="hub-module-grid">${modules.map(m=>{
-      const stars=moduleStars(progress,gameKeyToModule[m.key]);
-      const unlocked=unlockedLevel(progress,m.key);
-      const best=levelBest(progress,m.key,unlocked);
-      return `<article class="hub-module hub-${m.key}">
-        <div class="hub-module-icon">${m.icon}</div>
-        <div class="hub-module-title"><div><h3>${m.name}</h3><p>${m.desc}</p></div><b>⭐ ${stars}</b></div>
-        <div class="hub-level-dots">${[1,2,3].map(l=>`<span class="${l<unlocked?'done':l===unlocked?'current':'locked'}">${l<unlocked?'✓':l}</span>`).join('')}</div>
-        <div class="hub-module-meta"><span>Level ${unlocked} terbuka</span><span>${best?`Rekod ⭐ ${best}/15`:'Belum dimainkan'}</span></div>
-        <button class="btn primary hub-start" data-key="${m.key}">${stars?'Teruskan Belajar':'Mula Belajar'}</button>
-      </article>`;
-    }).join('')}</div>
-    <div class="hub-note">💡 <b>Tip:</b> Galakkan anak belajar dalam sesi pendek dan konsisten. Rekod terbaik setiap level digunakan untuk kemajuan.</div>
+    <div class="hub-top"><button class="btn ghost hub-back">← Dashboard</button><span class="badge">KSSR Learning Hub</span></div>
+    <div class="hub-child"><div class="hub-avatar">${esc(activeChild.avatar||'🧒')}</div><div><small>PROFIL MURID</small><h1>${esc(activeChild.name)}</h1><p>🎒 Tahun ${year} · Latihan berstruktur mengikut subjek dan topik</p></div></div>
+    <div class="hub-heading"><div><small>SILIBUS SEKOLAH RENDAH</small><h2>Tahun ${year}</h2></div><p>Pilih subjek untuk melihat topik latihan. Tahun 1 ialah kandungan pilot; Tahun 2–6 disediakan dalam seni bina untuk pengembangan seterusnya.</p></div>
+    <div class="kssr-year-strip">${[1,2,3,4,5,6].map(y=>`<span class="${y===year?'active':''}">Tahun ${y}</span>`).join('')}</div>
+    <div class="hub-module-grid">${subjects.map(x=>`<article class="hub-module">
+      <div class="hub-module-icon">${x.icon}</div><div class="hub-module-title"><div><h3>${x.name}</h3><p>${x.desc}</p></div></div>
+      <div class="kssr-topic-list">${topics[x.key].map(t=>`<span>${esc(t)}</span>`).join('')}</div>
+      <button class="btn ${year===1?'primary':'ghost'} kssr-subject" data-subject="${x.key}" ${year===1?'':'disabled'}>${year===1?'Lihat Latihan':'Kandungan akan datang'}</button>
+    </article>`).join('')}</div>
+    <div class="hub-note">📘 <b>Fasa 1:</b> Struktur Tahun → Subjek → Topik telah diaktifkan. Kandungan soalan akan dibina sebagai latihan original CilikGo yang dipetakan kepada kurikulum KPM; bukan menyalin bahan peperiksaan berhak cipta.</div>
   </section>`;
   $('.hub-back').onclick=()=>renderUser(p);
-  document.querySelectorAll('.hub-start').forEach(b=>b.onclick=()=>openLevelPicker(b.dataset.key,true));
+  document.querySelectorAll('.kssr-subject').forEach(b=>b.onclick=()=>{
+    const names={bm:'Bahasa Melayu',bi:'Bahasa Inggeris',math:'Matematik',science:'Sains'};
+    const key=b.dataset.subject;
+    root.querySelector('.hub-note').innerHTML=`🚧 <b>${names[key]} Tahun 1:</b> seni bina topik sudah tersedia. Bank latihan KSSR untuk subjek ini akan diisi dalam fasa kandungan seterusnya.`;
+    root.querySelector('.hub-note').scrollIntoView({behavior:'smooth',block:'center'});
+  });
 }
-
 async function renderUser(p){
   const kids=await loadChildren(p.uid);
   const progress=await loadAllProgress(p.uid);
@@ -308,16 +307,16 @@ async function renderUser(p){
   const childCards=kids.map(c=>{
     const cp=progress.filter(x=>x.childId===c.id);
     const st=cp.reduce((s,x)=>s+Number(x.stars||0),0);
-    return `<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>${esc(c.age)} tahun · ⭐ ${st}</small></button>`;
+    return `<button class="child-card ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}"><span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>${esc(c.year||Math.max(1,Number(c.age||7)-6))} · Tahun · ⭐ ${st}</small></button>`;
   }).join('');
 
-  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 Penjaga</h3><a class="active">Perkembangan</a><a href="#" class="parent-learning-nav">Modul 3M</a><a href="#" id="parentSubscriptionLink">Langganan</a><a href="#settings">Settings</a></aside>
+  $('#dashboard').innerHTML=`<div class="dash-shell"><aside class="dash-side"><h3>👨‍👩‍👧 Penjaga</h3><a class="active">Perkembangan</a><a href="#" class="parent-learning-nav">Latihan KSSR</a><a href="#" id="parentSubscriptionLink">Langganan</a><a href="#settings">Settings</a></aside>
   <section class="dash-main"><div class="dash-head"><div><small>Selamat datang</small><h2>${esc(p.name||'Penjaga')} 👋</h2></div><span class="badge ${active?'':'status-inactive'}">${active?'Langganan aktif':'Belum aktif'}</span></div>
   <div class="parent-overview"><div><small>Jumlah profil anak</small><b>${kids.length}</b></div><div><small>Jumlah ⭐ keluarga</small><b>${totalStars}</b></div><div><small>Aktiviti direkod</small><b>${progress.length}</b></div></div>
   <div class="child-selector-head"><div><h3>Profil Anak</h3><p>Pilih anak untuk melihat laporan perkembangannya.</p></div><button class="btn primary" id="addChildBtn">+ Tambah Anak</button></div>
-  <div class="child-list">${childCards||'<div class="empty-state">Belum ada profil anak. Tambah anak untuk mula merekod kemajuan 3M.</div>'}</div>
+  <div class="child-list">${childCards||'<div class="empty-state">Belum ada profil anak. Tambah anak untuk mula merekod kemajuan pembelajaran.</div>'}</div>
 
-  ${activeChild?`<div class="report-header"><div><span class="report-avatar">${esc(activeChild.avatar||'🧒')}</span><div><small>Laporan perkembangan</small><h2>${esc(activeChild.name)}</h2><p>${esc(activeChild.age)} tahun · Kemajuan berdasarkan aktiviti yang telah diselesaikan.</p></div></div><span class="report-stars">⭐ ${selectedRows.reduce((s,x)=>s+Number(x.stars||0),0)}</span></div>
+  ${activeChild?`<div class="report-header"><div><span class="report-avatar">${esc(activeChild.avatar||'🧒')}</span><div><small>Laporan perkembangan</small><h2>${esc(activeChild.name)}</h2><p>Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))} · Kemajuan berdasarkan latihan yang telah diselesaikan.</p></div></div><span class="report-stars">⭐ ${selectedRows.reduce((s,x)=>s+Number(x.stars||0),0)}</span></div>
   <div class="module-progress-grid">${['Membaca','Menulis','Mengira'].map(m=>{const x=summary[m],pct=Math.min(100,x.rows?Math.max(12,x.efficiency):0);return `<div class="module-report"><div class="module-report-head"><span>${moduleIcon[m]}</span><div><b>${m}</b><small>Level tertinggi ${x.level}</small></div><strong>${x.stars} ⭐</strong></div><div class="parent-progress"><span style="width:${pct}%"></span></div><div class="module-meta"><span>${x.rows} aktiviti</span><span>${x.attempts} percubaan</span><span>${x.rows?x.efficiency+'% ketepatan':'Belum mula'}</span></div></div>`}).join('')}</div>
   <div class="parent-report-grid"><div class="recommend-card"><span class="recommend-icon">💡</span><div><small>Cadangan CilikGo</small><h3>${rec.title}</h3><p>${rec.text}</p><button class="btn primary" id="recommendedActivity">Mulakan ${rec.module}</button></div></div>
   <div class="strength-card"><small>Pemerhatian ringkas</small><h3>${selectedRows.length?'Corak pembelajaran':'Belum cukup data'}</h3><p>${selectedRows.length?(rec.strongest?`${rec.strongest} ialah bahagian yang paling lancar setakat rekod semasa. Teruskan sesi pendek dan konsisten.`:'Teruskan beberapa aktiviti untuk mendapatkan gambaran perkembangan yang lebih jelas.'):'Lengkapkan beberapa aktiviti dahulu supaya CilikGo boleh memberikan cadangan yang lebih berguna.'}</p></div></div>
@@ -649,10 +648,22 @@ $('#buyBtn').onclick=()=>startPayment(currentProfile?.subscriptionStatus==='acti
 
 $('#saveChildBtn').onclick=async()=>{
   if(!fb?.auth.currentUser||currentProfile?.role!=='user') return toast('Fungsi ini untuk akaun Penjaga.');
-  const name=$('#childName').value.trim(), age=Number($('#childAge').value), avatar=$('#childAvatar').value;
+  const name=$('#childName').value.trim(), year=Number($('#childYear').value), age=year+6, avatar=$('#childAvatar').value;
   if(!name) return toast('Masukkan nama panggilan anak.');
-  try{ const ref=await fb.addDoc(fb.collection(fb.db,'children'),{ownerUid:fb.auth.currentUser.uid,name,age,avatar,createdAt:fb.serverTimestamp()}); localStorage.setItem('cilikgo_active_child',ref.id); $('#childName').value=''; $('#childModal').close(); toast('Profil anak berjaya ditambah.'); await renderUser(currentProfile); }
+  try{ const ref=await fb.addDoc(fb.collection(fb.db,'children'),{ownerUid:fb.auth.currentUser.uid,name,age,year,avatar,createdAt:fb.serverTimestamp()}); localStorage.setItem('cilikgo_active_child',ref.id); $('#childName').value=''; $('#childModal').close(); toast('Profil anak berjaya ditambah.'); await renderUser(currentProfile); }
   catch(e){ console.error(e); toast('Gagal simpan profil: '+friendlyError(e)); }
+};
+
+const kssrArchitecture={
+  years:[1,2,3,4,5,6],
+  subjects:{
+    bm:{name:'Bahasa Melayu',icon:'🇲🇾'},
+    bi:{name:'Bahasa Inggeris',icon:'🔤'},
+    math:{name:'Matematik',icon:'➗'},
+    science:{name:'Sains',icon:'🔬'},
+    sejarah:{name:'Sejarah',icon:'🏛️'}
+  },
+  questionSchema:['year','subject','topic','contentStandard','learningStandard','difficulty','questionType','prompt','answers','correct','explanation','sourceType']
 };
 
 const curriculum={
