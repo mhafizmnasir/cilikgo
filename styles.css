@@ -135,8 +135,8 @@ input,select,textarea{font-size:16px}
    ========================================================= */
 body.auth-mode,body.app-mode{overflow:hidden;background:#f5f7fb}
 body.auth-mode>.topbar,body.auth-mode>main,body.auth-mode>footer{display:none!important}
-body.app-mode>.topbar,body.app-mode main>section:not(#portal),body.app-mode>footer{display:none!important}
-body.app-mode main{min-height:100dvh;padding:0;margin:0}
+body.app-mode>.topbar,body.app-mode>main>section:not(#portal),body.app-mode>footer{display:none!important}
+body.app-mode>main{min-height:100dvh;padding:0;margin:0}
 body.app-mode #portal{display:block!important;position:fixed;inset:0;padding:0!important;margin:0!important;background:#f5f7fb;z-index:80;height:100dvh;overflow:hidden}
 body.app-mode #portal>.section-head{display:none}
 body.app-mode #dashboard{height:calc(100dvh - 64px);overflow:hidden}
@@ -294,4 +294,30 @@ body.app-mode .dash-shell:not(.clean-shell) .dash-main{height:100%;overflow:auto
   .interactive-grid{grid-template-columns:1fr!important}.interactive-card{min-height:205px!important}
   .student-achievement-row{grid-template-columns:1fr 1fr}.achievement-card:first-child{grid-column:1/3}
   .student-section-head{align-items:start}.mastery-chip{display:none}
+}
+
+/* Student Portal blank-screen fix */
+body.app-mode.student-mode #portal #dashboard .student-portal .student-main{
+  display:block!important;
+  min-height:calc(100dvh - 72px)!important;
+  height:auto!important;
+  padding:28px 28px 42px!important;
+  margin:0 auto!important;
+}
+body.app-mode.student-mode #portal #dashboard .student-portal .student-main>section{
+  display:block!important;
+}
+body.app-mode.student-mode #portal #dashboard .student-hero-panel{
+  display:grid!important;
+}
+body.app-mode.student-mode #portal #dashboard .student-achievement-row{
+  display:grid!important;
+}
+body.app-mode.student-mode #portal #dashboard .student-tip-card{
+  display:flex!important;
+}
+@media(max-width:680px){
+  body.app-mode.student-mode #portal #dashboard .student-portal .student-main{
+    padding:18px 14px 34px!important;
+  }
 }
