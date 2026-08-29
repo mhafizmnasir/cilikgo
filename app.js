@@ -1141,45 +1141,24 @@ function celebrate(){
   },1350);
 }
 function quizScreenEffect(type){
-  const stage=$('#gameContent .quiz-fullscreen-shell');
+  const stage=$('#gameContent .cilikgo-game-shell')||$('#gameContent .quiz-fullscreen-shell');
   if(!stage)return;
-  stage.classList.remove('quiz-effect-wrong','quiz-effect-correct');
-  stage.querySelectorAll('.quiz-result-pop,.adventure-feedback-overlay').forEach(n=>n.remove());
-  void stage.offsetWidth;
-
+  stage.querySelectorAll('.game-feedback-overlay,.adventure-feedback-overlay,.quiz-result-pop').forEach(n=>n.remove());
   const correct=type==='correct';
   const motion=Number(stage.dataset.motion||0)%10;
-  stage.classList.add(correct?'quiz-effect-correct':'quiz-effect-wrong');
-
   const reward=$('#gameMsg .quiz-feedback-reward')?.textContent?.trim()||'';
   const overlay=document.createElement('div');
-  overlay.className=`adventure-feedback-overlay ${correct?'correct':'wrong'} feedback-motion-${motion}`;
-  overlay.setAttribute('aria-hidden','true');
-  const particles=correct
-    ?['⭐','✨','🎉','🌟','🎊','💫','⭐','✨','🎉','🌈','⭐','🎊']
-    :['💧','☁️','💭','💧','☁️'];
-  overlay.innerHTML=`<div class="adventure-feedback-particles">${particles.map((p,i)=>`<i style="--i:${i}">${p}</i>`).join('')}</div>
-    <div class="adventure-feedback-card">
-      <div class="adventure-feedback-mascot">${animalMascotSvg(correct?'owl':'rabbit')}</div>
-      <div class="adventure-feedback-copy">
-        <small>${correct?'JAWAPAN BETUL':'BELUM TEPAT'}</small>
-        <b>${correct?'Hebat!':'Cuba Lagi!'}</b>
-        <span>${correct?'Jawapan kamu memang tepat.':'Tidak mengapa, pilih jawapan lain.'}</span>
-        ${correct&&reward?`<strong>${esc(reward)}</strong>`:''}
-      </div>
+  overlay.className=`game-feedback-overlay ${correct?'correct':'wrong'} feedback-motion-${motion}`;
+  overlay.innerHTML=`<div class="game-feedback-rays" aria-hidden="true"></div>
+    <div class="game-feedback-confetti" aria-hidden="true">${(correct?['⭐','✨','🎉','🎊','💫','🌟','⭐','✨','🎉','🎊','💫','⭐','✨','🎉']:['☁️','💧','💭','☁️','💧']).map((p,i)=>`<i style="--i:${i}">${p}</i>`).join('')}</div>
+    <div class="game-feedback-card">
+      <div class="game-feedback-owl">${cilikgoGameOwlSvg(correct?'celebrate':'sad')}</div>
+      <div class="game-feedback-copy"><small>${correct?'✓ JAWAPAN BETUL!':'✕ JAWAPAN SALAH'}</small><b>${correct?'Hebat!':'Cuba Lagi Ya!'}</b><span>${correct?'Jawapan kamu tepat. Teruskan!':'Jangan risau. Pilih jawapan lain.'}</span>${correct&&reward?`<strong>${esc(reward)}</strong>`:''}</div>
     </div>`;
   stage.appendChild(overlay);
-
-  if(navigator.vibrate){
-    navigator.vibrate(correct?[45,25,60,25,80]:[85,45,100]);
-  }
-  setTimeout(()=>{
-    stage.classList.remove('quiz-effect-wrong','quiz-effect-correct');
-    overlay.classList.add('leaving');
-    setTimeout(()=>overlay.remove(),300);
-  },correct?1450:1050);
+  if(navigator.vibrate)navigator.vibrate(correct?[50,25,70,30,95]:[100,50,130]);
+  setTimeout(()=>{overlay.classList.add('leaving');setTimeout(()=>overlay.remove(),300)},correct?1750:1200);
 }
-
 
 let cgUiSfxCtx=null;
 let cgLastUiClickAt=0;
@@ -1235,22 +1214,22 @@ function playCgUiSfx(kind='tap'){
   const now=Date.now();
   if(kind==='tap'&&now-cgLastUiClickAt<45)return;
   if(kind==='tap')cgLastUiClickAt=now;
-
   if(kind==='tap'){
-    playCgTone(ctx,{freq:720,endFreq:560,duration:.065,gain:.035,type:'sine'});
+    playCgTone(ctx,{freq:880,endFreq:620,duration:.055,gain:.045,type:'triangle'});
+    playCgTone(ctx,{freq:1320,start:.018,duration:.045,gain:.018,type:'sine'});
     return;
   }
   if(kind==='success'){
-    // Bright four-note fanfare + sparkle layer.
-    [659.25,783.99,987.77,1318.51].forEach((freq,i)=>playCgTone(ctx,{freq,start:i*.085,duration:.22,gain:.09-i*.008,type:i%2?'triangle':'sine'}));
-    playCgTone(ctx,{freq:329.63,start:.02,duration:.42,gain:.035,type:'triangle'});
-    playCgNoiseBurst(ctx,{start:.24,duration:.15,gain:.025});
+    [523.25,659.25,783.99,1046.5,1318.5].forEach((freq,i)=>playCgTone(ctx,{freq,start:i*.07,duration:.22,gain:.105-i*.008,type:i%2?'triangle':'sine'}));
+    [261.63,392,523.25].forEach((freq,i)=>playCgTone(ctx,{freq,start:.13+i*.02,duration:.48,gain:.035,type:'triangle'}));
+    playCgNoiseBurst(ctx,{start:.18,duration:.18,gain:.04});
+    setTimeout(()=>{const c=getCgUiSfxContext();if(c)playCgNoiseBurst(c,{duration:.13,gain:.03})},310);
     return;
   }
   if(kind==='error'){
-    // Playful descending "oops" rather than a harsh buzzer.
-    playCgTone(ctx,{freq:310,endFreq:205,duration:.24,gain:.085,type:'triangle'});
-    playCgTone(ctx,{freq:196,endFreq:145,start:.12,duration:.28,gain:.065,type:'sine'});
+    playCgTone(ctx,{freq:330,endFreq:220,duration:.23,gain:.095,type:'triangle'});
+    playCgTone(ctx,{freq:220,endFreq:155,start:.10,duration:.31,gain:.075,type:'sine'});
+    playCgTone(ctx,{freq:155,endFreq:125,start:.26,duration:.24,gain:.045,type:'triangle'});
     return;
   }
 }
@@ -1261,17 +1240,20 @@ let cgQuizMusicStep=0;
 let cgQuizMusicActive=false;
 let cgQuizMusicPaused=false;
 let cgQuizMusicEnabled=localStorage.getItem('cilikgo_quiz_music')!=='off';
-const CG_QUIZ_MELODY=[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46,659.25,783.99,987.77,783.99];
+const CG_QUIZ_MELODIES=[[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46],[587.33,739.99,880,739.99,659.25,783.99,987.77,783.99],[493.88,587.33,739.99,880,739.99,587.33,659.25,783.99],[659.25,783.99,987.77,783.99,698.46,880,1046.5,880],[523.25,698.46,783.99,1046.5,880,783.99,698.46,659.25]];
+let cgQuizMusicTheme=0;
 
 function scheduleCgQuizMusic(){
   if(!cgQuizMusicActive||cgQuizMusicPaused||!cgQuizMusicEnabled)return;
   const ctx=getCgUiSfxContext();
   if(!ctx)return;
-  const note=CG_QUIZ_MELODY[cgQuizMusicStep%CG_QUIZ_MELODY.length];
+  const melody=CG_QUIZ_MELODIES[cgQuizMusicTheme%CG_QUIZ_MELODIES.length];
+  const note=melody[cgQuizMusicStep%melody.length];
   const step=cgQuizMusicStep++;
-  playCgTone(ctx,{freq:note,duration:.26,gain:.018,type:'triangle'});
-  if(step%4===0)playCgTone(ctx,{freq:note/2,duration:.34,gain:.009,type:'sine'});
-  cgQuizMusicTimer=setTimeout(scheduleCgQuizMusic,340);
+  playCgTone(ctx,{freq:note,duration:.24,gain:.023,type:'triangle'});
+  if(step%2===0)playCgTone(ctx,{freq:note*2,duration:.12,gain:.007,type:'sine'});
+  if(step%4===0){playCgTone(ctx,{freq:note/2,duration:.32,gain:.012,type:'sine'});playCgNoiseBurst(ctx,{duration:.035,gain:.006});}
+  cgQuizMusicTimer=setTimeout(scheduleCgQuizMusic,300);
 }
 function startCgQuizMusic(){
   if(!cgQuizMusicEnabled)return;
@@ -1311,7 +1293,7 @@ function updateCgQuizMusicButton(){
   if(!btn)return;
   btn.classList.toggle('music-off',!cgQuizMusicEnabled);
   btn.setAttribute('aria-pressed',cgQuizMusicEnabled?'true':'false');
-  btn.innerHTML=cgQuizMusicEnabled?'<span>♫</span><small>Muzik</small>':'<span>♪</span><small>Senyap</small>';
+  btn.innerHTML=cgQuizMusicEnabled?'<span>♫</span>':'<span>♪</span>';
 }
 
 function installCgUiClickSfx(){
@@ -1564,58 +1546,100 @@ function quizAdventureDecor(index){
   return variants[index%variants.length].map((v,i)=>`<span class="adventure-decor-item decor-${i+1}">${v}</span>`).join('');
 }
 
+
+function cilikgoGameOwlSvg(state='happy'){
+  const sad=state==='sad';
+  const celebrate=state==='celebrate';
+  return `<svg viewBox="0 0 240 220" class="cg-game-owl-svg ${sad?'is-sad':''} ${celebrate?'is-celebrate':''}" role="img" aria-label="Maskot burung hantu CilikGo">
+    <defs>
+      <linearGradient id="owlBody" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#b778ff"/><stop offset=".55" stop-color="#7544e8"/><stop offset="1" stop-color="#4b2fc5"/></linearGradient>
+      <linearGradient id="owlWing" x1="0" x2="1"><stop stop-color="#8f56f0"/><stop offset="1" stop-color="#5d36d4"/></linearGradient>
+      <filter id="owlGlow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <ellipse class="owl-shadow" cx="120" cy="202" rx="72" ry="13" fill="rgba(34,20,92,.22)"/>
+    <g class="owl-body-group">
+      <path d="M55 89 C42 52 64 22 95 36 C108 18 132 18 145 36 C177 22 199 52 185 90 L187 135 C187 177 158 200 120 200 C82 200 53 177 53 135 Z" fill="url(#owlBody)" stroke="#402291" stroke-width="6"/>
+      <path class="owl-ear-left" d="M66 63 L57 25 L92 49 Z" fill="#9c5cf2" stroke="#402291" stroke-width="5"/>
+      <path class="owl-ear-right" d="M174 63 L183 25 L148 49 Z" fill="#9c5cf2" stroke="#402291" stroke-width="5"/>
+      <ellipse cx="88" cy="89" rx="43" ry="49" fill="#fff1d5"/>
+      <ellipse cx="152" cy="89" rx="43" ry="49" fill="#fff1d5"/>
+      <circle cx="89" cy="88" r="24" fill="#fff" stroke="#e8d8c3" stroke-width="3"/>
+      <circle cx="151" cy="88" r="24" fill="#fff" stroke="#e8d8c3" stroke-width="3"/>
+      <circle class="owl-eye-left" cx="91" cy="91" r="13" fill="#2c1830"/><circle class="owl-eye-right" cx="149" cy="91" r="13" fill="#2c1830"/>
+      <circle cx="86" cy="85" r="5" fill="#fff"/><circle cx="144" cy="85" r="5" fill="#fff"/>
+      <path d="M108 111 L120 124 L132 111 L120 103 Z" fill="#ffae22" stroke="#c56c0c" stroke-width="3"/>
+      ${sad?'<path d="M104 142 Q120 130 136 142" fill="none" stroke="#4b2955" stroke-width="5" stroke-linecap="round"/>':'<path d="M105 137 Q120 151 135 137" fill="none" stroke="#4b2955" stroke-width="5" stroke-linecap="round"/>'}
+      <ellipse cx="76" cy="124" rx="15" ry="8" fill="#ff9fbf" opacity=".55"/><ellipse cx="164" cy="124" rx="15" ry="8" fill="#ff9fbf" opacity=".55"/>
+      <path class="owl-wing owl-wing-left" d="M55 111 C28 118 25 153 48 166 C65 176 82 159 84 139 C72 134 66 122 55 111 Z" fill="url(#owlWing)" stroke="#402291" stroke-width="5"/>
+      <path class="owl-wing owl-wing-right" d="M185 111 C211 118 215 150 195 164 C179 176 160 159 157 139 C169 134 176 122 185 111 Z" fill="url(#owlWing)" stroke="#402291" stroke-width="5"/>
+      <path d="M86 166 Q120 181 154 166 L160 191 Q120 210 80 191 Z" fill="#1f6cca" opacity=".95"/>
+      <text x="120" y="187" text-anchor="middle" fill="#fff" font-size="17" font-weight="900" font-family="Arial, sans-serif">CilikGo</text>
+    </g>
+    <g class="owl-wand" filter="url(#owlGlow)"><path d="M176 128 L205 55" stroke="#ffcb2c" stroke-width="7" stroke-linecap="round"/><path d="M207 38 l6 12 13 2-10 9 3 13-12-6-12 6 3-13-10-9 13-2z" fill="#ffd72d" stroke="#f09516" stroke-width="3"/></g>
+    ${celebrate?'<g class="owl-celebrate-stars"><text x="36" y="45">✨</text><text x="194" y="92">⭐</text><text x="34" y="144">🎉</text></g>':''}
+  </svg>`;
+}
+
+function gameAnswerBuddySvg(index){
+  const types=['rabbit','squirrel','bird','owl'];
+  return animalMascotSvg(types[index%types.length]);
+}
+
+function gameWorldParticles(index){
+  const sets=[['✨','⭐','💫','✦','✨','⭐'],['☁️','✨','🌟','☁️','💫','✨'],['🎵','♫','⭐','♪','✨','♫'],['🫧','✨','🫧','⭐','🫧','💫'],['🍃','✨','🌿','⭐','🍂','✨'],['🎈','⭐','✨','🎈','💫','🎈'],['♫','🎵','✨','♪','⭐','🎵'],['🦋','✨','🌸','🦋','⭐','✨'],['🪐','⭐','✨','🌙','💫','⭐'],['🎉','🎊','⭐','✨','💫','🎉']];
+  return sets[index%sets.length].map((v,i)=>`<span style="--i:${i}">${v}</span>`).join('');
+}
+
+function gameLockedLabel(cfg){return cfg.lang.startsWith('en')?'Choose an answer':'Pilih jawapan dahulu';}
 function renderQuizAdventureQuestion({cfg,q,choices,index,total,scoreStars,animals=[]}){
   const letters=['A','B','C','D'];
   const motion=index%10;
   const promptLength=String(q.prompt||'').length;
   const lengthClass=promptLength>78?'question-long':promptLength>55?'question-medium':'question-short';
-  const mainAnimal=animals[motion%Math.max(1,animals.length)]||'owl';
-  const buddyAnimal=animals[(motion+1)%Math.max(1,animals.length)]||'rabbit';
   const progress=Math.round(index/total*100);
   const questionLabel=cfg.lang.startsWith('en')?'Question':'Soalan';
-  return `<section class="quiz-fullscreen-shell quiz-adventure-shell subject-${cfg.key} adventure-motion-${motion} ${lengthClass}" data-motion="${motion}">
-    <div class="adventure-ambient" aria-hidden="true">${quizAdventureDecor(index)}</div>
-    <header class="adventure-topbar">
-      <button class="adventure-control-btn close" id="quizAdventureClose" type="button" aria-label="Tutup latihan"><span>×</span></button>
-      <div class="adventure-progress-wrap">
-        <div class="adventure-progress-copy"><b>${questionLabel} ${index+1}/${total}</b><span>${Math.round((index/total)*100)}%</span></div>
-        <div class="quiz-ref-progress-track adventure-progress"><span style="width:${progress}%"></span></div>
-      </div>
-      <div class="quiz-score-box adventure-score"><span>⭐</span><b>${scoreStars}</b></div>
-      <button class="adventure-control-btn music" id="quizMusicToggle" type="button" aria-label="Muzik kuiz" aria-pressed="true"><span>♫</span><small>Muzik</small></button>
+  return `<section class="quiz-fullscreen-shell cilikgo-game-shell game-theme-${motion%5} game-motion-${motion} ${lengthClass}" data-motion="${motion}">
+    <div class="game-world" aria-hidden="true">
+      <div class="game-nebula"></div><div class="game-stars"></div><div class="game-cloud cloud-a"></div><div class="game-cloud cloud-b"></div>
+      <div class="game-particles">${gameWorldParticles(index)}</div><div class="game-ground"></div>
+    </div>
+    <header class="game-hud">
+      <button class="game-round-btn game-exit" id="quizAdventureClose" type="button" aria-label="Tutup permainan">×</button>
+      <div class="game-progress-pill"><div class="game-progress-meta"><b>${questionLabel} ${index+1}/${total}</b><span>${progress}%</span></div><div class="quiz-ref-progress-track game-progress-track"><span style="width:${progress}%"></span></div></div>
+      <div class="quiz-score-box game-star-pill"><span>⭐</span><b>${scoreStars}</b></div>
+      <button class="game-round-btn game-music-btn" id="quizMusicToggle" type="button" aria-label="Muzik permainan" aria-pressed="true"><span>♫</span></button>
+      <button class="game-round-btn game-speak-btn" id="quizSpeakBtn" type="button" aria-label="${cfg.lang.startsWith('en')?'Read question':'Baca soalan'}"><span>🔊</span></button>
     </header>
 
-    <main class="adventure-quiz-body">
-      <section class="adventure-question-stage">
-        <div class="adventure-stage-glow" aria-hidden="true"></div>
-        <div class="adventure-mascot main-mascot">${animalMascotSvg(mainAnimal)}</div>
-        <div class="adventure-mascot buddy-mascot">${animalMascotSvg(buddyAnimal)}</div>
-        <div class="adventure-question-card">
-          <button class="adventure-speak-btn" id="quizSpeakBtn" type="button" aria-label="${cfg.lang.startsWith('en')?'Read question':'Baca soalan'}">🔊</button>
-          <div class="adventure-question-mark" aria-hidden="true">?</div>
-          <div class="adventure-question-text">${formatQuizBoardPrompt(q.prompt)}</div>
+    <main class="game-main">
+      <section class="game-stage">
+        <div class="game-tip-bubble">${cfg.lang.startsWith('en')?'Answer correctly to collect stars!':'Jawab dengan betul untuk kumpul bintang!'}</div>
+        <div class="game-owl-wrap">${cilikgoGameOwlSvg('happy')}</div>
+        <div class="game-question-board">
+          <span class="game-question-badge">?</span>
+          <div class="game-question-text">${formatQuizBoardPrompt(q.prompt)}</div>
+          <span class="game-board-star star-one">★</span><span class="game-board-star star-two">★</span>
         </div>
       </section>
 
-      <section class="quiz-answer-grid adventure-answer-grid" aria-label="Pilihan jawapan">
-        ${choices.map((answer,i)=>{const icon=quizAnswerEmoji(answer);return `<button class="quiz-answer adventure-answer answer-tone-${i+1}" data-answer="${esc(answer)}">
-          <span class="quiz-answer-letter">${letters[i]}</span>
-          <span class="quiz-answer-text">${esc(answer)}</span>
-          ${icon?`<span class="quiz-answer-visual">${icon}</span>`:''}
-        </button>`}).join('')}
+      <section class="quiz-answer-grid game-answer-grid" aria-label="Pilihan jawapan">
+        ${choices.map((answer,i)=>`<button class="quiz-answer game-answer game-answer-${i+1}" data-answer="${esc(answer)}">
+          <span class="game-answer-letter">${letters[i]}</span>
+          <span class="quiz-answer-text game-answer-text">${esc(answer)}</span>
+          <span class="game-answer-buddy" aria-hidden="true">${gameAnswerBuddySvg(i)}</span>
+        </button>`).join('')}
       </section>
 
-      <div class="quiz-feedback adventure-inline-feedback" id="gameMsg" aria-live="polite"></div>
-      <div class="quiz-next-row adventure-next-row">
-        <button class="quiz-next-btn locked" id="quizNextBtn" type="button" aria-disabled="true">${cfg.next}<span>→</span></button>
-      </div>
+      <div class="quiz-feedback game-inline-feedback" id="gameMsg" aria-live="polite"></div>
+      <div class="game-next-row"><button class="quiz-next-btn game-next-btn locked" id="quizNextBtn" type="button" aria-disabled="true"><span class="game-next-icon">➜</span><b>${gameLockedLabel(cfg)}</b></button></div>
     </main>
   </section>`;
 }
-
 function wireQuizAdventureControls(q,cfg){
   const modal=$('#gameModal');
-  modal?.classList.add('quiz-adventure-open');
+  modal?.classList.add('quiz-adventure-open','cilikgo-game-open');
+  const stage=$('#gameContent .cilikgo-game-shell');
+  cgQuizMusicTheme=Number(stage?.dataset.motion||0)%5;
   const close=$('#quizAdventureClose');
   if(close)close.onclick=()=>modal?.close();
   const music=$('#quizMusicToggle');
@@ -1631,7 +1655,7 @@ function installQuizAdventureModalCleanup(){
   if(!modal||modal.dataset.adventureCleanupBound==='1')return;
   modal.dataset.adventureCleanupBound='1';
   modal.addEventListener('close',()=>{
-    modal.classList.remove('quiz-adventure-open');
+    modal.classList.remove('quiz-adventure-open','cilikgo-game-open');
     stopCgQuizMusic();
     try{window.speechSynthesis?.cancel?.();}catch(e){}
   });
@@ -1755,6 +1779,7 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
       nextBtn.classList.remove('locked');
       nextBtn.classList.add('ready');
       nextBtn.setAttribute('aria-disabled','false');
+      nextBtn.innerHTML=`<span class="game-next-icon">➜</span><b>${cfg.next}</b>`;
 
       const progressEl=$('.quiz-ref-progress-track span')||$('.quiz-progress-track span');
       if(progressEl) progressEl.style.width=`${Math.round((index+1)/questions.length*100)}%`;
@@ -1780,7 +1805,7 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
 
   const finishQuiz=async()=>{
     stopCgQuizMusic();
-    $('#gameModal')?.classList.remove('quiz-adventure-open');
+    $('#gameModal')?.classList.remove('quiz-adventure-open','cilikgo-game-open');
     playCgUiSfx('success');
     const passed=scoreStars>=QUIZ_MASTERY_STARS,pct=Math.round(scoreStars/QUIZ_MAX_STARS*100),isEnglish=cfg.lang.startsWith('en');
     const animals=quizSceneAnimals(subjectKey,topicKey);
@@ -1967,6 +1992,7 @@ async function startYear2BmFullscreenQuiz(topicKey){
       nextBtn.classList.remove('locked');
       nextBtn.classList.add('ready');
       nextBtn.setAttribute('aria-disabled','false');
+      nextBtn.innerHTML=`<span class="game-next-icon">➜</span><b>${cfg.next}</b>`;
 
       const progressEl=$('.quiz-ref-progress-track span')||$('.quiz-progress-track span');
       if(progressEl) progressEl.style.width=`${Math.round((index+1)/questions.length*100)}%`;
@@ -1992,7 +2018,7 @@ async function startYear2BmFullscreenQuiz(topicKey){
 
   const finishQuiz=async()=>{
     stopCgQuizMusic();
-    $('#gameModal')?.classList.remove('quiz-adventure-open');
+    $('#gameModal')?.classList.remove('quiz-adventure-open','cilikgo-game-open');
     playCgUiSfx('success');
     const passed=scoreStars>=QUIZ_MASTERY_STARS,pct=Math.round(scoreStars/QUIZ_MAX_STARS*100),isEnglish=cfg.lang.startsWith('en');
     const animals=quizSceneAnimals(subjectKey,topicKey);
