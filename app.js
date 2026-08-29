@@ -519,12 +519,13 @@ async function renderStudentPortal(p){
         </div>
       </section>
 
-      <section class="student-year-focus" aria-label="Tahun pembelajaran aktif">
+      <button type="button" class="student-year-focus student-year-toggle" id="studentYearToggle" aria-expanded="false" aria-controls="studentExpandedContent" aria-label="Buka kandungan Tahun ${year}">
         <div class="student-year-focus-icon">🎒</div>
-        <div><small>TAHUN PEMBELAJARAN SAYA</small><h3>Tahun ${year}</h3><p>${year===1?'Semua subjek Tahun 1 yang tersedia dipaparkan di bawah.':year===2?'Bahasa Melayu Tahun 2 kini tersedia. Subjek lain akan dibuka secara berperingkat.':`Kandungan Tahun ${year} akan dibuka apabila bank latihan tersedia.`}</p></div>
-        <span class="student-year-focus-badge">${year===1?'Aktif':year===2?'BM tersedia':'Akan datang'}</span>
-      </section>
+        <div><small>TAHUN PEMBELAJARAN SAYA</small><h3>Tahun ${year}</h3><p>${year===1?'Tekan untuk lihat semua subjek Tahun 1.':year===2?'Tekan untuk buka Bahasa Melayu Tahun 2 dan lihat subjek lain.':`Kandungan Tahun ${year} akan dibuka apabila bank latihan tersedia.`}</p></div>
+        <span class="student-year-focus-badge"><b>${year===1?'Aktif':year===2?'BM tersedia':'Akan datang'}</b><em>Buka ↓</em></span>
+      </button>
 
+      <div class="student-expanded-content" id="studentExpandedContent" hidden>
       <section class="student-section">
         <div class="student-section-head">
           <div><span class="student-kicker">PILIH SUBJEK</span><h2>Apa yang kamu mahu belajar?</h2></div>
@@ -567,6 +568,7 @@ async function renderStudentPortal(p){
         <span>💡</span>
         <div><small>TIP CILIKGO</small><p>Belajar 10–15 minit setiap sesi lebih mudah untuk kekal fokus. Pilih satu subjek dahulu dan cuba capai sekurang-kurangnya ⭐ 16/30.</p></div>
       </section>
+      </div>
     </main>
   </section></section></div>`;
 
@@ -589,6 +591,18 @@ async function renderStudentPortal(p){
     if(year===2&&k==='bm'){renderBmYear2Hub(p);return;}
     toast(`Subjek ini untuk Tahun ${year} sedang disediakan.`);
   };
+
+  const yearToggle=$('#studentYearToggle');
+  const expandedContent=$('#studentExpandedContent');
+  yearToggle?.addEventListener('click',()=>{
+    if(!expandedContent)return;
+    const willOpen=expandedContent.hidden;
+    expandedContent.hidden=!willOpen;
+    yearToggle.setAttribute('aria-expanded',willOpen?'true':'false');
+    yearToggle.classList.toggle('expanded',willOpen);
+    const action=yearToggle.querySelector('.student-year-focus-badge em');
+    if(action) action.textContent=willOpen?'Tutup ↑':'Buka ↓';
+  });
 
   $('#continueLearning').onclick=()=>openSubject(lastSubject.key);
   document.querySelectorAll('[data-student-subject]').forEach(b=>b.onclick=()=>openSubject(b.dataset.studentSubject));

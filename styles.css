@@ -6062,3 +6062,101 @@ body.app-mode .table{
     padding:7px 8px!important;
   }
 }
+
+
+/* =========================================================
+   V7 — Student Portal single-scroll + progressive expansion
+   ========================================================= */
+/* The embedded student/subject page must NOT create its own vertical scroll.
+   The parent content column is the single scroll owner. */
+.parent-learning-shell>.student-parent-main{
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  scrollbar-gutter:auto!important;
+}
+.parent-learning-shell .embedded-student,
+.parent-learning-shell .interactive-student,
+.parent-learning-shell .student-portal,
+.parent-learning-shell .subject-hub-shell{
+  width:100%!important;
+  height:auto!important;
+  min-height:100%!important;
+  max-height:none!important;
+  overflow:visible!important;
+  overscroll-behavior:auto!important;
+  scrollbar-gutter:auto!important;
+}
+.parent-learning-shell .student-main,
+.parent-learning-shell .interactive-main,
+.parent-learning-shell .subject-hub-main{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+
+/* Initial student dashboard shows only hero/mission + year selector. */
+.student-year-toggle{
+  width:100%!important;
+  border:1px solid #ded9ff!important;
+  appearance:none!important;
+  font:inherit!important;
+  color:inherit!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+}
+.student-year-toggle:hover{
+  transform:translateY(-1px);
+  border-color:#bdb4ff!important;
+  box-shadow:0 10px 28px rgba(86,70,180,.08)!important;
+}
+.student-year-toggle:focus-visible{
+  outline:3px solid rgba(104,87,231,.18)!important;
+  outline-offset:2px!important;
+}
+.student-year-toggle.expanded{
+  border-color:#bdb4ff!important;
+  background:linear-gradient(100deg,#fff,#f4f1ff)!important;
+}
+.student-year-focus-badge{
+  display:grid!important;
+  justify-items:center!important;
+  gap:2px!important;
+  min-width:78px;
+}
+.student-year-focus-badge b{
+  font:inherit!important;
+}
+.student-year-focus-badge em{
+  font-style:normal!important;
+  font-size:7px!important;
+  font-weight:900!important;
+  color:#5d50ce!important;
+  white-space:nowrap!important;
+}
+.student-expanded-content{
+  animation:studentExpandIn .28s ease both;
+}
+.student-expanded-content[hidden]{display:none!important}
+@keyframes studentExpandIn{
+  from{opacity:0;transform:translateY(-6px)}
+  to{opacity:1;transform:none}
+}
+.student-expanded-content>.student-section{
+  margin-top:0!important;
+}
+
+@media(max-width:699px){
+  .student-year-toggle{
+    grid-template-columns:auto minmax(0,1fr)!important;
+  }
+  .student-year-toggle .student-year-focus-badge{
+    grid-column:2!important;
+    justify-self:start!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:7px!important;
+  }
+}
