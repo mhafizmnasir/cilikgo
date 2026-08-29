@@ -3363,8 +3363,8 @@ body.student-mode #dashboard{
     margin-top:4px!important;
   }
   .reference-quiz .quiz-wood-board{
-    transform:scale(.95);
-    transform-origin:center center;
+    transform:translate(-50%,-50%)!important;
+    transform-origin:center center!important;
   }
   .reference-quiz .board-prompt-lead{
     font-size:14px!important;
@@ -3688,7 +3688,7 @@ body.student-mode #dashboard{
     border-radius:18px!important;
   }
   .reference-quiz .quiz-wood-board{
-    transform:scale(.9)!important;
+    transform:translate(-50%,-50%)!important;
   }
   .reference-quiz .quiz-answer-grid{
     gap:7px!important;
@@ -3861,7 +3861,7 @@ body.student-mode #dashboard{
     border-radius:16px!important;
   }
   .reference-quiz .quiz-wood-board{
-    transform:scale(.82)!important;
+    transform:translate(-50%,-50%)!important;
   }
   .reference-quiz .board-prompt-lead{
     font-size:12px!important;
@@ -5079,4 +5079,129 @@ dialog:not(#gameModal) .modal-form{
   .reference-quiz .quiz-answer-grid{grid-column:2!important;grid-row:2!important;align-self:center!important}
   .reference-quiz .quiz-feedback{grid-column:2!important;grid-row:3!important}
   .reference-quiz .ref-next-row{grid-column:2!important;grid-row:4!important}
+}
+
+/* =========================================================
+   Responsive V3 — narrow-screen centering + geometry guard
+   Root cause fixed: legacy <=430px scale() rules replaced the
+   translate(-50%,-50%) used to center the wooden question board.
+   ========================================================= */
+html,
+body{
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+#gameModal,
+#gameModal .modal-form.game,
+#gameContent,
+#gameContent>.quiz-fullscreen-shell.reference-quiz{
+  box-sizing:border-box!important;
+  inline-size:100dvw!important;
+  max-inline-size:100dvw!important;
+}
+
+.reference-quiz .quiz-ref-main,
+.reference-quiz .quiz-ref-card,
+.reference-quiz .quiz-reference-scene,
+.reference-quiz .clean-reference-scene{
+  min-inline-size:0!important;
+  max-inline-size:100%!important;
+}
+
+/* Always keep the board centred. Do not override translate with scale-only rules. */
+.reference-quiz .quiz-wood-board,
+.reference-quiz .clean-reference-scene .quiz-wood-board{
+  left:50%!important;
+  top:50%!important;
+  width:min(80%,620px)!important;
+  max-width:calc(100% - clamp(18px,5vw,34px))!important;
+  transform:translate(-50%,-50%)!important;
+  transform-origin:center center!important;
+  box-sizing:border-box!important;
+}
+.reference-quiz .wood-board-inner{
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+.reference-quiz .board-prompt-lead,
+.reference-quiz .board-prompt-focus,
+.reference-quiz .board-prompt-single{
+  max-width:100%!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+}
+
+/* Narrow phones remain fluid; no model-specific fixed width geometry. */
+@media (max-width:599px){
+  .reference-quiz .quiz-ref-main{
+    width:calc(100dvw - clamp(10px,3vw,16px))!important;
+    max-width:none!important;
+    margin-inline:auto!important;
+  }
+  .reference-quiz .quiz-ref-card{
+    width:100%!important;
+    max-width:100%!important;
+    grid-template-rows:
+      auto
+      minmax(clamp(185px,28dvh,270px),1fr)
+      auto
+      auto
+      auto!important;
+  }
+  .reference-quiz .quiz-reference-scene,
+  .reference-quiz .clean-reference-scene{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+  }
+  .reference-quiz .quiz-wood-board,
+  .reference-quiz .clean-reference-scene .quiz-wood-board{
+    width:min(82%,500px)!important;
+    max-width:calc(100% - clamp(16px,5vw,26px))!important;
+    left:50%!important;
+    top:49%!important;
+    transform:translate(-50%,-50%)!important;
+  }
+  .reference-quiz .wood-board-inner{
+    min-height:clamp(96px,16dvh,155px)!important;
+    padding:clamp(8px,2.5vw,13px)!important;
+  }
+  .reference-quiz .board-prompt-lead{
+    font-size:clamp(11px,3vw,14px)!important;
+  }
+  .reference-quiz .board-prompt-focus{
+    font-size:clamp(21px,7vw,31px)!important;
+    line-height:1.08!important;
+  }
+  .reference-quiz .board-prompt-single{
+    font-size:clamp(17px,5.3vw,24px)!important;
+    line-height:1.12!important;
+  }
+  .reference-quiz .quiz-answer-grid{
+    width:100%!important;
+    max-width:100%!important;
+  }
+  .reference-quiz .quiz-answer{
+    min-width:0!important;
+    max-width:100%!important;
+  }
+}
+
+/* Short + narrow screens: shrink the scene, never shift the board sideways. */
+@media (max-width:599px) and (max-height:760px){
+  .reference-quiz .quiz-ref-card{
+    grid-template-rows:auto minmax(145px,1fr) auto auto auto!important;
+  }
+  .reference-quiz .quiz-wood-board,
+  .reference-quiz .clean-reference-scene .quiz-wood-board{
+    width:min(78%,460px)!important;
+    top:48%!important;
+    transform:translate(-50%,-50%)!important;
+  }
+  .reference-quiz .wood-board-inner{
+    min-height:82px!important;
+  }
 }
