@@ -1,0 +1,580 @@
+/* =========================================================
+   CilikGo Quiz Adventure V23
+   Focus: question + answers, large type, lively cartoons,
+   varied motion, quiz-only music, strong feedback.
+   ========================================================= */
+
+#gameModal.quiz-adventure-open{
+  width:100dvw!important;
+  max-width:none!important;
+  height:100dvh!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:#120b4d!important;
+  overflow:hidden!important;
+}
+#gameModal.quiz-adventure-open::backdrop{background:#120b4d!important}
+#gameModal.quiz-adventure-open .modal-form.game{
+  position:relative!important;
+  inset:auto!important;
+  width:100dvw!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:100dvh!important;
+  max-height:none!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+#gameModal.quiz-adventure-open .modal-form.game>.x{display:none!important}
+#gameModal.quiz-adventure-open #gameContent{
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+
+.quiz-adventure-shell{
+  --adventure-purple:#6047e8;
+  --adventure-purple-2:#8b6df5;
+  --adventure-blue:#36a9ee;
+  --adventure-navy:#15154c;
+  --adventure-yellow:#ffd447;
+  --adventure-green:#48cf83;
+  --adventure-red:#ff6476;
+  position:relative;
+  isolation:isolate;
+  width:100%;
+  height:100dvh;
+  min-width:0;
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  gap:clamp(8px,1.4dvh,14px);
+  padding:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
+  color:var(--adventure-navy);
+  font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 10% 12%,rgba(255,255,255,.38) 0 4%,transparent 4.3%),
+    radial-gradient(circle at 86% 15%,rgba(255,217,90,.22) 0 9%,transparent 9.3%),
+    radial-gradient(circle at 50% 104%,rgba(98,230,210,.34) 0 24%,transparent 24.3%),
+    linear-gradient(155deg,#5b42df 0%,#745cf0 35%,#379fe8 72%,#5fd6ec 100%);
+}
+.quiz-adventure-shell::before,
+.quiz-adventure-shell::after{
+  content:"";
+  position:absolute;
+  z-index:-2;
+  border-radius:50%;
+  pointer-events:none;
+}
+.quiz-adventure-shell::before{
+  width:min(62vw,620px);height:min(62vw,620px);
+  right:-20vw;top:-28vw;
+  background:radial-gradient(circle,rgba(255,255,255,.16),rgba(255,255,255,0) 68%);
+}
+.quiz-adventure-shell::after{
+  width:min(72vw,720px);height:min(72vw,720px);
+  left:-30vw;bottom:-42vw;
+  background:radial-gradient(circle,rgba(104,255,198,.19),rgba(104,255,198,0) 68%);
+}
+
+/* Minimal header: no subject/topic labels. */
+.adventure-topbar{
+  position:relative;
+  z-index:20;
+  width:min(100%,920px);
+  min-width:0;
+  margin-inline:auto;
+  display:grid;
+  grid-template-columns:auto minmax(110px,1fr) auto auto;
+  align-items:center;
+  gap:clamp(7px,1.4vw,13px);
+}
+.adventure-control-btn,
+.adventure-score{
+  min-height:clamp(46px,6.8dvh,62px)!important;
+  border:2px solid rgba(255,255,255,.72)!important;
+  border-radius:clamp(15px,2.6vw,22px)!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 12px 26px rgba(26,17,92,.19)!important;
+}
+.adventure-control-btn{
+  min-width:clamp(46px,6.8dvh,62px);
+  padding:0 12px;
+  display:grid;
+  place-items:center;
+  color:#4334b9;
+  cursor:pointer;
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.adventure-control-btn:active{transform:scale(.93)}
+.adventure-control-btn.close span{font-size:clamp(28px,4vw,36px);line-height:1;font-weight:500}
+.adventure-control-btn.music{
+  grid-template-columns:auto;
+  align-content:center;
+  gap:0;
+  line-height:1;
+}
+.adventure-control-btn.music>span{font-size:clamp(22px,3.8vw,30px);font-weight:1000}
+.adventure-control-btn.music>small{font-size:9px!important;font-weight:1000;letter-spacing:.03em;margin-top:3px}
+.adventure-control-btn.music:not(.music-off){
+  background:linear-gradient(145deg,#fff,#e8f6ff)!important;
+  color:#157ec5;
+  animation:adventureMusicPulse 1.4s ease-in-out infinite;
+}
+.adventure-control-btn.music.music-off{opacity:.76;filter:saturate(.5)}
+.adventure-progress-wrap{
+  min-width:0;
+  min-height:clamp(46px,6.8dvh,62px);
+  padding:8px clamp(12px,2.5vw,20px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:6px;
+  border:2px solid rgba(255,255,255,.68);
+  border-radius:clamp(15px,2.6vw,22px);
+  background:rgba(255,255,255,.94);
+  box-shadow:0 12px 26px rgba(26,17,92,.19);
+}
+.adventure-progress-copy{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#353062}
+.adventure-progress-copy b{font-size:clamp(12px,2.2vw,16px);font-weight:1000}
+.adventure-progress-copy span{font-size:10px;font-weight:900;color:#7b73a3}
+.adventure-progress{
+  width:100%!important;
+  height:clamp(7px,1.2dvh,11px)!important;
+  border-radius:999px!important;
+  overflow:hidden!important;
+  background:#e9e7f7!important;
+  box-shadow:inset 0 1px 4px rgba(35,29,78,.1)!important;
+}
+.adventure-progress span{
+  display:block!important;height:100%!important;border-radius:inherit!important;
+  background:linear-gradient(90deg,#8ede22,#ffd332 42%,#8166ef 78%,#4b94ee)!important;
+  box-shadow:0 0 12px rgba(110,83,235,.34)!important;
+  transition:width .42s cubic-bezier(.2,.85,.2,1)!important;
+}
+.adventure-score{
+  min-width:clamp(70px,13vw,104px)!important;
+  padding:0 clamp(10px,2vw,15px)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  color:#493bc0!important;
+}
+.adventure-score span{font-size:clamp(23px,4vw,31px)}
+.adventure-score b{font-size:clamp(19px,3.5vw,28px)!important;font-weight:1000!important}
+
+.adventure-quiz-body{
+  position:relative;
+  z-index:3;
+  width:min(100%,920px);
+  min-width:0;
+  min-height:0;
+  height:100%;
+  margin-inline:auto;
+  display:grid;
+  grid-template-rows:minmax(190px,1fr) auto auto auto;
+  gap:clamp(7px,1.25dvh,12px);
+}
+
+/* Question scene */
+.adventure-question-stage{
+  position:relative;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:3px solid rgba(255,255,255,.82);
+  border-radius:clamp(24px,4vw,38px);
+  background:
+    radial-gradient(circle at 15% 18%,rgba(255,255,255,.82) 0 7%,transparent 7.3%),
+    radial-gradient(circle at 88% 20%,rgba(255,255,255,.74) 0 10%,transparent 10.3%),
+    linear-gradient(180deg,#92e1ff 0%,#c7efff 54%,#dff7c9 54.5%,#98db7b 100%);
+  box-shadow:0 20px 50px rgba(24,19,86,.22),inset 0 0 0 5px rgba(255,255,255,.18);
+}
+.adventure-stage-glow{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(86%,720px);height:75%;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,248,183,.62),rgba(255,248,183,0) 68%);
+  pointer-events:none;
+}
+.adventure-question-card{
+  position:relative;
+  z-index:5;
+  width:min(76%,680px);
+  min-height:clamp(145px,24dvh,265px);
+  padding:clamp(26px,5dvh,46px) clamp(20px,5vw,48px) clamp(20px,4dvh,40px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border:clamp(5px,1vw,9px) solid #f3a834;
+  border-radius:clamp(24px,4vw,38px);
+  background:linear-gradient(180deg,#fffefb,#fff9ec);
+  box-shadow:
+    0 0 0 4px rgba(123,69,20,.42),
+    0 16px 38px rgba(52,39,92,.19),
+    inset 0 0 28px rgba(255,207,79,.12);
+}
+.adventure-question-mark{
+  position:absolute;left:50%;top:0;transform:translate(-50%,-53%);
+  width:clamp(44px,8vw,68px);height:clamp(44px,8vw,68px);
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:linear-gradient(145deg,#a563ff,#6d43de);
+  color:#fff;font-size:clamp(25px,5vw,42px);font-weight:1000;
+  border:3px solid #fff;
+  box-shadow:0 8px 18px rgba(87,55,176,.26);
+}
+.adventure-speak-btn{
+  position:absolute;right:clamp(9px,2vw,16px);top:clamp(9px,2vw,16px);
+  width:clamp(40px,7vw,54px);height:clamp(40px,7vw,54px);
+  border:0;border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(145deg,#dff6ff,#fff);
+  box-shadow:0 8px 18px rgba(38,124,181,.16);
+  font-size:clamp(19px,4vw,28px);cursor:pointer;
+  transition:transform .16s ease;
+}
+.adventure-speak-btn:active{transform:scale(.9)}
+.adventure-speak-btn.speaking{animation:adventureSpeaker .72s ease-in-out infinite}
+.adventure-question-text{width:100%;min-width:0;display:grid;place-items:center;color:#15154c}
+.adventure-question-text .board-prompt-lead{
+  display:block!important;
+  font-size:clamp(15px,2.9vw,24px)!important;
+  line-height:1.35!important;
+  color:#33345d!important;
+  margin-bottom:clamp(4px,1dvh,10px)!important;
+  font-weight:800!important;
+}
+.adventure-question-text .board-prompt-focus,
+.adventure-question-text .board-prompt-single{
+  display:block!important;
+  width:100%;
+  font-size:clamp(29px,6vw,58px)!important;
+  line-height:1.12!important;
+  color:#12164d!important;
+  font-weight:1000!important;
+  letter-spacing:-.025em!important;
+  text-wrap:balance;
+  overflow-wrap:anywhere;
+}
+.adventure-mascot{
+  position:absolute;
+  z-index:6;
+  width:clamp(76px,16vw,150px);
+  aspect-ratio:1;
+  pointer-events:none;
+  filter:drop-shadow(0 12px 10px rgba(34,30,77,.16));
+}
+.adventure-mascot .cartoon-animal-svg{width:100%;height:100%;display:block}
+.main-mascot{left:clamp(-6px,1vw,18px);bottom:clamp(-12px,-1vw,4px)}
+.buddy-mascot{right:clamp(-8px,1vw,18px);bottom:clamp(-12px,-1vw,4px);width:clamp(66px,14vw,126px)}
+
+/* Decorative layer — every question gets a distinct motion class. */
+.adventure-ambient{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.adventure-decor-item{position:absolute;font-size:clamp(19px,4vw,36px);filter:drop-shadow(0 5px 8px rgba(33,24,92,.16));will-change:transform}
+.decor-1{left:6%;top:18%}.decor-2{right:8%;top:28%}.decor-3{left:12%;bottom:19%}.decor-4{right:11%;bottom:15%}
+.adventure-motion-0 .adventure-decor-item{animation:adventureTwinkle 1.8s ease-in-out infinite alternate}
+.adventure-motion-0 .main-mascot{animation:adventureBounce 1.45s ease-in-out infinite}
+.adventure-motion-1 .adventure-decor-item{animation:adventureCloudDrift 5s ease-in-out infinite alternate}
+.adventure-motion-1 .buddy-mascot{animation:adventurePeek 2.2s ease-in-out infinite}
+.adventure-motion-2 .adventure-decor-item{animation:adventureFly 4.2s linear infinite}
+.adventure-motion-2 .main-mascot{animation:adventureWiggle 1.65s ease-in-out infinite}
+.adventure-motion-3 .adventure-decor-item{animation:adventureBubble 3.1s ease-in-out infinite}
+.adventure-motion-3 .adventure-question-card{animation:adventureCardFloat 2.8s ease-in-out infinite}
+.adventure-motion-4 .adventure-decor-item{animation:adventureLeaf 4s ease-in-out infinite}
+.adventure-motion-4 .buddy-mascot{animation:adventureSway 1.9s ease-in-out infinite}
+.adventure-motion-5 .adventure-decor-item{animation:adventureBalloon 3.6s ease-in-out infinite alternate}
+.adventure-motion-5 .main-mascot{animation:adventurePop 2.1s ease-in-out infinite}
+.adventure-motion-6 .adventure-decor-item{animation:adventureMusicNote 2.4s ease-in-out infinite}
+.adventure-motion-6 .adventure-question-mark{animation:adventureBeat 1.1s ease-in-out infinite}
+.adventure-motion-7 .adventure-decor-item{animation:adventureButterfly 4s ease-in-out infinite alternate}
+.adventure-motion-7 .buddy-mascot{animation:adventureBounce 1.7s ease-in-out infinite}
+.adventure-motion-8 .adventure-decor-item{animation:adventureOrbit 5.2s linear infinite}
+.adventure-motion-8 .main-mascot{animation:adventureSway 2.1s ease-in-out infinite}
+.adventure-motion-9 .adventure-decor-item{animation:adventurePartyIdle 1.7s ease-in-out infinite}
+.adventure-motion-9 .adventure-question-card{animation:adventureCardGlow 1.9s ease-in-out infinite alternate}
+
+/* Answers */
+.adventure-answer-grid{
+  width:100%!important;
+  min-width:0!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:clamp(8px,1.5dvh,14px)!important;
+  margin:0!important;
+}
+.adventure-answer{
+  position:relative!important;
+  min-width:0!important;
+  min-height:clamp(70px,11.2dvh,112px)!important;
+  padding:clamp(10px,2dvh,16px) clamp(14px,3vw,24px)!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:clamp(9px,2vw,16px)!important;
+  border-width:3px!important;
+  border-style:solid!important;
+  border-radius:clamp(20px,3.5vw,28px)!important;
+  box-shadow:0 12px 25px rgba(30,25,83,.13),inset 0 1px 0 rgba(255,255,255,.82)!important;
+  color:#15154c!important;
+  overflow:hidden!important;
+  cursor:pointer!important;
+  transition:transform .14s ease,box-shadow .18s ease,border-color .18s ease,filter .18s ease!important;
+}
+.adventure-answer::after{
+  content:"";position:absolute;width:90px;height:90px;right:-30px;bottom:-44px;border-radius:50%;background:rgba(255,255,255,.35);pointer-events:none
+}
+.adventure-answer:active:not(:disabled){transform:scale(.97)!important}
+.adventure-answer:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 30px rgba(30,25,83,.17),inset 0 1px 0 rgba(255,255,255,.9)!important}
+.answer-tone-1{background:linear-gradient(145deg,#ffe7f1,#fff4f8)!important;border-color:#ff85b2!important}
+.answer-tone-2{background:linear-gradient(145deg,#ddffe9,#f2fff7)!important;border-color:#5bd68b!important}
+.answer-tone-3{background:linear-gradient(145deg,#fff2bc,#fff9df)!important;border-color:#ffc73a!important}
+.answer-tone-4{background:linear-gradient(145deg,#eee4ff,#f8f3ff)!important;border-color:#9f7aff!important}
+.adventure-answer .quiz-answer-letter{
+  width:clamp(40px,8vw,58px)!important;height:clamp(40px,8vw,58px)!important;
+  display:grid!important;place-items:center!important;
+  border-radius:50%!important;color:#fff!important;
+  font-size:clamp(18px,3.8vw,28px)!important;font-weight:1000!important;
+  box-shadow:0 6px 13px rgba(51,39,105,.16)!important;
+}
+.answer-tone-1 .quiz-answer-letter{background:linear-gradient(145deg,#ff70a6,#ff3f84)!important}
+.answer-tone-2 .quiz-answer-letter{background:linear-gradient(145deg,#55d98a,#22b760)!important}
+.answer-tone-3 .quiz-answer-letter{background:linear-gradient(145deg,#ffc347,#f7a812)!important}
+.answer-tone-4 .quiz-answer-letter{background:linear-gradient(145deg,#a87aff,#7650e8)!important}
+.adventure-answer .quiz-answer-text{
+  min-width:0!important;
+  font-size:clamp(20px,4.2vw,34px)!important;
+  line-height:1.14!important;
+  font-weight:1000!important;
+  letter-spacing:-.02em!important;
+  text-align:center!important;
+  text-wrap:balance;
+  overflow-wrap:anywhere;
+}
+.adventure-answer .quiz-answer-visual{font-size:clamp(25px,5vw,42px)!important;line-height:1!important;filter:drop-shadow(0 4px 5px rgba(44,34,87,.09))}
+.adventure-answer.answer-correct{
+  background:linear-gradient(145deg,#aaf7c8,#e5fff0)!important;
+  border-color:#22b963!important;
+  box-shadow:0 0 0 5px rgba(52,213,119,.19),0 18px 34px rgba(37,183,99,.24)!important;
+  animation:adventureCorrectAnswer .58s cubic-bezier(.18,.89,.32,1.28)!important;
+}
+.adventure-answer.answer-correct::before{
+  content:"✓";position:absolute;right:8px;top:7px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#1ab85d;color:#fff;font-weight:1000;z-index:3;box-shadow:0 5px 10px rgba(26,184,93,.28)
+}
+.adventure-answer.answer-wrong{
+  background:linear-gradient(145deg,#ffd9df,#fff0f2)!important;
+  border-color:#f1435d!important;
+  box-shadow:0 0 0 5px rgba(241,67,93,.14),0 16px 32px rgba(218,48,71,.22)!important;
+  animation:adventureWrongAnswer .48s ease!important;
+}
+.adventure-answer.answer-wrong::before{
+  content:"×";position:absolute;right:8px;top:7px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#ee3e57;color:#fff;font-size:20px;font-weight:1000;z-index:3
+}
+
+/* Inline feedback */
+.adventure-inline-feedback{min-width:0!important;margin:0!important;min-height:0!important}
+.adventure-inline-feedback:empty{display:none!important}
+.adventure-inline-feedback .quiz-feedback-box{
+  min-height:clamp(50px,7.5dvh,68px)!important;
+  padding:8px 12px!important;
+  border-radius:18px!important;
+  border-width:2px!important;
+  box-shadow:0 10px 22px rgba(27,23,70,.12)!important;
+}
+.adventure-inline-feedback .quiz-feedback-copy b{font-size:clamp(13px,2.4vw,18px)!important}
+.adventure-inline-feedback .quiz-feedback-copy span{font-size:clamp(10px,1.9vw,14px)!important}
+.adventure-inline-feedback .quiz-feedback-reward{font-size:clamp(15px,2.8vw,21px)!important}
+
+.adventure-next-row{margin:0!important;padding:0!important;min-height:clamp(48px,7.5dvh,64px)!important}
+.adventure-next-row .quiz-next-btn{
+  width:min(100%,460px)!important;
+  min-height:clamp(48px,7.5dvh,64px)!important;
+  margin:0 auto!important;
+  border-radius:20px!important;
+  font-size:clamp(15px,3vw,22px)!important;
+  font-weight:1000!important;
+  letter-spacing:.01em!important;
+}
+.adventure-next-row .quiz-next-btn.ready{
+  color:#fff!important;
+  background:linear-gradient(100deg,#6c45e7,#8c68ff,#487de8)!important;
+  box-shadow:0 13px 28px rgba(92,62,219,.34)!important;
+  animation:adventureNextReady 1.35s ease-in-out infinite!important;
+}
+.adventure-next-row .quiz-next-btn.locked{
+  color:#8c8da1!important;background:rgba(255,255,255,.68)!important;border:2px solid rgba(255,255,255,.72)!important;box-shadow:none!important
+}
+
+/* Large correct/wrong feedback overlay */
+.adventure-feedback-overlay{
+  position:absolute;inset:0;z-index:90;
+  display:grid;place-items:center;
+  padding:20px;
+  background:rgba(28,21,79,.26);
+  backdrop-filter:blur(3px);
+  pointer-events:none;
+  animation:adventureOverlayIn .24s ease both;
+}
+.adventure-feedback-overlay.leaving{animation:adventureOverlayOut .3s ease both}
+.adventure-feedback-card{
+  position:relative;z-index:2;
+  width:min(88vw,500px);
+  min-height:clamp(270px,50dvh,420px);
+  padding:clamp(20px,4vw,34px);
+  display:grid;
+  grid-template-columns:minmax(100px,.72fr) minmax(0,1.25fr);
+  align-items:center;
+  gap:clamp(10px,3vw,24px);
+  border:5px solid #fff;
+  border-radius:clamp(28px,5vw,44px);
+  box-shadow:0 30px 80px rgba(21,14,74,.34);
+  overflow:hidden;
+}
+.adventure-feedback-overlay.correct .adventure-feedback-card{
+  background:radial-gradient(circle at 22% 18%,#fff8a7 0 9%,transparent 9.4%),linear-gradient(145deg,#fff9c6,#fff 48%,#c9ffdc);
+  color:#135a31;
+  animation:adventureCelebrationCard .62s cubic-bezier(.16,.9,.2,1.2) both;
+}
+.adventure-feedback-overlay.wrong .adventure-feedback-card{
+  background:radial-gradient(circle at 78% 15%,#d9d7ff 0 10%,transparent 10.4%),linear-gradient(145deg,#ffe1e6,#fff 50%,#ede8ff);
+  color:#9c283a;
+  animation:adventureWrongCard .48s ease both;
+}
+.adventure-feedback-mascot{width:min(100%,190px);justify-self:center;filter:drop-shadow(0 14px 14px rgba(38,27,84,.14))}
+.adventure-feedback-mascot .cartoon-animal-svg{width:100%;height:auto;display:block}
+.adventure-feedback-copy{min-width:0;text-align:center}
+.adventure-feedback-copy small{display:block;font-size:clamp(10px,2vw,14px)!important;font-weight:1000;letter-spacing:.12em;margin-bottom:4px}
+.adventure-feedback-copy b{display:block;font-size:clamp(39px,9vw,72px);line-height:1;color:inherit;letter-spacing:-.045em;text-shadow:0 3px 0 rgba(255,255,255,.68)}
+.adventure-feedback-copy span{display:block;margin-top:9px;font-size:clamp(14px,3vw,21px);line-height:1.35;font-weight:800}
+.adventure-feedback-copy strong{display:inline-flex;margin-top:12px;padding:8px 14px;border-radius:999px;background:#fff7b0;color:#8a5a00;font-size:clamp(18px,4vw,28px);box-shadow:0 8px 18px rgba(134,99,11,.13)}
+.adventure-feedback-particles{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
+.adventure-feedback-particles i{position:absolute;left:calc(6% + (var(--i) * 7.7%));top:55%;font-style:normal;font-size:clamp(20px,5vw,42px);opacity:0}
+.adventure-feedback-overlay.correct .adventure-feedback-particles i{animation:adventureConfettiFly 1.15s ease-out calc(var(--i)*.025s) forwards}
+.adventure-feedback-overlay.wrong .adventure-feedback-particles i{left:calc(15% + (var(--i) * 17%));top:28%;animation:adventureSadDrop .8s ease-in calc(var(--i)*.04s) forwards}
+.quiz-effect-correct{animation:adventureStageSuccess .46s ease}
+.quiz-effect-wrong{animation:adventureStageWrong .46s ease}
+
+/* Result screen receives matching polish without changing its logic. */
+#gameModal .quiz-result-reference{
+  background:linear-gradient(155deg,#5c43df,#7e65ef 40%,#4bb7e9 100%)!important;
+}
+#gameModal .quiz-result-reference .quiz-result-ref-card{
+  border-radius:30px!important;
+  box-shadow:0 22px 55px rgba(24,18,86,.22)!important;
+}
+#gameModal .quiz-result-reference .quiz-result-banner{font-size:clamp(24px,5vw,42px)!important}
+#gameModal .quiz-result-reference .quiz-result-stat{border-radius:20px!important;box-shadow:0 10px 25px rgba(32,27,79,.08)!important}
+
+/* Motion / feedback keyframes */
+@keyframes adventureMusicPulse{0%,100%{box-shadow:0 12px 26px rgba(26,17,92,.19),0 0 0 0 rgba(76,179,241,.18)}50%{box-shadow:0 12px 26px rgba(26,17,92,.19),0 0 0 7px rgba(76,179,241,0)}}
+@keyframes adventureSpeaker{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes adventureTwinkle{0%{transform:scale(.8) rotate(-7deg);opacity:.55}100%{transform:scale(1.18) rotate(8deg);opacity:1}}
+@keyframes adventureBounce{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-11px) rotate(2deg)}}
+@keyframes adventureCloudDrift{0%{transform:translateX(-12px)}100%{transform:translateX(18px)}}
+@keyframes adventurePeek{0%,100%{transform:translateY(11px) rotate(0)}50%{transform:translateY(0) rotate(4deg)}}
+@keyframes adventureFly{0%{transform:translate(-18px,10px) rotate(-9deg)}50%{transform:translate(12px,-14px) rotate(6deg)}100%{transform:translate(-18px,10px) rotate(-9deg)}}
+@keyframes adventureWiggle{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(4deg)}}
+@keyframes adventureBubble{0%{transform:translateY(15px) scale(.75);opacity:.35}50%{opacity:1}100%{transform:translateY(-24px) scale(1.15);opacity:.35}}
+@keyframes adventureCardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes adventureLeaf{0%{transform:translate(0,-8px) rotate(0)}50%{transform:translate(12px,10px) rotate(120deg)}100%{transform:translate(-6px,25px) rotate(240deg)}}
+@keyframes adventureSway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes adventureBalloon{0%{transform:translateY(10px)}100%{transform:translateY(-19px)}}
+@keyframes adventurePop{0%,80%,100%{transform:scale(1)}88%{transform:scale(1.08)}}
+@keyframes adventureMusicNote{0%{transform:translateY(8px) rotate(-8deg);opacity:.55}50%{transform:translateY(-12px) rotate(8deg);opacity:1}100%{transform:translateY(8px) rotate(-8deg);opacity:.55}}
+@keyframes adventureBeat{0%,100%{transform:translate(-50%,-53%) scale(1)}50%{transform:translate(-50%,-53%) scale(1.08)}}
+@keyframes adventureButterfly{0%{transform:translate(-12px,8px) rotate(-8deg)}100%{transform:translate(18px,-12px) rotate(9deg)}}
+@keyframes adventureOrbit{0%{transform:rotate(0deg) translateX(9px) rotate(0deg)}100%{transform:rotate(360deg) translateX(9px) rotate(-360deg)}}
+@keyframes adventurePartyIdle{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-9px) rotate(6deg)}}
+@keyframes adventureCardGlow{0%{box-shadow:0 0 0 4px rgba(123,69,20,.42),0 16px 38px rgba(52,39,92,.19),0 0 0 rgba(255,225,70,0)}100%{box-shadow:0 0 0 4px rgba(123,69,20,.42),0 16px 38px rgba(52,39,92,.19),0 0 30px rgba(255,225,70,.42)}}
+@keyframes adventureCorrectAnswer{0%{transform:scale(1)}45%{transform:scale(1.055)}70%{transform:scale(.985)}100%{transform:scale(1)}}
+@keyframes adventureWrongAnswer{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px) rotate(-1deg)}40%{transform:translateX(8px) rotate(1deg)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+@keyframes adventureNextReady{0%,100%{transform:translateY(0);filter:brightness(1)}50%{transform:translateY(-2px);filter:brightness(1.07)}}
+@keyframes adventureOverlayIn{from{opacity:0}to{opacity:1}}
+@keyframes adventureOverlayOut{to{opacity:0;transform:scale(.98)}}
+@keyframes adventureCelebrationCard{0%{opacity:0;transform:scale(.55) rotate(-3deg)}68%{opacity:1;transform:scale(1.05) rotate(1deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes adventureWrongCard{0%{opacity:0;transform:translateY(20px) scale(.92)}60%{opacity:1;transform:translateY(-4px) scale(1.01)}100%{transform:translateY(0) scale(1)}}
+@keyframes adventureConfettiFly{0%{opacity:0;transform:translateY(20px) scale(.5) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translate(calc((var(--i) - 6)*6px),-52dvh) scale(1.25) rotate(300deg)}}
+@keyframes adventureSadDrop{0%{opacity:0;transform:translateY(-8px) scale(.8)}20%{opacity:1}100%{opacity:0;transform:translateY(120px) scale(1)}}
+@keyframes adventureStageSuccess{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18) saturate(1.15)}}
+@keyframes adventureStageWrong{0%,100%{transform:translateX(0)}30%{transform:translateX(-4px)}60%{transform:translateX(4px)}}
+
+/* Mobile / short screens: same design, only fluid sizing changes. */
+@media(max-width:620px){
+  .quiz-adventure-shell{gap:7px;padding:max(7px,env(safe-area-inset-top,0px)) max(7px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(7px,env(safe-area-inset-left,0px))}
+  .adventure-topbar{grid-template-columns:auto minmax(0,1fr) auto auto;gap:6px}
+  .adventure-control-btn,.adventure-score,.adventure-progress-wrap{min-height:48px!important;border-radius:15px!important}
+  .adventure-control-btn{min-width:46px;padding:0 7px}.adventure-control-btn.music{min-width:50px}
+  .adventure-progress-wrap{padding:6px 9px}.adventure-progress-copy span{display:none}
+  .adventure-score{min-width:62px!important;padding:0 8px!important}.adventure-score span{font-size:21px}.adventure-score b{font-size:19px!important}
+  .adventure-quiz-body{grid-template-rows:minmax(185px,1fr) auto auto auto;gap:7px}
+  .adventure-question-stage{border-radius:24px;border-width:2px}
+  .adventure-question-card{width:84%;min-height:138px;border-width:5px;border-radius:24px;padding:28px 17px 18px}
+  .main-mascot{left:-5px}.buddy-mascot{right:-5px}
+  .adventure-answer-grid{gap:7px!important}
+  .adventure-answer{min-height:66px!important;padding:8px 10px!important;gap:7px!important;border-radius:18px!important;border-width:2px!important}
+  .adventure-answer .quiz-answer-letter{width:38px!important;height:38px!important;font-size:17px!important}
+  .adventure-answer .quiz-answer-text{font-size:clamp(17px,5vw,24px)!important}
+  .adventure-answer .quiz-answer-visual{font-size:25px!important}
+  .adventure-inline-feedback .quiz-feedback-box{min-height:48px!important;border-radius:15px!important;padding:7px 9px!important}
+  .adventure-next-row,.adventure-next-row .quiz-next-btn{min-height:46px!important}.adventure-next-row .quiz-next-btn{border-radius:16px!important}
+  .adventure-feedback-card{grid-template-columns:1fr;min-height:300px;gap:2px;padding:18px}
+  .adventure-feedback-mascot{width:130px}
+}
+
+@media(max-height:720px){
+  .quiz-adventure-shell{gap:5px;padding-block:max(5px,env(safe-area-inset-top,0px)) max(4px,env(safe-area-inset-bottom,0px))}
+  .adventure-control-btn,.adventure-score,.adventure-progress-wrap{min-height:44px!important}
+  .adventure-quiz-body{grid-template-rows:minmax(150px,1fr) auto auto auto;gap:5px}
+  .adventure-question-card{min-height:116px;padding-top:25px;padding-bottom:14px}
+  .adventure-question-text .board-prompt-lead{font-size:13px!important;margin-bottom:2px!important}
+  .adventure-question-text .board-prompt-focus,.adventure-question-text .board-prompt-single{font-size:clamp(24px,5.7vw,42px)!important}
+  .adventure-mascot{width:clamp(58px,12vw,105px)}.buddy-mascot{width:clamp(52px,11vw,94px)}
+  .adventure-answer{min-height:56px!important;padding-block:6px!important}.adventure-answer .quiz-answer-letter{width:34px!important;height:34px!important}
+  .adventure-answer .quiz-answer-text{font-size:clamp(16px,3.6vw,25px)!important}.adventure-answer .quiz-answer-visual{font-size:22px!important}
+  .adventure-inline-feedback .quiz-feedback-box{min-height:43px!important;padding-block:5px!important}
+  .adventure-next-row,.adventure-next-row .quiz-next-btn{min-height:42px!important}
+}
+
+@media(min-width:760px){
+  .adventure-question-card{width:min(72%,650px)}
+  .adventure-answer-grid{width:min(100%,820px)!important;margin-inline:auto!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .quiz-adventure-shell *,
+  .quiz-adventure-shell *::before,
+  .quiz-adventure-shell *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+}
+
+/* Long-question safeguards: keep the same design while fitting audited banks. */
+.quiz-adventure-shell.question-medium .adventure-question-text .board-prompt-focus,
+.quiz-adventure-shell.question-medium .adventure-question-text .board-prompt-single{
+  font-size:clamp(25px,5vw,48px)!important;
+  line-height:1.16!important;
+}
+.quiz-adventure-shell.question-long .adventure-question-text .board-prompt-focus,
+.quiz-adventure-shell.question-long .adventure-question-text .board-prompt-single{
+  font-size:clamp(22px,4.4vw,40px)!important;
+  line-height:1.18!important;
+}
+@media(max-height:720px){
+  .quiz-adventure-shell.question-medium .adventure-question-text .board-prompt-focus,
+  .quiz-adventure-shell.question-medium .adventure-question-text .board-prompt-single{font-size:clamp(21px,4.9vw,34px)!important}
+  .quiz-adventure-shell.question-long .adventure-question-text .board-prompt-focus,
+  .quiz-adventure-shell.question-long .adventure-question-text .board-prompt-single{font-size:clamp(18px,4.2vw,29px)!important}
+}

@@ -1064,6 +1064,8 @@ function speakCilikGo(text,lang='ms-MY',button=null){
     resumeMusic=true;
     cgAudioCtx.suspend().catch(()=>{});
   }
+  const resumeQuizMusic=typeof cgQuizMusicActive!=='undefined'&&cgQuizMusicActive&&!cgQuizMusicPaused;
+  if(resumeQuizMusic&&typeof pauseCgQuizMusic==='function') pauseCgQuizMusic();
 
   const original=button?.innerHTML||'';
   if(button){
@@ -1080,6 +1082,7 @@ function speakCilikGo(text,lang='ms-MY',button=null){
     if(resumeMusic&&typeof cgMusicOn!=='undefined'&&cgMusicOn&&cgAudioCtx?.state==='suspended'){
       cgAudioCtx.resume().catch(()=>{});
     }
+    if(resumeQuizMusic&&typeof resumeCgQuizMusic==='function') resumeCgQuizMusic();
   };
   utterance.onend=cleanup;
   utterance.onerror=e=>{
@@ -1141,28 +1144,40 @@ function quizScreenEffect(type){
   const stage=$('#gameContent .quiz-fullscreen-shell');
   if(!stage)return;
   stage.classList.remove('quiz-effect-wrong','quiz-effect-correct');
-  stage.querySelectorAll('.quiz-result-pop').forEach(n=>n.remove());
+  stage.querySelectorAll('.quiz-result-pop,.adventure-feedback-overlay').forEach(n=>n.remove());
   void stage.offsetWidth;
-  const correct=type==='correct';
-  const cls=correct?'quiz-effect-correct':'quiz-effect-wrong';
-  stage.classList.add(cls);
 
-  const pop=document.createElement('div');
-  pop.className=`quiz-result-pop ${correct?'correct':'wrong'}`;
-  pop.setAttribute('aria-hidden','true');
-  pop.innerHTML=correct
-    ?'<span class="quiz-result-pop-icon">✓</span><div><b>Hebat!</b><small>Jawapan betul</small></div>'
-    :'<span class="quiz-result-pop-icon">×</span><div><b>Cuba Lagi</b><small>Pilih jawapan lain</small></div>';
-  stage.appendChild(pop);
+  const correct=type==='correct';
+  const motion=Number(stage.dataset.motion||0)%10;
+  stage.classList.add(correct?'quiz-effect-correct':'quiz-effect-wrong');
+
+  const reward=$('#gameMsg .quiz-feedback-reward')?.textContent?.trim()||'';
+  const overlay=document.createElement('div');
+  overlay.className=`adventure-feedback-overlay ${correct?'correct':'wrong'} feedback-motion-${motion}`;
+  overlay.setAttribute('aria-hidden','true');
+  const particles=correct
+    ?['⭐','✨','🎉','🌟','🎊','💫','⭐','✨','🎉','🌈','⭐','🎊']
+    :['💧','☁️','💭','💧','☁️'];
+  overlay.innerHTML=`<div class="adventure-feedback-particles">${particles.map((p,i)=>`<i style="--i:${i}">${p}</i>`).join('')}</div>
+    <div class="adventure-feedback-card">
+      <div class="adventure-feedback-mascot">${animalMascotSvg(correct?'owl':'rabbit')}</div>
+      <div class="adventure-feedback-copy">
+        <small>${correct?'JAWAPAN BETUL':'BELUM TEPAT'}</small>
+        <b>${correct?'Hebat!':'Cuba Lagi!'}</b>
+        <span>${correct?'Jawapan kamu memang tepat.':'Tidak mengapa, pilih jawapan lain.'}</span>
+        ${correct&&reward?`<strong>${esc(reward)}</strong>`:''}
+      </div>
+    </div>`;
+  stage.appendChild(overlay);
 
   if(navigator.vibrate){
-    navigator.vibrate(correct?[35,25,45]:[70,40,70]);
+    navigator.vibrate(correct?[45,25,60,25,80]:[85,45,100]);
   }
   setTimeout(()=>{
-    stage.classList.remove(cls);
-    pop.classList.add('leaving');
-    setTimeout(()=>pop.remove(),220);
-  },correct?1050:780);
+    stage.classList.remove('quiz-effect-wrong','quiz-effect-correct');
+    overlay.classList.add('leaving');
+    setTimeout(()=>overlay.remove(),300);
+  },correct?1450:1050);
 }
 
 
@@ -1183,31 +1198,120 @@ function getCgUiSfxContext(){
   }
 }
 
+function playCgTone(ctx,{freq=440,endFreq=null,start=0,duration=.12,gain=.04,type='sine'}={}){
+  const osc=ctx.createOscillator();
+  const amp=ctx.createGain();
+  const t=ctx.currentTime+Math.max(0,start);
+  osc.type=type;
+  osc.frequency.setValueAtTime(Math.max(1,freq),t);
+  if(endFreq)osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),t+duration);
+  amp.gain.setValueAtTime(.0001,t);
+  amp.gain.exponentialRampToValueAtTime(Math.max(.0002,gain),t+Math.min(.018,duration/3));
+  amp.gain.exponentialRampToValueAtTime(.0001,t+duration);
+  osc.connect(amp).connect(ctx.destination);
+  osc.start(t);osc.stop(t+duration+.03);
+}
+
+function playCgNoiseBurst(ctx,{start=0,duration=.1,gain=.025}={}){
+  try{
+    const count=Math.max(1,Math.floor(ctx.sampleRate*duration));
+    const buffer=ctx.createBuffer(1,count,ctx.sampleRate);
+    const data=buffer.getChannelData(0);
+    for(let i=0;i<count;i++)data[i]=(Math.random()*2-1)*(1-i/count);
+    const source=ctx.createBufferSource();
+    const amp=ctx.createGain();
+    const t=ctx.currentTime+start;
+    source.buffer=buffer;
+    amp.gain.setValueAtTime(gain,t);
+    amp.gain.exponentialRampToValueAtTime(.0001,t+duration);
+    source.connect(amp).connect(ctx.destination);
+    source.start(t);
+  }catch(e){}
+}
+
 function playCgUiSfx(kind='tap'){
   const ctx=getCgUiSfxContext();
   if(!ctx)return;
   const now=Date.now();
   if(kind==='tap'&&now-cgLastUiClickAt<45)return;
-  if(kind==='tap') cgLastUiClickAt=now;
+  if(kind==='tap')cgLastUiClickAt=now;
 
-  const toneMap={
-    tap:{from:640,to:520,duration:.07,gain:.028,type:'sine'},
-    success:{from:720,to:980,duration:.16,gain:.055,type:'triangle'},
-    error:{from:240,to:170,duration:.18,gain:.05,type:'square'}
-  };
-  const cfg=toneMap[kind]||toneMap.tap;
-  const osc=ctx.createOscillator();
-  const gain=ctx.createGain();
-  const t=ctx.currentTime+.006;
-  osc.type=cfg.type;
-  osc.frequency.setValueAtTime(cfg.from,t);
-  osc.frequency.exponentialRampToValueAtTime(Math.max(cfg.to,1),t+cfg.duration);
-  gain.gain.setValueAtTime(.0001,t);
-  gain.gain.exponentialRampToValueAtTime(cfg.gain,t+.01);
-  gain.gain.exponentialRampToValueAtTime(.0001,t+cfg.duration);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(t);
-  osc.stop(t+cfg.duration+.02);
+  if(kind==='tap'){
+    playCgTone(ctx,{freq:720,endFreq:560,duration:.065,gain:.035,type:'sine'});
+    return;
+  }
+  if(kind==='success'){
+    // Bright four-note fanfare + sparkle layer.
+    [659.25,783.99,987.77,1318.51].forEach((freq,i)=>playCgTone(ctx,{freq,start:i*.085,duration:.22,gain:.09-i*.008,type:i%2?'triangle':'sine'}));
+    playCgTone(ctx,{freq:329.63,start:.02,duration:.42,gain:.035,type:'triangle'});
+    playCgNoiseBurst(ctx,{start:.24,duration:.15,gain:.025});
+    return;
+  }
+  if(kind==='error'){
+    // Playful descending "oops" rather than a harsh buzzer.
+    playCgTone(ctx,{freq:310,endFreq:205,duration:.24,gain:.085,type:'triangle'});
+    playCgTone(ctx,{freq:196,endFreq:145,start:.12,duration:.28,gain:.065,type:'sine'});
+    return;
+  }
+}
+
+/* ===== Quiz Adventure background music: quiz only ===== */
+let cgQuizMusicTimer=null;
+let cgQuizMusicStep=0;
+let cgQuizMusicActive=false;
+let cgQuizMusicPaused=false;
+let cgQuizMusicEnabled=localStorage.getItem('cilikgo_quiz_music')!=='off';
+const CG_QUIZ_MELODY=[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46,659.25,783.99,987.77,783.99];
+
+function scheduleCgQuizMusic(){
+  if(!cgQuizMusicActive||cgQuizMusicPaused||!cgQuizMusicEnabled)return;
+  const ctx=getCgUiSfxContext();
+  if(!ctx)return;
+  const note=CG_QUIZ_MELODY[cgQuizMusicStep%CG_QUIZ_MELODY.length];
+  const step=cgQuizMusicStep++;
+  playCgTone(ctx,{freq:note,duration:.26,gain:.018,type:'triangle'});
+  if(step%4===0)playCgTone(ctx,{freq:note/2,duration:.34,gain:.009,type:'sine'});
+  cgQuizMusicTimer=setTimeout(scheduleCgQuizMusic,340);
+}
+function startCgQuizMusic(){
+  if(!cgQuizMusicEnabled)return;
+  cgQuizMusicActive=true;
+  cgQuizMusicPaused=false;
+  if(!cgQuizMusicTimer)scheduleCgQuizMusic();
+  updateCgQuizMusicButton();
+}
+function stopCgQuizMusic(){
+  cgQuizMusicActive=false;
+  cgQuizMusicPaused=false;
+  clearTimeout(cgQuizMusicTimer);cgQuizMusicTimer=null;
+  updateCgQuizMusicButton();
+}
+function pauseCgQuizMusic(){
+  if(!cgQuizMusicActive)return;
+  cgQuizMusicPaused=true;
+  clearTimeout(cgQuizMusicTimer);cgQuizMusicTimer=null;
+  updateCgQuizMusicButton();
+}
+function resumeCgQuizMusic(){
+  if(!cgQuizMusicActive||!cgQuizMusicEnabled)return;
+  cgQuizMusicPaused=false;
+  if(!cgQuizMusicTimer)scheduleCgQuizMusic();
+  updateCgQuizMusicButton();
+}
+function toggleCgQuizMusic(){
+  cgQuizMusicEnabled=!cgQuizMusicEnabled;
+  localStorage.setItem('cilikgo_quiz_music',cgQuizMusicEnabled?'on':'off');
+  if(cgQuizMusicEnabled){cgQuizMusicActive=true;cgQuizMusicPaused=false;scheduleCgQuizMusic();}
+  else{clearTimeout(cgQuizMusicTimer);cgQuizMusicTimer=null;}
+  updateCgQuizMusicButton();
+  playCgUiSfx('tap');
+}
+function updateCgQuizMusicButton(){
+  const btn=$('#quizMusicToggle');
+  if(!btn)return;
+  btn.classList.toggle('music-off',!cgQuizMusicEnabled);
+  btn.setAttribute('aria-pressed',cgQuizMusicEnabled?'true':'false');
+  btn.innerHTML=cgQuizMusicEnabled?'<span>♫</span><small>Muzik</small>':'<span>♪</span><small>Senyap</small>';
 }
 
 function installCgUiClickSfx(){
@@ -1452,6 +1556,88 @@ function formatQuizBoardPrompt(prompt){
   return `<strong class="board-prompt-single">${esc(text)}</strong>`;
 }
 
+function quizAdventureDecor(index){
+  const variants=[
+    ['⭐','✨','🌟','💫'],['☁️','☁️','🌈','✨'],['🐦','✨','🎵','⭐'],['🫧','🫧','✨','🫧'],['🍃','🍂','🌿','✨'],
+    ['🎈','🎈','⭐','🎈'],['🎵','♫','♪','✨'],['🦋','🌸','🦋','✨'],['🌙','⭐','🪐','✨'],['🎉','⭐','✨','🎊']
+  ];
+  return variants[index%variants.length].map((v,i)=>`<span class="adventure-decor-item decor-${i+1}">${v}</span>`).join('');
+}
+
+function renderQuizAdventureQuestion({cfg,q,choices,index,total,scoreStars,animals=[]}){
+  const letters=['A','B','C','D'];
+  const motion=index%10;
+  const promptLength=String(q.prompt||'').length;
+  const lengthClass=promptLength>78?'question-long':promptLength>55?'question-medium':'question-short';
+  const mainAnimal=animals[motion%Math.max(1,animals.length)]||'owl';
+  const buddyAnimal=animals[(motion+1)%Math.max(1,animals.length)]||'rabbit';
+  const progress=Math.round(index/total*100);
+  const questionLabel=cfg.lang.startsWith('en')?'Question':'Soalan';
+  return `<section class="quiz-fullscreen-shell quiz-adventure-shell subject-${cfg.key} adventure-motion-${motion} ${lengthClass}" data-motion="${motion}">
+    <div class="adventure-ambient" aria-hidden="true">${quizAdventureDecor(index)}</div>
+    <header class="adventure-topbar">
+      <button class="adventure-control-btn close" id="quizAdventureClose" type="button" aria-label="Tutup latihan"><span>×</span></button>
+      <div class="adventure-progress-wrap">
+        <div class="adventure-progress-copy"><b>${questionLabel} ${index+1}/${total}</b><span>${Math.round((index/total)*100)}%</span></div>
+        <div class="quiz-ref-progress-track adventure-progress"><span style="width:${progress}%"></span></div>
+      </div>
+      <div class="quiz-score-box adventure-score"><span>⭐</span><b>${scoreStars}</b></div>
+      <button class="adventure-control-btn music" id="quizMusicToggle" type="button" aria-label="Muzik kuiz" aria-pressed="true"><span>♫</span><small>Muzik</small></button>
+    </header>
+
+    <main class="adventure-quiz-body">
+      <section class="adventure-question-stage">
+        <div class="adventure-stage-glow" aria-hidden="true"></div>
+        <div class="adventure-mascot main-mascot">${animalMascotSvg(mainAnimal)}</div>
+        <div class="adventure-mascot buddy-mascot">${animalMascotSvg(buddyAnimal)}</div>
+        <div class="adventure-question-card">
+          <button class="adventure-speak-btn" id="quizSpeakBtn" type="button" aria-label="${cfg.lang.startsWith('en')?'Read question':'Baca soalan'}">🔊</button>
+          <div class="adventure-question-mark" aria-hidden="true">?</div>
+          <div class="adventure-question-text">${formatQuizBoardPrompt(q.prompt)}</div>
+        </div>
+      </section>
+
+      <section class="quiz-answer-grid adventure-answer-grid" aria-label="Pilihan jawapan">
+        ${choices.map((answer,i)=>{const icon=quizAnswerEmoji(answer);return `<button class="quiz-answer adventure-answer answer-tone-${i+1}" data-answer="${esc(answer)}">
+          <span class="quiz-answer-letter">${letters[i]}</span>
+          <span class="quiz-answer-text">${esc(answer)}</span>
+          ${icon?`<span class="quiz-answer-visual">${icon}</span>`:''}
+        </button>`}).join('')}
+      </section>
+
+      <div class="quiz-feedback adventure-inline-feedback" id="gameMsg" aria-live="polite"></div>
+      <div class="quiz-next-row adventure-next-row">
+        <button class="quiz-next-btn locked" id="quizNextBtn" type="button" aria-disabled="true">${cfg.next}<span>→</span></button>
+      </div>
+    </main>
+  </section>`;
+}
+
+function wireQuizAdventureControls(q,cfg){
+  const modal=$('#gameModal');
+  modal?.classList.add('quiz-adventure-open');
+  const close=$('#quizAdventureClose');
+  if(close)close.onclick=()=>modal?.close();
+  const music=$('#quizMusicToggle');
+  if(music)music.onclick=toggleCgQuizMusic;
+  const speak=$('#quizSpeakBtn');
+  if(speak)speak.onclick=()=>speakCilikGo(q.prompt,cfg.lang,speak);
+  updateCgQuizMusicButton();
+  if(cgQuizMusicEnabled)startCgQuizMusic();
+}
+
+function installQuizAdventureModalCleanup(){
+  const modal=$('#gameModal');
+  if(!modal||modal.dataset.adventureCleanupBound==='1')return;
+  modal.dataset.adventureCleanupBound='1';
+  modal.addEventListener('close',()=>{
+    modal.classList.remove('quiz-adventure-open');
+    stopCgQuizMusic();
+    try{window.speechSynthesis?.cancel?.();}catch(e){}
+  });
+}
+installQuizAdventureModalCleanup();
+
 function year1QuizRuntimeConfig(subjectKey){
   const configs={
     bm:{
@@ -1525,58 +1711,9 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
     const letters=['A','B','C','D'];
 
     const animals=quizSceneAnimals(subjectKey,topicKey);
-    $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell reference-quiz subject-${cfg.key}">
-      <div class="forest-canopy" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <div class="forest-floor" aria-hidden="true"><span>🌼</span><span>🌸</span><span>🍄</span><span>🌻</span><span>🌺</span></div>
-
-      <main class="quiz-ref-main">
-        <div class="quiz-ref-progress">
-          <div class="quiz-ref-progress-count"><b>${cfg.question} ${index+1} / ${questions.length}</b></div>
-          <div class="quiz-ref-progress-track"><span style="width:${Math.round(index/questions.length*100)}%"></span></div>
-          <div class="quiz-score-box"><span>⭐</span><b>${scoreStars}</b></div>
-        </div>
-
-        <section class="quiz-ref-card">
-          <div class="quiz-ref-card-head">
-            <div class="quiz-ref-topic"><span class="quiz-ref-topic-icon">${topic.icon}</span><b>${esc(topic.title)}</b></div>
-            <span class="quiz-ref-subject-pill">${cfg.name} · Tahun 1</span>
-          </div>
-
-          <div class="quiz-reference-scene clean-reference-scene">
-            <div class="scene-sky-cloud cloud-a"></div><div class="scene-sky-cloud cloud-b"></div>
-            <div class="scene-bush bush-left"></div><div class="scene-bush bush-right"></div>
-            <div class="scene-tree tree-left">🌳</div><div class="scene-tree tree-right">🌳</div>
-            <div class="scene-animal teacher-animal">${animalMascotSvg(animals[0])}</div>
-            <div class="scene-animal learner-animal">${animalMascotSvg(animals[1])}</div>
-            <div class="scene-bird">${animalMascotSvg(animals[2])}</div>
-
-            <div class="quiz-wood-board">
-              <div class="wood-board-inner">
-                ${formatQuizBoardPrompt(q.prompt)}
-              </div>
-              <span class="wood-board-leg left-leg"></span><span class="wood-board-leg right-leg"></span>
-            </div>
-
-          </div>
-
-          <div class="quiz-answer-grid colorful-answer-grid ref-answer-grid">
-            ${choices.map((answer,i)=>{const icon=quizAnswerEmoji(answer);return `<button class="quiz-answer" data-answer="${esc(answer)}">
-              <span class="quiz-answer-letter">${letters[i]}</span>
-              <span class="quiz-answer-text">${esc(answer)}</span>
-              ${icon?`<span class="quiz-answer-visual">${icon}</span>`:''}
-            </button>`}).join('')}
-          </div>
-
-          <div class="quiz-feedback" id="gameMsg" aria-live="polite"></div>
-
-          <div class="quiz-next-row ref-next-row">
-            <button class="quiz-next-btn locked" id="quizNextBtn" type="button" aria-disabled="true">${cfg.next}<span>→</span></button>
-          </div>
-        </section>
-      </main>
-    </section>`;
-
+    $('#gameContent').innerHTML=renderQuizAdventureQuestion({cfg,q,choices,index,total:questions.length,scoreStars,animals});
     if(!$('#gameModal').open) $('#gameModal').showModal();
+    wireQuizAdventureControls(q,cfg);
 
 
     const nextBtn=$('#quizNextBtn');
@@ -1642,6 +1779,9 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
   };
 
   const finishQuiz=async()=>{
+    stopCgQuizMusic();
+    $('#gameModal')?.classList.remove('quiz-adventure-open');
+    playCgUiSfx('success');
     const passed=scoreStars>=QUIZ_MASTERY_STARS,pct=Math.round(scoreStars/QUIZ_MAX_STARS*100),isEnglish=cfg.lang.startsWith('en');
     const animals=quizSceneAnimals(subjectKey,topicKey);
     const completionCopy=passed
@@ -1783,58 +1923,9 @@ async function startYear2BmFullscreenQuiz(topicKey){
     const letters=['A','B','C','D'];
 
     const animals=quizSceneAnimals(subjectKey,topicKey);
-    $('#gameContent').innerHTML=`<section class="quiz-fullscreen-shell reference-quiz subject-${cfg.key}">
-      <div class="forest-canopy" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <div class="forest-floor" aria-hidden="true"><span>🌼</span><span>🌸</span><span>🍄</span><span>🌻</span><span>🌺</span></div>
-
-      <main class="quiz-ref-main">
-        <div class="quiz-ref-progress">
-          <div class="quiz-ref-progress-count"><b>${cfg.question} ${index+1} / ${questions.length}</b></div>
-          <div class="quiz-ref-progress-track"><span style="width:${Math.round(index/questions.length*100)}%"></span></div>
-          <div class="quiz-score-box"><span>⭐</span><b>${scoreStars}</b></div>
-        </div>
-
-        <section class="quiz-ref-card">
-          <div class="quiz-ref-card-head">
-            <div class="quiz-ref-topic"><span class="quiz-ref-topic-icon">${topic.icon}</span><b>${esc(topic.title)}</b></div>
-            <span class="quiz-ref-subject-pill">${cfg.name} · Tahun 2</span>
-          </div>
-
-          <div class="quiz-reference-scene clean-reference-scene">
-            <div class="scene-sky-cloud cloud-a"></div><div class="scene-sky-cloud cloud-b"></div>
-            <div class="scene-bush bush-left"></div><div class="scene-bush bush-right"></div>
-            <div class="scene-tree tree-left">🌳</div><div class="scene-tree tree-right">🌳</div>
-            <div class="scene-animal teacher-animal">${animalMascotSvg(animals[0])}</div>
-            <div class="scene-animal learner-animal">${animalMascotSvg(animals[1])}</div>
-            <div class="scene-bird">${animalMascotSvg(animals[2])}</div>
-
-            <div class="quiz-wood-board">
-              <div class="wood-board-inner">
-                ${formatQuizBoardPrompt(q.prompt)}
-              </div>
-              <span class="wood-board-leg left-leg"></span><span class="wood-board-leg right-leg"></span>
-            </div>
-
-          </div>
-
-          <div class="quiz-answer-grid colorful-answer-grid ref-answer-grid">
-            ${choices.map((answer,i)=>{const icon=quizAnswerEmoji(answer);return `<button class="quiz-answer" data-answer="${esc(answer)}">
-              <span class="quiz-answer-letter">${letters[i]}</span>
-              <span class="quiz-answer-text">${esc(answer)}</span>
-              ${icon?`<span class="quiz-answer-visual">${icon}</span>`:''}
-            </button>`}).join('')}
-          </div>
-
-          <div class="quiz-feedback" id="gameMsg" aria-live="polite"></div>
-
-          <div class="quiz-next-row ref-next-row">
-            <button class="quiz-next-btn locked" id="quizNextBtn" type="button" aria-disabled="true">${cfg.next}<span>→</span></button>
-          </div>
-        </section>
-      </main>
-    </section>`;
-
+    $('#gameContent').innerHTML=renderQuizAdventureQuestion({cfg,q,choices,index,total:questions.length,scoreStars,animals});
     if(!$('#gameModal').open) $('#gameModal').showModal();
+    wireQuizAdventureControls(q,cfg);
 
 
     const nextBtn=$('#quizNextBtn');
@@ -1900,6 +1991,9 @@ async function startYear2BmFullscreenQuiz(topicKey){
   };
 
   const finishQuiz=async()=>{
+    stopCgQuizMusic();
+    $('#gameModal')?.classList.remove('quiz-adventure-open');
+    playCgUiSfx('success');
     const passed=scoreStars>=QUIZ_MASTERY_STARS,pct=Math.round(scoreStars/QUIZ_MAX_STARS*100),isEnglish=cfg.lang.startsWith('en');
     const animals=quizSceneAnimals(subjectKey,topicKey);
     const completionCopy=passed
