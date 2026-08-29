@@ -1,0 +1,15 @@
+CilikGo Right Navbar V4 Audit
+============================
+
+- desktop_right_clean_sidebar: LULUS
+- desktop_right_portal_sidebar: LULUS
+- mobile_right_drawer: LULUS
+- menu_button_right: LULUS
+- second_account_menu_hidden: LULUS
+- parent_preserved: LULUS
+- admin_preserved: LULUS
+- agent_preserved: LULUS
+- setRoleNav_preserved: LULUS
+
+app.js syntax: LULUS
+Firestore Rules: tidak berubah
