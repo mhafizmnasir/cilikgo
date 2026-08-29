@@ -95,13 +95,19 @@ function animateIn(scope=document){
 document.querySelectorAll('[data-auth]').forEach(b=>b.onclick=()=>showAuthPage(b.dataset.auth||'login'));
 
 const mobileMenuBtn=$('#mobileMenuBtn'), mobileNavDrawer=$('#mobileNavDrawer'), mobileNavBackdrop=$('#mobileNavBackdrop');
+if(mobileNavDrawer) mobileNavDrawer.inert=true;
 function setMobileNav(open){
   if(!mobileNavDrawer)return;
-  document.body.classList.toggle('mobile-nav-open',!!open);
-  mobileNavDrawer.classList.toggle('open',!!open);
-  mobileNavBackdrop?.classList.toggle('show',!!open);
-  mobileNavDrawer.setAttribute('aria-hidden',open?'false':'true');
-  mobileMenuBtn?.setAttribute('aria-expanded',open?'true':'false');
+  const shouldOpen=!!open;
+  const active=document.activeElement;
+  if(!shouldOpen&&active&&mobileNavDrawer.contains(active)) mobileMenuBtn?.focus({preventScroll:true});
+  document.body.classList.toggle('mobile-nav-open',shouldOpen);
+  mobileNavDrawer.classList.toggle('open',shouldOpen);
+  mobileNavBackdrop?.classList.toggle('show',shouldOpen);
+  mobileNavDrawer.setAttribute('aria-hidden',shouldOpen?'false':'true');
+  mobileNavDrawer.inert=!shouldOpen;
+  mobileMenuBtn?.setAttribute('aria-expanded',shouldOpen?'true':'false');
+  if(shouldOpen) requestAnimationFrame(()=>$('#mobileNavClose')?.focus({preventScroll:true}));
 }
 mobileMenuBtn?.addEventListener('click',()=>setMobileNav(!mobileNavDrawer.classList.contains('open')));
 $('#mobileNavClose')?.addEventListener('click',()=>setMobileNav(false));
@@ -113,14 +119,21 @@ window.addEventListener('resize',()=>{if(window.innerWidth>1024){setMobileNav(fa
 function setRoleNav(open){
   const drawer=document.querySelector('#dashboard .role-drawer');
   const btn=$('#roleMenuBtn'),backdrop=$('#roleNavBackdrop');
-  const shouldOpen=!!open&&!!drawer;
+  const compact=window.matchMedia?.('(max-width: 959px)').matches!==false;
+  const shouldOpen=compact&&!!open&&!!drawer;
+  const active=document.activeElement;
 
-  // Sentiasa reset overlay/body walaupun drawer lama telah diganti oleh render baharu.
+  if(compact&&!shouldOpen&&drawer&&active&&drawer.contains(active)) btn?.focus({preventScroll:true});
   document.body.classList.toggle('role-nav-open',shouldOpen);
   backdrop?.classList.toggle('show',shouldOpen);
   btn?.setAttribute('aria-expanded',shouldOpen?'true':'false');
 
-  if(drawer) drawer.classList.toggle('role-drawer-open',shouldOpen);
+  if(drawer){
+    drawer.classList.toggle('role-drawer-open',shouldOpen);
+    drawer.setAttribute('aria-hidden',compact&&!shouldOpen?'true':'false');
+    drawer.inert=compact&&!shouldOpen;
+    if(shouldOpen) requestAnimationFrame(()=>drawer.querySelector('.role-nav-close')?.focus({preventScroll:true}));
+  }
 }
 $('#roleMenuBtn')?.addEventListener('click',e=>{
   e.stopPropagation();
@@ -128,6 +141,17 @@ $('#roleMenuBtn')?.addEventListener('click',e=>{
   setRoleNav(!document.body.classList.contains('role-nav-open'));
 });
 $('#roleNavBackdrop')?.addEventListener('click',()=>setRoleNav(false));
+const roleDashboardRoot=$('#dashboard');
+if(roleDashboardRoot){
+  new MutationObserver(()=>{
+    const drawer=roleDashboardRoot.querySelector('.role-drawer');
+    if(!drawer)return;
+    const compact=window.matchMedia?.('(max-width: 959px)').matches!==false;
+    const open=compact&&document.body.classList.contains('role-nav-open');
+    drawer.setAttribute('aria-hidden',compact&&!open?'true':'false');
+    drawer.inert=compact&&!open;
+  }).observe(roleDashboardRoot,{childList:true,subtree:true});
+}
 document.addEventListener('click',e=>{
   if(e.target.closest('.role-nav-close')){ setRoleNav(false); return; }
   if(e.target.closest('#dashboard .role-drawer a')) setRoleNav(false);

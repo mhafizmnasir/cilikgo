@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="responsive-v11.css" />
   <link rel="stylesheet" href="ui-v18.css" />
+  <link rel="stylesheet" href="ui-v20.css" />
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -22,7 +23,7 @@
     </nav>
     <div class="top-actions desktop-actions" id="guestActions"><button class="btn ghost" data-auth="login">Log Masuk</button><button class="btn primary" data-auth="register">Daftar</button></div>
     <div class="top-actions desktop-actions hidden" id="memberActions"><span id="memberName" class="member-name"></span><button class="btn ghost" id="dashboardBtn">Dashboard</button><button class="btn primary" id="logoutBtn">Log Keluar</button></div>
-    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Buka menu" aria-controls="mobileNavDrawer" aria-expanded="false"><span></span><span></span><span></span></button>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Buka menu" aria-controls="mobileNavDrawer" aria-expanded="false"><span class="nav-hamburger" aria-hidden="true"><i></i><i></i><i></i></span></button>
   </header>
   <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
   <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
@@ -97,7 +98,7 @@
 
     <section class="section dashboard-demo" id="portal">
       <div class="app-topbar">
-        <button class="role-menu-btn" id="roleMenuBtn" aria-label="Buka menu dashboard" aria-expanded="false">☰</button>
+        <button class="role-menu-btn" id="roleMenuBtn" aria-label="Buka menu dashboard" aria-expanded="false"><span class="nav-hamburger" aria-hidden="true"><i></i><i></i><i></i></span></button>
         <a class="app-brand" href="#dashboard"><span class="brand-badge">CG</span><span>CilikGo</span></a>
         <div class="app-user desktop-app-actions"><span id="appMemberName"></span><button class="btn ghost small" id="appHomeBtn">Laman Utama</button><button class="btn primary small" id="appLogoutBtn">Log Keluar</button></div>
         <button class="app-menu-btn" id="appMenuBtn" aria-label="Buka menu akaun" aria-expanded="false">👤</button>
@@ -142,8 +143,35 @@
       <button class="auth-home-link" id="authBackHome">← Kembali ke laman utama</button>
     </div>
     <div class="auth-form-panel">
-      <button class="auth-mobile-home-link" id="authBackHomeMobile">← Kembali ke laman utama</button>
-      <div class="auth-mobile-illustration" aria-hidden="true"><span>🎒</span><span>📘</span><span>⭐</span></div>
+      <div class="auth-mobile-topline">
+        <button class="auth-mobile-home-link" id="authBackHomeMobile"><span class="auth-back-arrow">←</span><span class="auth-back-copy"><b>Laman Utama</b><small>Kembali ke CilikGo</small></span></button>
+        <span class="auth-mobile-brand"><span class="brand-badge">CG</span><b>CilikGo</b></span>
+      </div>
+      <div class="auth-mobile-illustration auth-mobile-scene" aria-hidden="true">
+        <svg viewBox="0 0 360 132" role="img" aria-hidden="true">
+          <defs>
+            <linearGradient id="authV20Bg" x1="0" x2="1"><stop stop-color="#6c5ce7"/><stop offset="1" stop-color="#8d7cf5"/></linearGradient>
+            <linearGradient id="authV20Book" x1="0" x2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#f1efff"/></linearGradient>
+          </defs>
+          <rect x="2" y="2" width="356" height="128" rx="26" fill="url(#authV20Bg)"/>
+          <circle cx="306" cy="23" r="46" fill="#ffffff" opacity=".09"/>
+          <circle cx="38" cy="122" r="55" fill="#ffffff" opacity=".07"/>
+          <g class="auth-scene-float">
+            <rect x="39" y="36" width="72" height="72" rx="22" fill="#ffffff" opacity=".17"/>
+            <path d="M58 63c0-13 10-23 23-23s23 10 23 23v29H58z" fill="#ffd15c"/>
+            <rect x="65" y="56" width="32" height="9" rx="4.5" fill="#ffab45"/>
+            <path d="M65 48c4-7 10-10 16-10 7 0 13 3 17 10" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+          </g>
+          <g transform="translate(133 28)">
+            <rect width="113" height="78" rx="20" fill="url(#authV20Book)"/>
+            <path d="M56.5 17v44" stroke="#dcd6ff" stroke-width="3"/>
+            <path d="M19 26h26M19 36h22M68 26h26M68 36h20" stroke="#a79cf2" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="56.5" cy="61" r="7" fill="#ffd453"/>
+          </g>
+          <g class="auth-star-pulse"><path d="M292 52l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#ffd453"/></g>
+          <text x="180" y="120" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="800">Belajar · Pantau · Berkembang</text>
+        </svg>
+      </div>
       <div class="auth-card">
         <div id="authLoginPanel">
           <span class="auth-eyebrow">SELAMAT DATANG</span>
