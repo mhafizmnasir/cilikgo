@@ -1006,6 +1006,7 @@ async function renderStudentPortal(p){
     yearToggle.classList.toggle('expanded',willOpen);
     const action=yearToggle.querySelector('.student-year-focus-badge em');
     if(action) action.textContent=willOpen?'Tutup ↑':'Buka ↓';
+    if(willOpen) focusRevealedSection(expandedContent,{offset:88,delay:60});
   });
 
   $('#continueLearning').onclick=()=>openSubject(lastSubject.key);
@@ -1140,13 +1141,28 @@ function quizScreenEffect(type){
   const stage=$('#gameContent .quiz-fullscreen-shell');
   if(!stage)return;
   stage.classList.remove('quiz-effect-wrong','quiz-effect-correct');
+  stage.querySelectorAll('.quiz-result-pop').forEach(n=>n.remove());
   void stage.offsetWidth;
-  const cls=type==='correct'?'quiz-effect-correct':'quiz-effect-wrong';
+  const correct=type==='correct';
+  const cls=correct?'quiz-effect-correct':'quiz-effect-wrong';
   stage.classList.add(cls);
+
+  const pop=document.createElement('div');
+  pop.className=`quiz-result-pop ${correct?'correct':'wrong'}`;
+  pop.setAttribute('aria-hidden','true');
+  pop.innerHTML=correct
+    ?'<span class="quiz-result-pop-icon">✓</span><div><b>Hebat!</b><small>Jawapan betul</small></div>'
+    :'<span class="quiz-result-pop-icon">×</span><div><b>Cuba Lagi</b><small>Pilih jawapan lain</small></div>';
+  stage.appendChild(pop);
+
   if(navigator.vibrate){
-    navigator.vibrate(type==='correct'?[35]:[70,40,70]);
+    navigator.vibrate(correct?[35,25,45]:[70,40,70]);
   }
-  setTimeout(()=>stage.classList.remove(cls),650);
+  setTimeout(()=>{
+    stage.classList.remove(cls);
+    pop.classList.add('leaving');
+    setTimeout(()=>pop.remove(),220);
+  },correct?1050:780);
 }
 
 
@@ -1609,7 +1625,6 @@ async function startYear1FullscreenQuiz(subjectKey,topicKey){
       quizScreenEffect('correct');
       playCgUiSfx('success');
       celebrate();
-      setTimeout(()=>nextBtn.scrollIntoView({behavior:'smooth',block:'nearest'}),120);
     });
 
     nextBtn.onclick=e=>{
@@ -1868,7 +1883,6 @@ async function startYear2BmFullscreenQuiz(topicKey){
       quizScreenEffect('correct');
       playCgUiSfx('success');
       celebrate();
-      setTimeout(()=>nextBtn.scrollIntoView({behavior:'smooth',block:'nearest'}),120);
     });
 
     nextBtn.onclick=e=>{
@@ -2227,6 +2241,27 @@ function renderRoleHero(role='parent',{kicker='',title='',description='',pills=[
   return `<section class="role-hero-banner role-${role}"><div class="role-hero-copy"><span class="dash-kicker">${esc(kicker)}</span><h1>${esc(title)}</h1><p>${esc(description)}</p><div class="role-hero-pills">${(pills||[]).map(text=>`<span>${esc(text)}</span>`).join('')}</div></div><div class="role-hero-scene role-hero-art-v18" aria-hidden="true">${art}<div class="scene-label">${esc(cfg.label)}</div></div></section>`;
 }
 
+function focusRevealedSection(target,{offset=84,delay=80}={}){
+  const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  window.setTimeout(()=>{
+    const el=typeof target==='string'?document.querySelector(target):target;
+    if(!el)return;
+    const scrollParent=el.closest('.dash-main,.clean-main,.portal-main,.student-parent-main');
+    const canUseParent=scrollParent&&scrollParent.scrollHeight>scrollParent.clientHeight+8&&getComputedStyle(scrollParent).overflowY!=='visible';
+    if(canUseParent){
+      const top=el.offsetTop-Math.max(16,offset/2);
+      scrollParent.scrollTo({top:Math.max(0,top),behavior:reduceMotion?'auto':'smooth'});
+    }else{
+      const top=el.getBoundingClientRect().top+window.scrollY-offset;
+      window.scrollTo({top:Math.max(0,top),behavior:reduceMotion?'auto':'smooth'});
+    }
+    el.classList.remove('cg-reveal-focus');
+    void el.offsetWidth;
+    el.classList.add('cg-reveal-focus');
+    window.setTimeout(()=>el.classList.remove('cg-reveal-focus'),900);
+  },delay);
+}
+
 async function renderUser(p,options={}){
   const showDashboardDetails=options.showDetails===true;
   setRoleNav(false);
@@ -2238,7 +2273,6 @@ async function renderUser(p,options={}){
   if(!activeChild&&kids.length) activeChild=kids[0];
   const sub=subscriptionState(p), active=sub.active, daysLeft=subscriptionDaysLeft(p);
   const selected=activeChild?progress.filter(x=>x.childId===activeChild.id):[];
-  const totalStars=selected.reduce((s,x)=>s+Number(x.stars||0),0);
   const subjectMeta=[
     ['bm','Bahasa Melayu','🇲🇾'],['bi','Bahasa Inggeris','🔤'],['math','Matematik','➗'],['science','Sains','🔬']
   ];
@@ -2250,14 +2284,6 @@ async function renderUser(p,options={}){
     return `<div class="parent-subject-mini"><span>${icon}</span><div><b>${name}</b><small>${rows.length?`${mastered}/6 topik dikuasai`:'Belum mula'}</small></div><strong>${rows.length?`⭐ ${Math.max(...rows.map(normalizedQuizStars))}/${QUIZ_MAX_STARS}`:'—'}</strong></div>`;
   };
   const revealedChild=showDashboardDetails?activeChild:null;
-  const allStars=progress.reduce((s,x)=>s+Number(x.stars||0),0);
-  const activeSubjectCount=selected.length?new Set(selected.map(x=>x.subject)).size:subjectMeta.length;
-  const parentMetrics=renderMetricPalette([
-    {tone:'purple',icon:'👨‍👩‍👧',label:'Profil pelajar',value:kids.length,meta:kids.length?'Urus semua anak dalam satu akaun':'Tambah profil untuk bermula'},
-    {tone:'blue',icon:'🎯',label:'Fokus hari ini',value:revealedChild?revealedChild.name:'Belum dipilih',meta:revealedChild?`Tahun ${revealedChild.year||Math.max(1,Number(revealedChild.age||7)-6)}`:'Pilih profil anak untuk melihat perincian'},
-    {tone:'green',icon:'⭐',label:'Jumlah bintang',value:allStars,meta:'Terkumpul daripada semua rekod latihan'},
-    {tone:'orange',icon:'📘',label:'Subjek aktif',value:activeSubjectCount,meta:active?'Langganan aktif dan sedia digunakan':'Langganan diperlukan untuk akses penuh'}
-  ],'parent-metric-grid');
   const childCards=kids.map(c=>{
     const cp=progress.filter(x=>x.childId===c.id);
     const st=cp.reduce((n,x)=>n+Number(x.stars||0),0);
@@ -2274,7 +2300,6 @@ async function renderUser(p,options={}){
     ${renderParentRightNav(p,'overview')}
     <section class="dash-main clean-main">
       ${renderRoleHero('parent',{kicker:'Dashboard Penjaga',title:`Hai, ${p.name||'Penjaga'}!`,description:'Pilih profil anak untuk melihat kemajuan, subjek aktif dan akses pembelajaran dengan lebih teratur.',pills:['🎒 Profil anak','⭐ Rekod kemajuan','📚 Subjek ikut tahun']})}
-      ${parentMetrics}
       <section class="profile-picker-panel">
         <div class="profile-picker-head"><div><span class="dash-kicker">PROFIL PELAJAR</span><h2>Pilih Profil Anak</h2><p>Pilih satu profil untuk melihat maklumat pembelajaran dengan lebih teratur.</p></div><button class="btn ghost small" id="addChildBtn">+ Tambah Anak</button></div>
         <div class="child-list compact-list profile-picker-list">${childCards||'<div class="empty-state compact-empty">Belum ada profil anak. Tambah profil untuk bermula.</div>'}</div>
@@ -2313,6 +2338,7 @@ async function renderUser(p,options={}){
     activeChild=selectedChild;
     localStorage.setItem('cilikgo_active_child',selectedChild.id);
     await renderUser(p,{showDetails:true});
+    focusRevealedSection('[data-parent-details]',{offset:92,delay:70});
   });
 
 }
