@@ -519,13 +519,14 @@ async function renderStudentPortal(p){
         </div>
       </section>
 
-      <button type="button" class="student-year-focus student-year-toggle" id="studentYearToggle" aria-expanded="false" aria-controls="studentExpandedContent" aria-label="Buka kandungan Tahun ${year}">
+      <div class="student-learning-content" id="studentLearningContent" hidden>
+      <button type="button" class="student-year-focus student-year-toggle expanded" id="studentYearToggle" aria-expanded="true" aria-controls="studentExpandedContent" aria-label="Tutup kandungan Tahun ${year}">
         <div class="student-year-focus-icon">🎒</div>
-        <div><small>TAHUN PEMBELAJARAN SAYA</small><h3>Tahun ${year}</h3><p>${year===1?'Tekan untuk lihat semua subjek Tahun 1.':year===2?'Tekan untuk buka Bahasa Melayu Tahun 2 dan lihat subjek lain.':`Kandungan Tahun ${year} akan dibuka apabila bank latihan tersedia.`}</p></div>
-        <span class="student-year-focus-badge"><b>${year===1?'Aktif':year===2?'BM tersedia':'Akan datang'}</b><em>Buka ↓</em></span>
+        <div><small>TAHUN PEMBELAJARAN SAYA</small><h3>Tahun ${year}</h3><p>${year===1?'Semua subjek Tahun 1 dipaparkan di bawah.':year===2?'Bahasa Melayu Tahun 2 tersedia. Subjek lain akan dibuka secara berperingkat.':`Kandungan Tahun ${year} akan dibuka apabila bank latihan tersedia.`}</p></div>
+        <span class="student-year-focus-badge"><b>${year===1?'Aktif':year===2?'BM tersedia':'Akan datang'}</b><em>Tutup ↑</em></span>
       </button>
 
-      <div class="student-expanded-content" id="studentExpandedContent" hidden>
+      <div class="student-expanded-content" id="studentExpandedContent">
       <section class="student-section">
         <div class="student-section-head">
           <div><span class="student-kicker">PILIH SUBJEK</span><h2>Apa yang kamu mahu belajar?</h2></div>
@@ -569,6 +570,7 @@ async function renderStudentPortal(p){
         <div><small>TIP CILIKGO</small><p>Belajar 10–15 minit setiap sesi lebih mudah untuk kekal fokus. Pilih satu subjek dahulu dan cuba capai sekurang-kurangnya ⭐ 16/30.</p></div>
       </section>
       </div>
+      </div>
     </main>
   </section></section></div>`;
 
@@ -592,6 +594,7 @@ async function renderStudentPortal(p){
     toast(`Subjek ini untuk Tahun ${year} sedang disediakan.`);
   };
 
+  const learningContent=$('#studentLearningContent');
   const yearToggle=$('#studentYearToggle');
   const expandedContent=$('#studentExpandedContent');
   yearToggle?.addEventListener('click',()=>{
@@ -604,7 +607,19 @@ async function renderStudentPortal(p){
     if(action) action.textContent=willOpen?'Tutup ↑':'Buka ↓';
   });
 
-  $('#continueLearning').onclick=()=>openSubject(lastSubject.key);
+  $('#continueLearning').onclick=()=>{
+    if(learningContent?.hidden){
+      learningContent.hidden=false;
+      expandedContent.hidden=false;
+      yearToggle?.setAttribute('aria-expanded','true');
+      yearToggle?.classList.add('expanded');
+      const action=yearToggle?.querySelector('.student-year-focus-badge em');
+      if(action) action.textContent='Tutup ↑';
+      requestAnimationFrame(()=>learningContent.scrollIntoView({behavior:'smooth',block:'start'}));
+      return;
+    }
+    openSubject(lastSubject.key);
+  };
   document.querySelectorAll('[data-student-subject]').forEach(b=>b.onclick=()=>openSubject(b.dataset.studentSubject));
   animateIn(root);
 }
@@ -1820,12 +1835,13 @@ async function renderUser(p,options={}){
     const mastered=Object.values(byTopic).filter(v=>v>=QUIZ_MASTERY_STARS).length;
     return `<div class="parent-subject-mini"><span>${icon}</span><div><b>${name}</b><small>${rows.length?`${mastered}/6 topik dikuasai`:'Belum mula'}</small></div><strong>${rows.length?`⭐ ${Math.max(...rows.map(normalizedQuizStars))}/${QUIZ_MAX_STARS}`:'—'}</strong></div>`;
   };
+  const revealedChild=showDashboardDetails?activeChild:null;
   const childCards=kids.map(c=>{
     const cp=progress.filter(x=>x.childId===c.id);
     const st=cp.reduce((n,x)=>n+Number(x.stars||0),0);
     const year=esc(c.year||Math.max(1,Number(c.age||7)-6));
     const genderLabel=c.gender==='female'?'Perempuan':c.gender==='male'?'Lelaki':'';
-    return `<button class="child-card compact ${activeChild?.id===c.id?'selected':''}" data-child="${c.id}">
+    return `<button class="child-card compact ${revealedChild?.id===c.id?'selected':''}" data-child="${c.id}">
       <span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>Tahun ${year}${genderLabel?` · ${genderLabel}`:''} · ⭐ ${st}</small>
     </button>`;
   }).join('');
@@ -1833,7 +1849,7 @@ async function renderUser(p,options={}){
   $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
     ${renderParentRightNav(p,'overview')}
     <section class="dash-main clean-main">
-      <div class="parent-welcome-hero"><div class="parent-welcome-copy"><span class="dash-kicker">DASHBOARD PENJAGA</span><h1>Hai, ${esc(p.name||'Penjaga')}! 🌟</h1><p>Pilih profil anak dan teruskan pembelajaran dengan lebih seronok hari ini.</p><div class="welcome-pill-row"><span>🎒 Ruang belajar anak</span><span>⭐ Rekod kemajuan</span><span>📚 Semua subjek utama</span></div></div><div class="parent-welcome-badge"><small>FOKUS HARI INI</small><b>${activeChild?esc(activeChild.name):'Pilih profil'}</b><span>${activeChild?`Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))}`:'Tambah atau pilih anak'}</span></div></div>
+      <div class="parent-welcome-hero ${revealedChild?'':'welcome-profile-pending'}"><div class="parent-welcome-copy"><span class="dash-kicker">DASHBOARD PENJAGA</span><h1>Hai, ${esc(p.name||'Penjaga')}! 🌟</h1><p>Pilih profil anak dan teruskan pembelajaran dengan lebih seronok hari ini.</p><div class="welcome-pill-row"><span>🎒 Ruang belajar anak</span><span>⭐ Rekod kemajuan</span><span>📚 Semua subjek utama</span></div></div>${revealedChild?`<div class="parent-welcome-badge"><small>FOKUS HARI INI</small><b>${esc(revealedChild.name)}</b><span>Tahun ${esc(revealedChild.year||Math.max(1,Number(revealedChild.age||7)-6))}</span></div>`:''}</div>
       <div class="clean-section-head"><div><h2>Profil Pelajar</h2><p>Pilih anak yang ingin menggunakan CilikGo.</p></div><button class="btn ghost small" id="addChildBtn">+ Tambah Anak</button></div>
       <div class="child-list compact-list">${childCards||'<div class="empty-state compact-empty">Belum ada profil anak. Tambah profil untuk bermula.</div>'}</div>
       ${showDashboardDetails&&activeChild?`<div class="parent-selected-details" data-parent-details>
@@ -1875,7 +1891,8 @@ async function renderUser(p,options={}){
 }
 
 
-async function renderParentReportCard(p){
+async function renderParentReportCard(p,options={}){
+  const showReportDetails=options.showDetails===true;
   setRoleNav(false);
   document.body.classList.remove('student-mode');
   showDashboardPage();
@@ -1913,7 +1930,7 @@ async function renderParentReportCard(p){
 
   const childSelector=kids.map(c=>{
     const year=Number(c.year||Math.max(1,Number(c.age||7)-6));
-    return `<button class="report-child-chip ${activeChild?.id===c.id?'active':''}" data-report-child="${c.id}">
+    return `<button class="report-child-chip ${showReportDetails&&activeChild?.id===c.id?'active':''}" data-report-child="${c.id}">
       <span>${esc(c.avatar||'🧒')}</span><div><b>${esc(c.name||'-')}</b><small>Tahun ${year}</small></div>
     </button>`;
   }).join('');
@@ -1929,6 +1946,7 @@ async function renderParentReportCard(p){
       ${kids.length?`
         <div class="report-child-selector">${childSelector}</div>
 
+        ${showReportDetails&&activeChild?`<div class="report-revealed-details">
         <div class="report-student-hero">
           <div class="report-student-profile"><span>${esc(activeChild?.avatar||'🧒')}</span><div><small>PELAJAR DIPILIH</small><h2>${esc(activeChild?.name||'-')}</h2><p>Tahun ${Number(activeChild?.year||Math.max(1,Number(activeChild?.age||7)-6))}${activeChild?.gender?` · ${activeChild.gender==='female'?'Perempuan':'Lelaki'}`:''}</p></div></div>
           <span class="report-status-badge">${selected.length?'Aktif belajar':'Belum mula'}</span>
@@ -1942,6 +1960,7 @@ async function renderParentReportCard(p){
 
         <div class="report-section-head"><div><small>PRESTASI SUBJEK</small><h2>Ringkasan mengikut subjek</h2></div></div>
         <div class="report-subject-grid">${subjectRows}</div>
+        </div>`:''}
       `:`<div class="empty-state settings-empty"><h3>Belum ada profil pelajar</h3><p>Tambah profil terlebih dahulu untuk melihat Report Kad.</p><button class="btn primary" id="reportAddProfile">Tambah Profil</button></div>`}
     </section>
   </div>`;
@@ -1959,7 +1978,7 @@ async function renderParentReportCard(p){
     if(!child)return;
     activeChild=child;
     localStorage.setItem('cilikgo_active_child',child.id);
-    await renderParentReportCard(p);
+    await renderParentReportCard(p,{showDetails:true});
   });
 
   animateIn($('#dashboard'));

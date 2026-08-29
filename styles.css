@@ -6160,3 +6160,28 @@ body.app-mode .table{
     gap:7px!important;
   }
 }
+
+/* =========================================================
+   Progressive reveal V8
+   Dashboard / Student / Report Kad
+   ========================================================= */
+.student-learning-content[hidden]{display:none!important}
+.student-learning-content{display:block;min-width:0}
+.student-learning-content>.student-year-focus{margin-top:0}
+
+.parent-welcome-hero.welcome-profile-pending{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+.parent-welcome-hero.welcome-profile-pending .parent-welcome-copy{
+  max-width:none!important;
+}
+.report-revealed-details{
+  display:block;
+  min-width:0;
+}
+
+@media(max-width:700px){
+  .parent-welcome-hero.welcome-profile-pending{
+    grid-template-columns:1fr!important;
+  }
+}
