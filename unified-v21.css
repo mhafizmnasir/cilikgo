@@ -1,0 +1,506 @@
+/* ======================================================================
+   CilikGo Unified Responsive v21
+   Baseline: V19
+   Goal: one visual system across desktop, tablet and phone.
+   This stylesheet is loaded LAST and intentionally changes layout only.
+   No Firebase, quiz, subscription, commission or role logic is modified.
+   ====================================================================== */
+
+:root{
+  --u21-page-max:1180px;
+  --u21-nav-w:236px;
+  --u21-topbar:64px;
+  --u21-pad:clamp(14px,2.3vw,30px);
+  --u21-gap:clamp(10px,1.5vw,16px);
+  --u21-radius:clamp(16px,1.8vw,24px);
+  --u21-card:#fff;
+  --u21-bg:#f5f7fb;
+  --u21-line:#e6e8f2;
+  --u21-ink:#282c48;
+  --u21-muted:#687086;
+  --u21-purple:#6c5ce7;
+  --u21-shadow:0 12px 32px rgba(42,37,92,.075);
+  --u21-safe-top:env(safe-area-inset-top,0px);
+  --u21-safe-right:env(safe-area-inset-right,0px);
+  --u21-safe-bottom:env(safe-area-inset-bottom,0px);
+  --u21-safe-left:env(safe-area-inset-left,0px);
+}
+
+html{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  color:var(--u21-ink);
+  font-size:clamp(14px,1.1vw,16px);
+  line-height:1.55;
+}
+button,input,select,textarea{font:inherit}
+img,svg,video,canvas{max-width:100%;height:auto}
+main,section,article,aside,div,form,label{min-width:0}
+
+/* ---------- Global typography: same scale everywhere ---------- */
+h1{font-size:clamp(30px,4vw,48px);line-height:1.06}
+h2{font-size:clamp(24px,2.8vw,34px);line-height:1.12}
+h3{font-size:clamp(18px,1.8vw,23px);line-height:1.2}
+p{font-size:clamp(14px,1.15vw,16px);line-height:1.62}
+small{font-size:clamp(11px,.9vw,13px)!important}
+.btn{min-height:44px;font-size:clamp(13px,1vw,15px)!important}
+
+/* ---------- Public site: same cards and illustration on every device ---------- */
+.topbar{
+  min-height:var(--u21-topbar)!important;
+  height:auto!important;
+  padding-inline:max(var(--u21-pad),var(--u21-safe-left),var(--u21-safe-right))!important;
+}
+.section{padding:clamp(46px,6vw,78px) var(--u21-pad)!important}
+.hero-v17{
+  width:min(100%,var(--u21-page-max));
+  margin-inline:auto;
+  grid-template-columns:minmax(0,1.05fr) minmax(330px,.95fr)!important;
+  gap:clamp(24px,5vw,64px)!important;
+  align-items:center!important;
+}
+.hero-v17 .hero-copy{
+  width:100%;
+  max-width:690px!important;
+  text-align:left!important;
+}
+.hero-v17 .hero-copy h1{font-size:clamp(40px,5.4vw,72px)!important}
+.hero-v17 .hero-copy p{font-size:clamp(15px,1.35vw,18px)!important}
+.hero-v17 .hero-actions,.hero-v17 .trust{justify-content:flex-start!important}
+.v18-landing-visual{
+  width:100%!important;
+  max-width:620px!important;
+  margin-inline:auto!important;
+  transform:none!important;
+}
+.landing-art-svg{
+  width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0!important;
+}
+.hero-proof-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:var(--u21-gap)!important;
+}
+.hero-proof-grid>div,
+.public-info-card,
+.public-cta-band{
+  border-radius:var(--u21-radius)!important;
+  box-shadow:var(--u21-shadow)!important;
+}
+.public-portal-highlights{
+  width:min(100%,var(--u21-page-max));
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))!important;
+  gap:var(--u21-gap)!important;
+}
+.public-cta-band{width:min(100%,var(--u21-page-max))}
+
+/* ---------- Auth: same identity as desktop, compact rather than replaced ---------- */
+.auth-screen{
+  min-height:100dvh!important;
+  height:auto!important;
+  grid-template-columns:minmax(320px,.9fr) minmax(420px,1.1fr)!important;
+  overflow:auto!important;
+}
+.auth-brand-panel,
+.auth-form-panel{
+  min-height:100dvh!important;
+  height:auto!important;
+}
+.auth-brand-panel{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:space-between!important;
+  padding:clamp(26px,4vw,54px)!important;
+}
+.auth-brand-copy h1{font-size:clamp(34px,4.1vw,58px)!important}
+.auth-visual-v18{width:min(100%,560px)!important}
+.auth-form-panel{
+  display:grid!important;
+  place-items:center!important;
+  padding:clamp(20px,4vw,48px)!important;
+}
+.auth-card{width:min(100%,520px)!important;margin:auto!important}
+.auth-mobile-home-link,.auth-mobile-illustration{display:none!important}
+.auth-home-link{display:inline-flex!important}
+
+/* ---------- App shell: browser is the only vertical page scroller ---------- */
+body.app-mode:not(.student-mode){
+  min-height:100dvh!important;
+  height:auto!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  background:var(--u21-bg)!important;
+}
+body.app-mode:not(.student-mode)>main,
+body.app-mode:not(.student-mode) #portal,
+body.app-mode:not(.student-mode) #dashboard{
+  height:auto!important;
+  max-height:none!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+body.app-mode:not(.student-mode) #portal{
+  min-height:calc(100dvh - var(--u21-topbar))!important;
+  background:var(--u21-bg)!important;
+}
+
+/* One topbar design across PC/tablet/phone */
+body.app-mode:not(.student-mode) .app-topbar{
+  position:sticky!important;
+  top:0!important;
+  z-index:130!important;
+  height:var(--u21-topbar)!important;
+  min-height:var(--u21-topbar)!important;
+  padding:0 max(var(--u21-pad),var(--u21-safe-right)) 0 max(var(--u21-pad),var(--u21-safe-left))!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  background:rgba(255,255,255,.96)!important;
+  border-bottom:1px solid var(--u21-line)!important;
+  box-shadow:0 3px 16px rgba(42,37,92,.04)!important;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+body.app-mode:not(.student-mode) .app-brand{
+  order:1!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  font-size:16px!important;
+  font-weight:900!important;
+}
+body.app-mode:not(.student-mode) .app-brand .brand-badge{
+  width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+  border-radius:13px!important;font-size:13px!important;
+}
+body.app-mode:not(.student-mode) .desktop-app-actions,
+body.app-mode:not(.student-mode) .app-user,
+body.app-mode:not(.student-mode) .app-menu-btn,
+body.app-mode:not(.student-mode) .app-mobile-menu{display:none!important}
+
+/* The same right navigation component; only its positioning changes. */
+body.app-mode:not(.student-mode) .dash-shell,
+body.app-mode:not(.student-mode) .clean-shell,
+body.app-mode:not(.student-mode) .portal-shell{
+  width:min(calc(100% - 24px),var(--u21-page-max))!important;
+  max-width:var(--u21-page-max)!important;
+  min-height:calc(100dvh - var(--u21-topbar))!important;
+  height:auto!important;
+  margin:0 auto!important;
+  border:0!important;
+  border-radius:0!important;
+  background:var(--u21-bg)!important;
+  overflow:visible!important;
+}
+body.app-mode:not(.student-mode) .dash-main,
+body.app-mode:not(.student-mode) .clean-main,
+body.app-mode:not(.student-mode) .portal-main,
+body.app-mode:not(.student-mode) .student-parent-main{
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+  padding:var(--u21-pad)!important;
+  padding-bottom:calc(var(--u21-pad) + var(--u21-safe-bottom))!important;
+  background:var(--u21-bg)!important;
+  overflow:visible!important;
+}
+
+body.app-mode:not(.student-mode) .role-menu-btn{
+  order:2!important;
+  margin-left:auto!important;
+  width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;
+  display:grid!important;place-items:center!important;
+  padding:0!important;
+  border:0!important;border-radius:13px!important;
+  background:#f1efff!important;color:#604fdc!important;
+  font-size:20px!important;line-height:1!important;
+}
+body.app-mode:not(.student-mode) #dashboard .role-drawer{
+  background:#fff!important;
+  color:var(--u21-ink)!important;
+  border-left:1px solid var(--u21-line)!important;
+}
+body.app-mode:not(.student-mode) #dashboard .role-drawer a,
+body.app-mode:not(.student-mode) #dashboard .role-drawer button{
+  font-size:clamp(13px,1vw,15px)!important;
+}
+
+/* ---------- Role dashboards: identical card language everywhere ---------- */
+.role-hero-banner{
+  border-radius:var(--u21-radius)!important;
+  grid-template-columns:minmax(0,1.25fr) minmax(250px,.75fr)!important;
+  gap:var(--u21-gap)!important;
+  padding:clamp(20px,2.5vw,30px)!important;
+}
+.role-hero-copy h1{font-size:clamp(28px,3.2vw,42px)!important}
+.role-hero-copy p{font-size:clamp(14px,1.15vw,16px)!important}
+.role-hero-art-v18{min-height:170px!important}
+.role-art-svg{width:min(100%,340px)!important}
+
+.metric-palette-grid,
+.admin-stat-grid,
+.agent-stat-grid,
+.stat-grid,
+.parent-overview,
+.parent-subject-row,
+.report-subject-grid,
+.settings-profile-list,
+.student-subject-grid,
+.settings-grid,
+.portal-settings-grid,
+.subject-admin-stats{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))!important;
+  gap:var(--u21-gap)!important;
+}
+.metric-card,
+.stat,
+.setting-card,
+.portal-setting-card,
+.parent-subject-mini,
+.report-subject-card,
+.settings-profile-card,
+.student-subject-card,
+.quick-stat,
+.admin-year-card{
+  border-radius:var(--u21-radius)!important;
+  box-shadow:var(--u21-shadow)!important;
+}
+.metric-card{min-height:132px!important}
+.metric-card b,.stat b{font-size:clamp(22px,2.2vw,31px)!important}
+
+.admin-two-col,
+.agent-info-grid{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))!important;
+  gap:var(--u21-gap)!important;
+}
+
+.profile-picker-panel,
+.parent-focus-card,
+.report-card-shell,
+.student-level-card,
+.agent-link-card,
+.admin-summary,
+.standard-account-settings,
+.std-setting-card{
+  border-radius:var(--u21-radius)!important;
+  box-shadow:var(--u21-shadow)!important;
+}
+
+/* Natural document flow everywhere except quiz/dialog internals. */
+body.app-mode:not(.student-mode) .table-wrap{
+  max-width:100%!important;
+  overflow-x:auto!important;
+  overflow-y:visible!important;
+  -webkit-overflow-scrolling:touch;
+}
+body.app-mode:not(.student-mode) .table{min-width:640px}
+
+/* Settings preserve same panel geometry on every role. */
+.standard-settings-page{width:100%!important;max-width:none!important}
+.std-setting-trigger{min-height:78px!important}
+.std-settings-form-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))!important}
+.agent-bank-form,.manual-settings-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))!important}
+
+/* ---------- Public drawer and role drawer share the same visual language ---------- */
+.mobile-nav-drawer,
+body.app-mode:not(.student-mode) #dashboard .role-drawer{
+  font-size:14px!important;
+}
+.mobile-nav-drawer{
+  border-radius:22px 0 0 22px!important;
+  box-shadow:-22px 0 52px rgba(42,38,100,.15)!important;
+}
+
+/* ---------- Tablet: keep desktop visual identity; only simplify columns ---------- */
+@media (max-width:959px){
+  .hero-v17{
+    grid-template-columns:minmax(0,1fr) minmax(300px,.9fr)!important;
+    gap:22px!important;
+  }
+  .hero-v17 .hero-copy h1{font-size:clamp(36px,7vw,56px)!important}
+  .auth-screen{grid-template-columns:minmax(280px,.75fr) minmax(390px,1.25fr)!important}
+  .auth-brand-panel{padding:28px!important}
+  .auth-brand-copy h1{font-size:clamp(30px,4.3vw,42px)!important}
+
+  body.app-mode:not(.student-mode) .dash-shell,
+  body.app-mode:not(.student-mode) .clean-shell,
+  body.app-mode:not(.student-mode) .portal-shell{
+    display:block!important;
+  }
+  body.app-mode:not(.student-mode) .role-menu-btn{display:grid!important}
+  body.app-mode:not(.student-mode) #dashboard .role-drawer{
+    position:fixed!important;
+    top:var(--u21-topbar)!important;
+    right:0!important;bottom:0!important;left:auto!important;
+    z-index:160!important;
+    width:min(88vw,var(--u21-nav-w))!important;
+    max-width:var(--u21-nav-w)!important;
+    height:calc(100dvh - var(--u21-topbar))!important;
+    max-height:none!important;
+    padding:18px 14px calc(16px + var(--u21-safe-bottom))!important;
+    border-radius:22px 0 0 22px!important;
+    box-shadow:-22px 0 52px rgba(42,38,100,.15)!important;
+    overflow-y:auto!important;
+    transform:translate3d(105%,0,0)!important;
+    transition:transform .26s cubic-bezier(.2,.8,.2,1)!important;
+  }
+  body.app-mode:not(.student-mode) #dashboard .role-drawer.role-drawer-open{transform:translate3d(0,0,0)!important}
+  body.app-mode:not(.student-mode) #dashboard .role-nav-close{display:grid!important}
+  body.app-mode:not(.student-mode) .role-nav-backdrop{display:block!important}
+
+  .role-hero-banner{grid-template-columns:minmax(0,1fr) minmax(210px,.6fr)!important}
+}
+
+/* ---------- Phone: same content and style, single-column composition only ---------- */
+@media (max-width:680px){
+  :root{--u21-topbar:60px;--u21-pad:clamp(12px,4vw,18px)}
+
+  .section{padding:40px var(--u21-pad)!important}
+  .hero-v17{
+    grid-template-columns:1fr!important;
+    gap:22px!important;
+    text-align:left!important;
+  }
+  .hero-v17 .hero-copy{max-width:none!important;text-align:left!important}
+  .hero-v17 .hero-copy h1{font-size:clamp(34px,10.5vw,48px)!important}
+  .hero-v17 .hero-copy p{font-size:15px!important}
+  .hero-v17 .hero-actions{display:grid!important;grid-template-columns:1fr!important;width:100%!important}
+  .hero-v17 .hero-actions .btn{width:100%!important}
+  .hero-proof-grid{grid-template-columns:1fr!important}
+  .v18-landing-visual{max-width:540px!important}
+  .landing-art-svg{width:100%!important;margin:0!important}
+  .hero-scene-caption{margin-top:-8px!important}
+  .public-portal-highlights{grid-template-columns:1fr!important}
+  .public-cta-band{display:grid!important}
+  .public-cta-band .btn{width:100%!important}
+
+  /* Auth keeps the desktop brand area instead of switching to a separate mobile design. */
+  .auth-screen{
+    display:block!important;
+    background:#f8f9fd!important;
+  }
+  .auth-brand-panel{
+    display:block!important;
+    min-height:0!important;
+    padding:22px var(--u21-pad) 26px!important;
+    background:linear-gradient(135deg,#6252df,#826fee)!important;
+  }
+  .auth-brand{margin-bottom:18px!important}
+  .auth-brand-copy h1{font-size:clamp(28px,8.5vw,38px)!important;margin-bottom:10px!important}
+  .auth-brand-copy p{font-size:14px!important}
+  .auth-benefits{display:flex!important;flex-wrap:wrap!important;gap:7px!important}
+  .auth-visual-v18{width:min(100%,420px)!important;margin:18px auto 10px!important}
+  .auth-home-link{
+    display:inline-flex!important;
+    margin-top:10px!important;
+    background:rgba(255,255,255,.13)!important;
+    color:#fff!important;
+    border:1px solid rgba(255,255,255,.18)!important;
+  }
+  .auth-form-panel{
+    min-height:0!important;
+    display:block!important;
+    padding:18px var(--u21-pad) calc(28px + var(--u21-safe-bottom))!important;
+  }
+  .auth-mobile-home-link,.auth-mobile-illustration{display:none!important}
+  .auth-card{width:100%!important;max-width:520px!important;padding:22px!important;border-radius:22px!important}
+
+  body.app-mode:not(.student-mode) .dash-shell,
+  body.app-mode:not(.student-mode) .clean-shell,
+  body.app-mode:not(.student-mode) .portal-shell{width:100%!important}
+  body.app-mode:not(.student-mode) .dash-main,
+  body.app-mode:not(.student-mode) .clean-main,
+  body.app-mode:not(.student-mode) .portal-main,
+  body.app-mode:not(.student-mode) .student-parent-main{padding:var(--u21-pad)!important;padding-bottom:calc(24px + var(--u21-safe-bottom))!important}
+
+  .role-hero-banner{grid-template-columns:1fr!important;padding:20px!important}
+  .role-hero-art-v18{min-height:145px!important}
+  .role-art-svg{max-width:300px!important}
+  .role-hero-pills{display:flex!important;flex-wrap:wrap!important}
+
+  .metric-palette-grid,
+  .admin-stat-grid,
+  .agent-stat-grid,
+  .stat-grid,
+  .parent-overview,
+  .parent-subject-row,
+  .report-subject-grid,
+  .settings-profile-list,
+  .student-subject-grid,
+  .settings-grid,
+  .portal-settings-grid,
+  .subject-admin-stats{grid-template-columns:1fr!important}
+
+  .metric-card,.stat{min-height:108px!important}
+  .profile-picker-head,.report-selector-head,.role-settings-toolbar{align-items:flex-start!important}
+  .copy-row,.agent-toolbar{flex-direction:column!important;align-items:stretch!important}
+  .copy-row .btn,.agent-toolbar .btn{width:100%!important}
+  .table{min-width:620px!important}
+}
+
+/* ---------- Desktop: persistent right sidebar ---------- */
+@media (min-width:960px){
+  body.app-mode:not(.student-mode) .role-menu-btn{display:none!important}
+  body.app-mode:not(.student-mode) .dash-shell,
+  body.app-mode:not(.student-mode) .clean-shell,
+  body.app-mode:not(.student-mode) .portal-shell{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) var(--u21-nav-w)!important;
+    align-items:start!important;
+  }
+  body.app-mode:not(.student-mode) .dash-main,
+  body.app-mode:not(.student-mode) .clean-main,
+  body.app-mode:not(.student-mode) .portal-main,
+  body.app-mode:not(.student-mode) .student-parent-main{
+    grid-column:1!important;
+    grid-row:1!important;
+    width:100%!important;
+  }
+  body.app-mode:not(.student-mode) #dashboard .role-drawer{
+    grid-column:2!important;
+    grid-row:1!important;
+    position:sticky!important;
+    top:var(--u21-topbar)!important;
+    right:auto!important;bottom:auto!important;left:auto!important;
+    align-self:start!important;
+    width:var(--u21-nav-w)!important;
+    max-width:var(--u21-nav-w)!important;
+    height:calc(100dvh - var(--u21-topbar))!important;
+    max-height:calc(100dvh - var(--u21-topbar))!important;
+    padding:24px 16px 16px!important;
+    border-radius:0 24px 24px 0!important;
+    box-shadow:none!important;
+    overflow-y:auto!important;
+    transform:none!important;
+  }
+  body.app-mode:not(.student-mode) #dashboard .role-nav-close{display:none!important}
+  body.app-mode:not(.student-mode) .role-nav-backdrop{display:none!important}
+}
+
+/* Quiz intentionally remains full-screen and is not forced into dashboard layout. */
+body.student-mode #gameModal,
+body.student-mode #gameContent,
+.reference-quiz{max-width:none}
+
+/* Smooth but restrained motion. */
+@media (hover:none),(pointer:coarse){
+  .metric-card,.stat,.parent-profile-card,.report-profile-card,.student-subject-card,.public-info-card{transition:transform .12s ease,box-shadow .12s ease!important}
+  .metric-card:hover,.stat:hover,.parent-profile-card:hover,.report-profile-card:hover,.student-subject-card:hover,.public-info-card:hover{transform:none!important}
+  button:active,a:active,[role="button"]:active{transform:scale(.985)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
