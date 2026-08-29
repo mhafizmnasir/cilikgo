@@ -641,35 +641,37 @@ function speakCilikGo(text,lang='ms-MY',button=null){
 function celebrate(){
   const shell=$('#gameContent .quiz-fullscreen-shell');
   if(!shell)return;
+  const stage=$('#gameContent .quiz-ref-card') || $('#gameContent .quiz-ref-main') || shell;
   const burst=document.createElement('div');
   burst.className='quiz-celebrate-burst mega ultra';
+  burst.style.setProperty('--celebrate-y','76%');
 
   const radialPieces=['🎉','✨','⭐','🌟','🎊','💫','⭐','✨','🎉','🪅','🌈','💥'];
   const radialArcs=[
-    [-160,-96],[-132,-138],[-98,-118],[-64,-152],[-24,-168],[20,-172],
-    [62,-150],[102,-120],[138,-138],[164,-98],[-8,-196],[10,-208]
+    [-172,-88],[-144,-132],[-108,-116],[-72,-148],[-28,-168],[22,-172],
+    [68,-148],[106,-118],[144,-132],[172,-88],[-6,-194],[16,-206]
   ];
   const confetti=['🎊','✨','⭐','💫','🎉','🌟','🎊','✨','⭐','💫','🎉','🌈','🪅','⭐','✨','🎊'];
   const confettiNodes=confetti.map((icon,i)=>{
-    const x=(6 + (i*5.8))%94;
-    const drift=((i%2===0?1:-1)*(16 + (i%5)*9));
-    const rot=((i%2===0?1:-1)*(18 + (i%6)*9));
-    const dur=(1.08 + (i%5)*0.11).toFixed(2);
+    const x=(5 + (i*5.9))%94;
+    const drift=((i%2===0?1:-1)*(20 + (i%5)*10));
+    const rot=((i%2===0?1:-1)*(22 + (i%6)*10));
+    const dur=(1.12 + (i%5)*0.12).toFixed(2);
     const delay=(i*0.03).toFixed(2);
     const size=20 + (i%4)*5;
     return `<i class="quiz-celebrate-confetti" style="--x:${x}%;--drift:${drift}px;--rot:${rot}deg;--dur:${dur}s;--delay:${delay}s;--size:${size}px">${icon}</i>`;
   }).join('');
-  const rays=new Array(10).fill(0).map((_,i)=>`<span class="quiz-celebrate-ray" style="--angle:${i*36}deg;animation-delay:${(i*0.035).toFixed(2)}s"></span>`).join('');
+  const rays=new Array(12).fill(0).map((_,i)=>`<span class="quiz-celebrate-ray" style="--angle:${i*30}deg;animation-delay:${(i*0.03).toFixed(2)}s"></span>`).join('');
 
   burst.innerHTML=`
     <div class="quiz-celebrate-overlay"></div>
     <div class="quiz-celebrate-rays">${rays}</div>
     <div class="quiz-celebrate-center">🎉 Hebat! 🎉</div>
-    <div class="quiz-celebrate-radial">${radialPieces.map((icon,i)=>`<i class="quiz-celebrate-piece" style="--tx:${radialArcs[i][0]}px;--ty:${radialArcs[i][1]}px;animation-delay:${(i*0.035).toFixed(2)}s">${icon}</i>`).join('')}</div>
+    <div class="quiz-celebrate-radial">${radialPieces.map((icon,i)=>`<i class="quiz-celebrate-piece" style="--tx:${radialArcs[i][0]}px;--ty:${radialArcs[i][1]}px;animation-delay:${(i*0.03).toFixed(2)}s">${icon}</i>`).join('')}</div>
     <div class="quiz-celebrate-rain">${confettiNodes}</div>`;
 
-  shell.appendChild(burst);
-  setTimeout(()=>burst.remove(),1650);
+  stage.appendChild(burst);
+  setTimeout(()=>burst.remove(),1700);
 }
 function quizScreenEffect(type){
   const stage=$('#gameContent .quiz-fullscreen-shell');
