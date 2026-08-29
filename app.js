@@ -1826,8 +1826,10 @@ async function renderUser(p,options={}){
     const st=cp.reduce((n,x)=>n+Number(x.stars||0),0);
     const year=esc(c.year||Math.max(1,Number(c.age||7)-6));
     const genderLabel=c.gender==='female'?'Perempuan':c.gender==='male'?'Lelaki':'';
-    return `<button class="child-card compact ${revealedChild?.id===c.id?'selected':''}" data-child="${c.id}">
-      <span>${esc(c.avatar||'🧒')}</span><b>${esc(c.name)}</b><small>Tahun ${year}${genderLabel?` · ${genderLabel}`:''} · ⭐ ${st}</small>
+    return `<button class="child-card compact parent-profile-card ${revealedChild?.id===c.id?'selected':''}" data-child="${c.id}">
+      <span class="profile-card-avatar">${esc(c.avatar||'🧒')}</span>
+      <div class="profile-card-copy"><b>${esc(c.name)}</b><small>Tahun ${year}${genderLabel?` · ${genderLabel}`:''}</small></div>
+      <span class="profile-card-pill">⭐ ${st}</span>
     </button>`;
   }).join('');
 
@@ -1835,8 +1837,10 @@ async function renderUser(p,options={}){
     ${renderParentRightNav(p,'overview')}
     <section class="dash-main clean-main">
       <div class="parent-welcome-hero ${revealedChild?'':'welcome-profile-pending'}"><div class="parent-welcome-copy"><span class="dash-kicker">DASHBOARD PENJAGA</span><h1>Hai, ${esc(p.name||'Penjaga')}! 🌟</h1><p>Pilih profil anak dan teruskan pembelajaran dengan lebih seronok hari ini.</p><div class="welcome-pill-row"><span>🎒 Ruang belajar anak</span><span>⭐ Rekod kemajuan</span><span>📚 Semua subjek utama</span></div></div>${revealedChild?`<div class="parent-welcome-badge"><small>FOKUS HARI INI</small><b>${esc(revealedChild.name)}</b><span>Tahun ${esc(revealedChild.year||Math.max(1,Number(revealedChild.age||7)-6))}</span></div>`:''}</div>
-      <div class="clean-section-head"><div><h2>Profil Pelajar</h2><p>Pilih anak yang ingin menggunakan CilikGo.</p></div><button class="btn ghost small" id="addChildBtn">+ Tambah Anak</button></div>
-      <div class="child-list compact-list">${childCards||'<div class="empty-state compact-empty">Belum ada profil anak. Tambah profil untuk bermula.</div>'}</div>
+      <section class="profile-picker-panel">
+        <div class="profile-picker-head"><div><span class="dash-kicker">PROFIL PELAJAR</span><h2>Pilih Profil Anak</h2><p>Pilih satu profil untuk melihat maklumat pembelajaran dengan lebih teratur.</p></div><button class="btn ghost small" id="addChildBtn">+ Tambah Anak</button></div>
+        <div class="child-list compact-list profile-picker-list">${childCards||'<div class="empty-state compact-empty">Belum ada profil anak. Tambah profil untuk bermula.</div>'}</div>
+      </section>
       ${showDashboardDetails&&activeChild?`<div class="parent-selected-details" data-parent-details>
         <div class="parent-focus-card">
           <div class="focus-profile"><span class="focus-avatar">${esc(activeChild.avatar||'🧒')}</span><div><small>PELAJAR DIPILIH</small><h2>${esc(activeChild.name)}</h2><p>Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))}${activeChild.gender?` · ${activeChild.gender==='female'?'Perempuan':'Lelaki'}`:''}</p></div></div>
@@ -1915,8 +1919,11 @@ async function renderParentReportCard(p,options={}){
 
   const childSelector=kids.map(c=>{
     const year=Number(c.year||Math.max(1,Number(c.age||7)-6));
-    return `<button class="report-child-chip ${showReportDetails&&activeChild?.id===c.id?'active':''}" data-report-child="${c.id}">
-      <span>${esc(c.avatar||'🧒')}</span><div><b>${esc(c.name||'-')}</b><small>Tahun ${year}</small></div>
+    const genderLabel=c.gender==='female'?'Perempuan':c.gender==='male'?'Lelaki':'';
+    return `<button class="report-child-chip report-profile-card ${showReportDetails&&activeChild?.id===c.id?'active':''}" data-report-child="${c.id}">
+      <span class="profile-card-avatar">${esc(c.avatar||'🧒')}</span>
+      <div class="profile-card-copy"><b>${esc(c.name||'-')}</b><small>Tahun ${year}${genderLabel?` · ${genderLabel}`:''}</small></div>
+      <span class="profile-card-pill alt">Lihat</span>
     </button>`;
   }).join('');
 
@@ -1924,12 +1931,14 @@ async function renderParentReportCard(p,options={}){
     ${renderParentRightNav(p,'report')}
 
     <section class="dash-main clean-main">
-      <div class="clean-dash-head report-page-head">
-        <div><span class="dash-kicker">REPORT KAD</span><h1>Prestasi Pelajar</h1><p>Lihat ringkasan penggunaan dan prestasi pembelajaran pelajar yang dipilih.</p></div>
-      </div>
-
       ${kids.length?`
-        <div class="report-child-selector">${childSelector}</div>
+        <section class="report-selector-panel">
+          <div class="report-selector-head">
+            <div><span class="dash-kicker">REPORT KAD</span><h1>Prestasi Pelajar</h1><p>Pilih satu profil pelajar untuk melihat ringkasan penggunaan dan prestasinya.</p></div>
+            <span class="report-selector-count">${kids.length} profil</span>
+          </div>
+          <div class="report-child-selector profile-picker-list">${childSelector}</div>
+        </section>
 
         ${showReportDetails&&activeChild?`<div class="report-revealed-details">
         <div class="report-student-hero">
