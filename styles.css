@@ -5379,3 +5379,289 @@ body.app-mode:not(.student-mode){
     width:min(89vw,306px)!important;
   }
 }
+
+
+/* =========================================================
+   V5 — Unified right navigation + all-role responsive cleanup
+   Penjaga / Admin / Agent / Student portal
+   ========================================================= */
+
+/* One consistent shell geometry for every dashboard-style view. */
+body.app-mode #dashboard{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+}
+body.app-mode .dash-shell{
+  width:min(100%,1240px)!important;
+  max-width:1240px!important;
+  min-width:0!important;
+  margin-inline:auto!important;
+}
+body.app-mode .dash-main,
+body.app-mode .clean-main,
+body.app-mode .portal-main,
+body.app-mode #adminContent,
+body.app-mode #agentView{
+  min-width:0!important;
+  max-width:100%!important;
+}
+
+/* Parent student area is now embedded inside the exact same parent shell. */
+.parent-learning-shell .student-parent-main{
+  padding:0!important;
+  overflow:auto!important;
+  background:#f8f9ff!important;
+}
+.parent-learning-shell .embedded-student,
+.parent-learning-shell .subject-hub-shell{
+  min-height:100%!important;
+  width:100%!important;
+  background:transparent!important;
+}
+.parent-learning-shell .student-header,
+.parent-learning-shell .subject-app-header{
+  display:none!important;
+}
+.parent-learning-shell .student-main,
+.parent-learning-shell .subject-hub-main{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:clamp(16px,2.4vw,30px)!important;
+}
+
+/* Subscription page now behaves like every other parent page. */
+.parent-sub-main{
+  overflow:auto!important;
+}
+.parent-sub-page{
+  width:min(100%,920px)!important;
+  max-width:920px!important;
+  margin:0 auto!important;
+  padding:clamp(10px,2vw,22px) 0 clamp(22px,4vw,44px)!important;
+}
+.parent-sub-card{
+  grid-template-columns:minmax(0,1fr) minmax(210px,280px)!important;
+}
+
+/* Fix malformed student profile cards seen in Tetapan. */
+.settings-profile-list{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))!important;
+  gap:14px!important;
+  align-items:stretch!important;
+}
+.settings-profile-card{
+  min-width:0!important;
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  grid-template-areas:
+    "avatar copy"
+    "actions actions"!important;
+  align-items:center!important;
+  gap:12px 13px!important;
+  padding:16px!important;
+}
+.settings-profile-avatar{grid-area:avatar!important}
+.settings-profile-copy{
+  grid-area:copy!important;
+  min-width:0!important;
+}
+.settings-profile-copy h3,
+.settings-profile-copy p{
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+}
+.settings-profile-actions{
+  grid-area:actions!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  width:100%!important;
+}
+.settings-profile-actions .btn{
+  width:100%!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+}
+
+/* Fluid cards/grids across parent, agent and admin. */
+.parent-quick-grid,
+.admin-stat-grid,
+.agent-stat-grid,
+.stat-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))!important;
+}
+.parent-subject-row,
+.report-subject-grid,
+.portal-settings-grid,
+.content-subject-grid,
+.settings-grid,
+.admin-year-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))!important;
+}
+.admin-two-col,
+.agent-info-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))!important;
+}
+.table-wrap{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  overflow-x:auto!important;
+  -webkit-overflow-scrolling:touch;
+}
+.table{
+  width:100%!important;
+  min-width:620px;
+}
+.admin-toolbar,
+.agent-toolbar,
+.copy-row{
+  min-width:0!important;
+  flex-wrap:wrap!important;
+}
+.admin-toolbar input,
+.agent-toolbar input,
+.copy-row input{
+  min-width:0!important;
+  flex:1 1 220px!important;
+}
+
+/* Desktop: every role uses a permanent RIGHT sidebar. */
+@media (min-width:1025px){
+  body.app-mode:not(.student-mode) .clean-shell,
+  body.app-mode:not(.student-mode) .portal-shell,
+  body.app-mode .parent-learning-shell{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) clamp(220px,18vw,250px)!important;
+    grid-template-rows:minmax(0,1fr)!important;
+  }
+  body.app-mode:not(.student-mode) .clean-side,
+  body.app-mode:not(.student-mode) .portal-side,
+  body.app-mode .parent-learning-shell>.role-drawer{
+    grid-column:2!important;
+    grid-row:1!important;
+    position:relative!important;
+    inset:auto!important;
+    transform:none!important;
+    width:auto!important;
+    min-width:0!important;
+    height:100%!important;
+    border-right:0!important;
+    border-left:1px solid #e7e9f2!important;
+  }
+  body.app-mode:not(.student-mode) .clean-main,
+  body.app-mode:not(.student-mode) .portal-main,
+  body.app-mode .parent-learning-shell>.student-parent-main{
+    grid-column:1!important;
+    grid-row:1!important;
+  }
+}
+
+/* Tablet and phone: exact same right-side drawer for every role/view. */
+@media (max-width:1024px){
+  body.app-mode .clean-shell,
+  body.app-mode .portal-shell,
+  body.app-mode .parent-learning-shell{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+  body.app-mode #dashboard .role-drawer{
+    position:fixed!important;
+    z-index:95!important;
+    top:var(--cg-app-topbar-h,60px)!important;
+    right:0!important;
+    left:auto!important;
+    bottom:0!important;
+    width:min(88vw,320px)!important;
+    height:calc(100dvh - var(--cg-app-topbar-h,60px))!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    transform:translateX(104%)!important;
+    transition:transform .24s ease!important;
+    background:#fff!important;
+    border-right:0!important;
+    border-left:1px solid #e7e9f2!important;
+    box-shadow:-22px 0 58px rgba(34,30,80,.16)!important;
+  }
+  body.app-mode #dashboard .role-drawer.role-drawer-open{
+    transform:translateX(0)!important;
+  }
+  body.app-mode .clean-main,
+  body.app-mode .portal-main,
+  body.app-mode .student-parent-main{
+    width:100%!important;
+    max-width:100%!important;
+  }
+}
+
+/* Compact tablet. */
+@media (min-width:700px) and (max-width:1024px){
+  body.app-mode .clean-main,
+  body.app-mode .portal-main{
+    padding:clamp(18px,2.6vw,26px)!important;
+  }
+  .settings-profile-list{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .parent-sub-card{
+    grid-template-columns:minmax(0,1fr) 230px!important;
+  }
+}
+
+/* Phone layout. */
+@media (max-width:699px){
+  body.app-mode .clean-main,
+  body.app-mode .portal-main{
+    padding:14px 12px 84px!important;
+  }
+  .settings-profile-list,
+  .report-subject-grid,
+  .portal-settings-grid,
+  .content-subject-grid,
+  .settings-grid,
+  .admin-year-grid,
+  .admin-two-col,
+  .agent-info-grid{
+    grid-template-columns:1fr!important;
+  }
+  .settings-profile-card{
+    padding:14px!important;
+  }
+  .parent-sub-card{
+    grid-template-columns:1fr!important;
+  }
+  .parent-sub-price{
+    width:100%!important;
+  }
+  .sub-detail-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .student-hero-panel,
+  .student-year-focus,
+  .student-achievement-row{
+    grid-template-columns:1fr!important;
+  }
+  .student-hero-actions{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media (max-width:420px){
+  .sub-detail-grid{grid-template-columns:1fr!important}
+  .settings-profile-card{
+    grid-template-columns:44px minmax(0,1fr)!important;
+    gap:10px!important;
+  }
+  .settings-profile-avatar{
+    width:44px!important;height:44px!important;font-size:24px!important;
+  }
+  .settings-profile-actions{
+    gap:7px!important;
+  }
+}

@@ -331,7 +331,43 @@ async function createPendingSubscriptionOrder(planId){
 }
 
 
+function renderParentRightNav(p,active='overview'){
+  const items=[
+    ['overview','⌂','Utama','#dashboard'],
+    ['report','📊','Report Kad','#report-card'],
+    ['student','🎒','Ruang Pelajar','#student'],
+    ['subscription','💳','Langganan','#subscription'],
+    ['settings','⚙️','Tetapan','#settings']
+  ];
+  return `<aside class="dash-side clean-side role-drawer parent-unified-nav">
+    <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
+    <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
+    <nav class="parent-role-menu">${items.map(([key,icon,label,href])=>`<a href="${href}" data-parent-route="${key}" class="${active===key?'active':''}">${icon} <span>${label}</span></a>`).join('')}</nav>
+    <div class="side-foot"><small>Akaun</small><b>${esc(p.name||p.email||'Penjaga')}</b><button class="side-logout-btn" data-parent-route="logout">↪ Log Keluar</button></div>
+  </aside>`;
+}
+
+function wireParentRightNav(p){
+  document.querySelectorAll('#dashboard [data-parent-route]').forEach(el=>{
+    el.onclick=async e=>{
+      e.preventDefault();
+      const route=el.dataset.parentRoute;
+      setRoleNav(false);
+      if(route==='logout'){await logoutCilikGo();return;}
+      if(route==='overview'){history.pushState(null,'','#dashboard');await renderUser(p);return;}
+      if(route==='report'){history.pushState(null,'','#report-card');await renderParentReportCard(p);return;}
+      if(route==='student'){history.pushState(null,'','#student');await renderStudentPortal(p);return;}
+      if(route==='subscription'){history.pushState(null,'','#subscription');renderParentSubscriptionView(p);return;}
+      if(route==='settings'){history.pushState(null,'','#settings');await renderParentSettingsView(p);return;}
+    };
+  });
+}
+
 function renderParentSubscriptionView(p){
+  setRoleNav(false);
+  document.body.classList.remove('student-mode');
+  showDashboardPage();
+  if(location.hash!=='#subscription') history.pushState(null,'','#subscription');
   const sub=subscriptionState(p),days=subscriptionDaysLeft(p);
   const startRaw=p?.subscriptionStartedAt?.toDate?.()||p?.subscriptionStartedAt||null;
   const start=startRaw?new Date(startRaw):null;
@@ -343,31 +379,36 @@ function renderParentSubscriptionView(p){
   const desc=active
     ?`Akses penuh latihan CilikGo sedang aktif. Anda mempunyai ${days} hari lagi.`
     :expired?'Akses latihan CilikGo dikunci sehingga langganan diperbaharui.':'Aktifkan akses penuh latihan Tahun 1–6 untuk anak anda.';
-  $('#dashboard').innerHTML=`<section class="parent-sub-page container">
-    <button class="btn ghost parent-sub-back">← Kembali ke Dashboard</button>
-    <div class="parent-sub-hero">
-      <span class="badge">${active?'AKTIF':expired?'TAMAT':'PELAN CILIKGO'}</span>
-      <h1>${title}</h1><p>${desc}</p>
-    </div>
-    <div class="parent-sub-card">
-      <div>
-        <small>Pelan semasa</small>
-        <h2>${active?'Akses Penuh CilikGo':expired?'Renewal CilikGo':'Pakej Permulaan'}</h2>
-        <div class="sub-detail-grid">
-          <div><small>Tarikh mula</small><b>${start?start.toLocaleDateString('ms-MY'):'-'}</b></div>
-          <div><small>Tarikh tamat</small><b>${end?end.toLocaleDateString('ms-MY'):'-'}</b></div>
-          <div><small>Baki akses</small><b>${active?days+' hari':expired?'0 hari':'-'}</b></div>
-          <div><small>Status</small><b>${active?'Aktif':expired?'Tamat':'Belum aktif'}</b></div>
+  $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell parent-sub-shell">
+    ${renderParentRightNav(p,'subscription')}
+    <section class="dash-main clean-main parent-sub-main">
+      <section class="parent-sub-page">
+        <div class="parent-sub-hero">
+          <span class="badge">${active?'AKTIF':expired?'TAMAT':'PELAN CILIKGO'}</span>
+          <h1>${title}</h1><p>${desc}</p>
         </div>
-      </div>
-      <div class="parent-sub-price"><b>${price}</b><span>${period}</span>
-        <button class="btn primary" disabled>${active?'Renew RM15':expired?'Renew RM15':'Langgan RM69'}</button>
-        <small>ToyyibPay masih KIV</small>
-      </div>
-    </div>
-    <div class="parent-sub-info"><b>${active?'✓ Akses anda sedang aktif':'ℹ Pembayaran belum diaktifkan'}</b><p>${active?'Anda boleh menggunakan semua latihan CilikGo sehingga tarikh tamat di atas.':'Buat masa ini Admin boleh mengaktifkan langganan secara manual untuk tujuan testing.'}</p></div>
-  </section>`;
-  $('.parent-sub-back').onclick=()=>renderUser(p);
+        <div class="parent-sub-card">
+          <div>
+            <small>Pelan semasa</small>
+            <h2>${active?'Akses Penuh CilikGo':expired?'Renewal CilikGo':'Pakej Permulaan'}</h2>
+            <div class="sub-detail-grid">
+              <div><small>Tarikh mula</small><b>${start?start.toLocaleDateString('ms-MY'):'-'}</b></div>
+              <div><small>Tarikh tamat</small><b>${end?end.toLocaleDateString('ms-MY'):'-'}</b></div>
+              <div><small>Baki akses</small><b>${active?days+' hari':expired?'0 hari':'-'}</b></div>
+              <div><small>Status</small><b>${active?'Aktif':expired?'Tamat':'Belum aktif'}</b></div>
+            </div>
+          </div>
+          <div class="parent-sub-price"><b>${price}</b><span>${period}</span>
+            <button class="btn primary" disabled>${active?'Renew RM15':expired?'Renew RM15':'Langgan RM69'}</button>
+            <small>ToyyibPay masih KIV</small>
+          </div>
+        </div>
+        <div class="parent-sub-info"><b>${active?'✓ Akses anda sedang aktif':'ℹ Pembayaran belum diaktifkan'}</b><p>${active?'Anda boleh menggunakan semua latihan CilikGo sehingga tarikh tamat di atas.':'Buat masa ini Admin boleh mengaktifkan langganan secara manual untuk tujuan testing.'}</p></div>
+      </section>
+    </section>
+  </div>`;
+  wireParentRightNav(p);
+  animateIn($('#dashboard'));
 }
 
 
@@ -386,7 +427,8 @@ async function renderStudentPortal(p){
     return;
   }
 
-  showStudentPage();
+  showDashboardPage();
+  if(location.hash!=='#student') history.pushState(null,'','#student');
   const root=$('#dashboard');
   const year=Number(activeChild.year||Math.max(1,Number(activeChild.age||7)-6));
   const allRows=await loadProgress(p.uid,activeChild.id);
@@ -448,7 +490,7 @@ async function renderStudentPortal(p){
         ?{icon:'🚀',name:'Mula Meluncur',text:'Permulaan yang baik. Terus kumpul bintang!'}
         :{icon:'🌱',name:'Langkah Pertama',text:'Mulakan satu latihan untuk kumpul bintang pertama.'};
 
-  root.innerHTML=`<section class="student-portal interactive-student">
+  root.innerHTML=`<div class="dash-shell parent-shell clean-shell parent-learning-shell">${renderParentRightNav(p,'student')}<section class="dash-main clean-main student-parent-main"><section class="student-portal interactive-student embedded-student">
     <div class="student-bg-orb orb-one"></div><div class="student-bg-orb orb-two"></div><div class="student-bg-orb orb-three"></div>
     <header class="student-header interactive-header">
       <button class="student-back" id="studentBackParent">← Penjaga</button>
@@ -526,7 +568,9 @@ async function renderStudentPortal(p){
         <div><small>TIP CILIKGO</small><p>Belajar 10–15 minit setiap sesi lebih mudah untuk kekal fokus. Pilih satu subjek dahulu dan cuba capai sekurang-kurangnya ⭐ 16/30.</p></div>
       </section>
     </main>
-  </section>`;
+  </section></section></div>`;
+
+  wireParentRightNav(p);
 
   $('#studentBackParent').onclick=()=>{
     document.body.classList.remove('student-mode');
@@ -1552,7 +1596,8 @@ async function renderYear1SubjectHub(p,key){
   const cfg=year1SubjectConfig(key);
   if(!cfg)return;
 
-  showStudentPage();
+  showDashboardPage();
+  if(location.hash!=='#student') history.pushState(null,'','#student');
   const root=$('#dashboard'),rows=await loadProgress(p.uid,activeChild.id);
   const keys=Object.keys(cfg.bank);
   const bestFor=k=>{
@@ -1564,7 +1609,7 @@ async function renderYear1SubjectHub(p,key){
   const totalBest=keys.reduce((n,k)=>n+bestFor(k),0);
   const progressPct=Math.round(completed/keys.length*100);
 
-  root.innerHTML=`<section class="subject-hub-shell subject-${cfg.theme}">
+  root.innerHTML=`<div class="dash-shell parent-shell clean-shell parent-learning-shell">${renderParentRightNav(p,'student')}<section class="dash-main clean-main student-parent-main"><section class="subject-hub-shell subject-${cfg.theme}">
     <header class="student-header interactive-header subject-app-header">
       <button class="student-back subject-back">← ${cfg.back}</button>
       <div class="student-brand"><span class="brand-badge">CG</span><b>CilikGo Pelajar</b></div>
@@ -1620,8 +1665,9 @@ async function renderYear1SubjectHub(p,key){
 
       <section class="subject-footer-note"><span>💡</span><p><b>Tip:</b> Buat satu topik pada satu masa. Pelajar boleh mencuba semula sehingga mendapat jawapan yang betul.</p></section>
     </main>
-  </section>`;
+  </section></section></div>`;
 
+  wireParentRightNav(p);
   $('.subject-back').onclick=()=>renderStudentPortal(p);
   document.querySelectorAll('[data-subject-topic]').forEach(b=>b.onclick=()=>cfg.start(b.dataset.subjectTopic));
   animateIn(root);
@@ -1642,7 +1688,8 @@ async function renderBmYear2Hub(p){
   const cfg=year2BmSubjectConfig();
   if(!cfg)return;
 
-  showStudentPage();
+  showDashboardPage();
+  if(location.hash!=='#student') history.pushState(null,'','#student');
   const root=$('#dashboard'),rows=await loadProgress(p.uid,activeChild.id);
   const keys=Object.keys(cfg.bank);
   const bestFor=k=>{
@@ -1654,7 +1701,7 @@ async function renderBmYear2Hub(p){
   const totalBest=keys.reduce((n,k)=>n+bestFor(k),0);
   const progressPct=Math.round(completed/keys.length*100);
 
-  root.innerHTML=`<section class="subject-hub-shell subject-${cfg.theme}">
+  root.innerHTML=`<div class="dash-shell parent-shell clean-shell parent-learning-shell">${renderParentRightNav(p,'student')}<section class="dash-main clean-main student-parent-main"><section class="subject-hub-shell subject-${cfg.theme}">
     <header class="student-header interactive-header subject-app-header">
       <button class="student-back subject-back">← ${cfg.back}</button>
       <div class="student-brand"><span class="brand-badge">CG</span><b>CilikGo Pelajar</b></div>
@@ -1710,8 +1757,9 @@ async function renderBmYear2Hub(p){
 
       <section class="subject-footer-note"><span>💡</span><p><b>Tip:</b> Buat satu topik pada satu masa. Pelajar boleh mencuba semula sehingga mendapat jawapan yang betul.</p></section>
     </main>
-  </section>`;
+  </section></section></div>`;
 
+  wireParentRightNav(p);
   $('.subject-back').onclick=()=>renderStudentPortal(p);
   document.querySelectorAll('[data-subject-topic]').forEach(b=>b.onclick=()=>cfg.start(b.dataset.subjectTopic));
   animateIn(root);
@@ -1768,18 +1816,7 @@ async function renderUser(p){
   }).join('');
 
   $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
-    <aside class="dash-side clean-side role-drawer">
-      <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
-      <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
-      <nav class="parent-role-menu">
-        <a class="active" data-parent-view="overview">⌂ <span>Utama</span></a>
-        <a href="#report-card" id="parentReportCardLink">📊 <span>Report Kad</span></a>
-        <a href="#" id="enterStudentNav">🎒 <span>Ruang Pelajar</span></a>
-        <a href="#" id="parentSubscriptionLink">💳 <span>Langganan</span></a>
-        <a href="#settings" id="parentSettingsLink">⚙️ <span>Tetapan</span></a>
-      </nav>
-      <div class="side-foot"><small>Akaun</small><b>${esc(p.name||p.email||'Penjaga')}</b><button class="side-logout-btn" id="parentLogoutNav">↪ Log Keluar</button></div>
-    </aside>
+    ${renderParentRightNav(p,'overview')}
     <section class="dash-main clean-main">
       <div class="parent-welcome-hero"><div class="parent-welcome-copy"><span class="dash-kicker">DASHBOARD PENJAGA</span><h1>Hai, ${esc(p.name||'Penjaga')}! 🌟</h1><p>Pilih profil anak dan teruskan pembelajaran dengan lebih seronok hari ini.</p><div class="welcome-pill-row"><span>🎒 Ruang belajar anak</span><span>⭐ Rekod kemajuan</span><span>📚 Semua subjek utama</span></div></div><div class="parent-welcome-badge"><small>FOKUS HARI INI</small><b>${activeChild?esc(activeChild.name):'Pilih profil'}</b><span>${activeChild?`Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))}`:'Tambah atau pilih anak'}</span></div></div>
       <div class="clean-section-head"><div><h2>Profil Pelajar</h2><p>Pilih anak yang ingin menggunakan CilikGo.</p></div><button class="btn ghost small" id="addChildBtn">+ Tambah Anak</button></div>
@@ -1793,6 +1830,7 @@ async function renderUser(p){
     </section>
   </div>`;
 
+  wireParentRightNav(p);
   const openChild=()=>{setRoleNav(false);prepareChildModal(null);};
   $('#addChildBtn')?.addEventListener('click',openChild);
   $('#emptyAddChild')?.addEventListener('click',openChild);
@@ -1865,18 +1903,7 @@ async function renderParentReportCard(p){
   }).join('');
 
   $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
-    <aside class="dash-side clean-side role-drawer">
-      <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
-      <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
-      <nav class="parent-role-menu">
-        <a href="#dashboard" id="reportOverviewLink">⌂ <span>Utama</span></a>
-        <a class="active" href="#report-card">📊 <span>Report Kad</span></a>
-        <a href="#student" id="reportStudentLink">🎒 <span>Ruang Pelajar</span></a>
-        <a href="#" id="reportSubscriptionLink">💳 <span>Langganan</span></a>
-        <a href="#settings" id="reportSettingsLink">⚙️ <span>Tetapan</span></a>
-      </nav>
-      <div class="side-foot"><small>Akaun</small><b>${esc(p.name||p.email||'Penjaga')}</b><button class="side-logout-btn" id="parentReportLogoutNav">↪ Log Keluar</button></div>
-    </aside>
+    ${renderParentRightNav(p,'report')}
 
     <section class="dash-main clean-main">
       <div class="clean-dash-head report-page-head">
@@ -1903,6 +1930,7 @@ async function renderParentReportCard(p){
     </section>
   </div>`;
 
+  wireParentRightNav(p);
   $('#reportOverviewLink')?.addEventListener('click',e=>{e.preventDefault();history.pushState(null,'','#dashboard');renderUser(p);});
   $('#reportStudentLink')?.addEventListener('click',e=>{e.preventDefault();renderStudentPortal(p);});
   $('#reportSubscriptionLink')?.addEventListener('click',e=>{e.preventDefault();renderParentSubscriptionView(p);});
@@ -1946,18 +1974,7 @@ async function renderParentSettingsView(p){
   }).join('');
 
   $('#dashboard').innerHTML=`<div class="dash-shell parent-shell clean-shell">
-    <aside class="dash-side clean-side role-drawer">
-      <button class="role-nav-close" type="button" aria-label="Tutup menu">×</button>
-      <div class="side-role"><span>👨‍👩‍👧</span><div><small>PORTAL</small><h3>Penjaga</h3></div></div>
-      <nav class="parent-role-menu">
-        <a href="#dashboard" id="settingsOverviewLink">⌂ <span>Utama</span></a>
-        <a href="#report-card" id="settingsReportCardLink">📊 <span>Report Kad</span></a>
-        <a href="#student" id="settingsStudentLink">🎒 <span>Ruang Pelajar</span></a>
-        <a href="#" id="settingsSubscriptionLink">💳 <span>Langganan</span></a>
-        <a class="active" href="#settings">⚙️ <span>Tetapan</span></a>
-      </nav>
-      <div class="side-foot"><small>Akaun</small><b>${esc(p.name||p.email||'Penjaga')}</b><button class="side-logout-btn" id="parentSettingsLogoutNav">↪ Log Keluar</button></div>
-    </aside>
+    ${renderParentRightNav(p,'settings')}
     <section class="dash-main clean-main">
       <div class="clean-dash-head settings-page-head">
         <div><span class="dash-kicker">TETAPAN PENJAGA</span><h1>Urus Profil Pelajar</h1><p>Edit maklumat atau padam profil pelajar dari satu tempat.</p></div>
@@ -1968,6 +1985,7 @@ async function renderParentSettingsView(p){
     </section>
   </div>`;
 
+  wireParentRightNav(p);
   $('#settingsOverviewLink')?.addEventListener('click',e=>{e.preventDefault();history.pushState(null,'','#dashboard');renderUser(p);});
   $('#settingsReportCardLink')?.addEventListener('click',e=>{e.preventDefault();history.pushState(null,'','#report-card');renderParentReportCard(p);});
   $('#settingsStudentLink')?.addEventListener('click',e=>{e.preventDefault();renderStudentPortal(p);});
@@ -2335,6 +2353,7 @@ window.addEventListener('hashchange',async()=>{
   if(hash==='#student'&&currentProfile.role==='user'){await renderStudentPortal(currentProfile);return;}
   if(hash==='#report-card'&&currentProfile.role==='user'){await renderParentReportCard(currentProfile);return;}
   if(hash==='#settings'&&currentProfile.role==='user'){await renderParentSettingsView(currentProfile);return;}
+  if(hash==='#subscription'&&currentProfile.role==='user'){renderParentSubscriptionView(currentProfile);return;}
   if(hash==='#dashboard'){await renderPortal(currentProfile);return;}
   if(hash==='#home')showPublicPage();
 });
