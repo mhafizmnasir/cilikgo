@@ -639,39 +639,40 @@ function speakCilikGo(text,lang='ms-MY',button=null){
 }
 
 function celebrate(){
-  const shell=$('#gameContent .quiz-fullscreen-shell');
-  if(!shell)return;
-  const stage=$('#gameContent .quiz-ref-card') || $('#gameContent .quiz-ref-main') || shell;
-  const burst=document.createElement('div');
-  burst.className='quiz-celebrate-burst mega ultra';
-  burst.style.setProperty('--celebrate-y','76%');
+  const host=$('#gameMsg');
+  const box=host?.querySelector('.quiz-feedback-box.correct');
+  if(!host||!box)return;
 
-  const radialPieces=['🎉','✨','⭐','🌟','🎊','💫','⭐','✨','🎉','🪅','🌈','💥'];
-  const radialArcs=[
-    [-172,-88],[-144,-132],[-108,-116],[-72,-148],[-28,-168],[22,-172],
-    [68,-148],[106,-118],[144,-132],[172,-88],[-6,-194],[16,-206]
-  ];
-  const confetti=['🎊','✨','⭐','💫','🎉','🌟','🎊','✨','⭐','💫','🎉','🌈','🪅','⭐','✨','🎊'];
-  const confettiNodes=confetti.map((icon,i)=>{
-    const x=(5 + (i*5.9))%94;
-    const drift=((i%2===0?1:-1)*(20 + (i%5)*10));
-    const rot=((i%2===0?1:-1)*(22 + (i%6)*10));
-    const dur=(1.12 + (i%5)*0.12).toFixed(2);
-    const delay=(i*0.03).toFixed(2);
-    const size=20 + (i%4)*5;
-    return `<i class="quiz-celebrate-confetti" style="--x:${x}%;--drift:${drift}px;--rot:${rot}deg;--dur:${dur}s;--delay:${delay}s;--size:${size}px">${icon}</i>`;
+  host.querySelectorAll('.quiz-feedback-badge,.quiz-feedback-sparkles').forEach(n=>n.remove());
+  box.classList.remove('quiz-feedback-celebrate');
+  void box.offsetWidth;
+  box.classList.add('quiz-feedback-celebrate');
+
+  const badge=document.createElement('div');
+  badge.className='quiz-feedback-badge';
+  badge.innerHTML='<span>🎉</span><b>Hebat!</b><span>✨</span>';
+
+  const sparks=document.createElement('div');
+  sparks.className='quiz-feedback-sparkles';
+  const icons=['🎉','✨','⭐','🌟','🎊','💫','✨','⭐'];
+  sparks.innerHTML=icons.map((icon,i)=>{
+    const x=8 + i*12;
+    const y=(i%2===0?0:8);
+    const drift=(i%2===0?-24:24);
+    const rise=22 + (i%3)*8;
+    const delay=(i*0.04).toFixed(2);
+    const size=16 + (i%3)*3;
+    return `<i class="quiz-feedback-spark" style="--x:${x}%;--y:${y}px;--drift:${drift}px;--rise:${rise}px;--delay:${delay}s;--size:${size}px">${icon}</i>`;
   }).join('');
-  const rays=new Array(12).fill(0).map((_,i)=>`<span class="quiz-celebrate-ray" style="--angle:${i*30}deg;animation-delay:${(i*0.03).toFixed(2)}s"></span>`).join('');
 
-  burst.innerHTML=`
-    <div class="quiz-celebrate-overlay"></div>
-    <div class="quiz-celebrate-rays">${rays}</div>
-    <div class="quiz-celebrate-center">🎉 Hebat! 🎉</div>
-    <div class="quiz-celebrate-radial">${radialPieces.map((icon,i)=>`<i class="quiz-celebrate-piece" style="--tx:${radialArcs[i][0]}px;--ty:${radialArcs[i][1]}px;animation-delay:${(i*0.03).toFixed(2)}s">${icon}</i>`).join('')}</div>
-    <div class="quiz-celebrate-rain">${confettiNodes}</div>`;
+  host.appendChild(badge);
+  host.appendChild(sparks);
 
-  stage.appendChild(burst);
-  setTimeout(()=>burst.remove(),1700);
+  setTimeout(()=>{
+    badge.remove();
+    sparks.remove();
+    box.classList.remove('quiz-feedback-celebrate');
+  },1350);
 }
 function quizScreenEffect(type){
   const stage=$('#gameContent .quiz-fullscreen-shell');
