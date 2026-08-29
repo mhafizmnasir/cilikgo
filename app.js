@@ -1784,7 +1784,8 @@ async function renderMathYear1Hub(p){ return renderYear1SubjectHub(p,'math'); }
 
 async function startMathYear1Topic(topicKey){ return startYear1FullscreenQuiz('math',topicKey); }
 
-async function renderUser(p){
+async function renderUser(p,options={}){
+  const showDashboardDetails=options.showDetails===true;
   setRoleNav(false);
   document.body.classList.remove('student-mode');
   showDashboardPage();
@@ -1821,12 +1822,13 @@ async function renderUser(p){
       <div class="parent-welcome-hero"><div class="parent-welcome-copy"><span class="dash-kicker">DASHBOARD PENJAGA</span><h1>Hai, ${esc(p.name||'Penjaga')}! 🌟</h1><p>Pilih profil anak dan teruskan pembelajaran dengan lebih seronok hari ini.</p><div class="welcome-pill-row"><span>🎒 Ruang belajar anak</span><span>⭐ Rekod kemajuan</span><span>📚 Semua subjek utama</span></div></div><div class="parent-welcome-badge"><small>FOKUS HARI INI</small><b>${activeChild?esc(activeChild.name):'Pilih profil'}</b><span>${activeChild?`Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))}`:'Tambah atau pilih anak'}</span></div></div>
       <div class="clean-section-head"><div><h2>Profil Pelajar</h2><p>Pilih anak yang ingin menggunakan CilikGo.</p></div><button class="btn ghost small" id="addChildBtn">+ Tambah Anak</button></div>
       <div class="child-list compact-list">${childCards||'<div class="empty-state compact-empty">Belum ada profil anak. Tambah profil untuk bermula.</div>'}</div>
-      ${activeChild?`<div class="parent-focus-card">
-        <div class="focus-profile"><span class="focus-avatar">${esc(activeChild.avatar||'🧒')}</span><div><small>PELAJAR DIPILIH</small><h2>${esc(activeChild.name)}</h2><p>Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))}${activeChild.gender?` · ${activeChild.gender==='female'?'Perempuan':'Lelaki'}`:''}</p></div></div>
-        <button class="student-launch" id="enterStudentBtn"><span>🎒</span><div><small>BUKA PAPARAN PELAJAR</small><b>Masuk Ruang Belajar</b></div><strong>→</strong></button>
-      </div>
-      <div class="parent-subject-row">${subjectMeta.map(subjectCard).join('')}</div>`:
-      `<div class="parent-focus-card empty-focus"><div><h2>Tambah profil anak dahulu</h2><p>Selepas profil ditambah, butang Ruang Pelajar akan muncul di sini.</p></div><button class="btn primary" id="emptyAddChild">Tambah Profil</button></div>`}
+      ${showDashboardDetails&&activeChild?`<div class="parent-selected-details" data-parent-details>
+        <div class="parent-focus-card">
+          <div class="focus-profile"><span class="focus-avatar">${esc(activeChild.avatar||'🧒')}</span><div><small>PELAJAR DIPILIH</small><h2>${esc(activeChild.name)}</h2><p>Tahun ${esc(activeChild.year||Math.max(1,Number(activeChild.age||7)-6))}${activeChild.gender?` · ${activeChild.gender==='female'?'Perempuan':'Lelaki'}`:''}</p></div></div>
+          <button class="student-launch" id="enterStudentBtn"><span>🎒</span><div><small>BUKA PAPARAN PELAJAR</small><b>Masuk Ruang Belajar</b></div><strong>→</strong></button>
+        </div>
+        <div class="parent-subject-row">${subjectMeta.map(subjectCard).join('')}</div>
+      </div>`:''}
     </section>
   </div>`;
 
@@ -1853,7 +1855,7 @@ async function renderUser(p){
     if(!selectedChild)return;
     activeChild=selectedChild;
     localStorage.setItem('cilikgo_active_child',selectedChild.id);
-    await renderUser(p);
+    await renderUser(p,{showDetails:true});
   });
 
 }
