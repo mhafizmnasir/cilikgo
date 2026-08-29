@@ -3180,9 +3180,9 @@ async function renderAdmin(p,initialView='overview'){
 
 async function renderPortal(p){
   showDashboardPage();
-  $('#portalTitle').textContent=p.role==='admin'?'Dashboard Admin':p.role==='agent'?'Dashboard Agent':'Dashboard Penjaga';
-  $('#portalSubtitle').textContent='Paparan ini menggunakan akaun dan role sebenar daripada Firebase.';
-  $('#appMemberName').textContent=p.name||p.email||'Akaun';
+  $('#portalTitle')?.replaceChildren(document.createTextNode(p.role==='admin'?'Dashboard Admin':p.role==='agent'?'Dashboard Agent':'Dashboard Penjaga'));
+  $('#portalSubtitle')?.replaceChildren(document.createTextNode('Paparan ini menggunakan akaun dan role sebenar daripada Firebase.'));
+  if($('#appMemberName')) $('#appMemberName').textContent=p.name||p.email||'Akaun';
   if(p.role==='admin') await renderAdmin(p); else if(p.role==='agent') await renderAgent(p); else await renderUser(p);
 }
 
@@ -3193,8 +3193,8 @@ if(fb) fb.onAuthStateChanged(fb.auth, async user=>{
     $('#memberActions').classList.add('hidden');
     $('#mobileGuestActions')?.classList.remove('hidden');
     $('#mobileMemberActions')?.classList.add('hidden');
-    $('#portalTitle').textContent='Dashboard anda.';
-    $('#portalSubtitle').textContent='Log masuk untuk membuka dashboard mengikut peranan akaun anda.';
+    $('#portalTitle')?.replaceChildren(document.createTextNode('Dashboard anda.'));
+    $('#portalSubtitle')?.replaceChildren(document.createTextNode('Log masuk untuk membuka dashboard mengikut peranan akaun anda.'));
     $('#dashboard').innerHTML='<div class="portal-locked"><div class="lock-icon">🔐</div><h3>Portal dilindungi</h3><p>Log masuk untuk membuka dashboard.</p><button class="btn primary" id="lockedLogin">Log Masuk</button></div>';
     $('#lockedLogin').onclick=()=>showAuthPage('login');
     if(location.hash==='#login')showAuthPage('login');
@@ -3210,10 +3210,10 @@ if(fb) fb.onAuthStateChanged(fb.auth, async user=>{
     $('#mobileGuestActions')?.classList.add('hidden');
     $('#mobileMemberActions')?.classList.remove('hidden');
     const displayName=currentProfile.name||user.email;
-    $('#memberName').textContent=displayName;
-    $('#mobileMemberName').textContent=displayName;
-    $('#appMemberName').textContent=displayName;
-    $('#appMobileMemberName').textContent=displayName;
+    if($('#memberName')) $('#memberName').textContent=displayName;
+    if($('#mobileMemberName')) $('#mobileMemberName').textContent=displayName;
+    if($('#appMemberName')) $('#appMemberName').textContent=displayName;
+    if($('#appMobileMemberName')) $('#appMobileMemberName').textContent=displayName;
     await renderPortal(currentProfile);
   }catch(e){
     console.error(e);

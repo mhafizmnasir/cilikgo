@@ -30,9 +30,9 @@ small{font-size:var(--v18-small)!important;line-height:1.4}
 .section-head{max-width:800px}.section-head h2{font-size:clamp(30px,4vw,50px);line-height:1.08}.section-head p{font-size:clamp(14px,1.4vw,17px)!important}
 
 /* Landing illustration */
-.v18-landing-visual{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important;min-height:0!important}
+.v18-landing-visual{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:hidden!important;min-height:0!important;transform:none!important;border-radius:34px!important}
 .landing-art-svg{display:block;width:100%;height:auto;filter:drop-shadow(0 24px 34px rgba(54,43,111,.10))}
-.art-float{animation:v18Float 4s ease-in-out infinite}.art-float-b{animation-delay:.3s}.art-character{animation:v18Float 3.5s ease-in-out infinite .1s}.art-character-two{animation-delay:.45s}.spark{animation:v18Spark 3.8s ease-in-out infinite}
+.art-float{animation:v19SvgFloat 4.2s ease-in-out infinite}.art-float-b{animation-delay:.3s}.art-character,.art-character-two{animation:none!important}.spark{animation:v18Spark 3.8s ease-in-out infinite}
 .hero-scene-caption{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:-20px;position:relative;z-index:2}.hero-scene-caption span{background:#fff;border:1px solid #e7e4f8;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:850;box-shadow:0 9px 22px rgba(45,35,95,.08)}
 .hero-v17{grid-template-columns:minmax(0,1.05fr) minmax(380px,.95fr);gap:clamp(34px,6vw,78px)}
 .hero-v17 .hero-copy{max-width:760px}.hero-v17 .hero-copy h1{font-size:clamp(42px,5.7vw,76px);line-height:.99}.hero-v17 .hero-copy p{font-size:clamp(16px,1.45vw,19px)!important}
@@ -91,7 +91,7 @@ body.app-mode:not(.student-mode) .stat small{color:#646b80!important;font-weight
   .section{padding-inline:clamp(15px,4vw,22px)}
   .hero-v17{grid-template-columns:1fr;gap:26px;text-align:left!important;padding-top:34px!important}.hero-v17 .hero-copy{text-align:left!important}.hero-v17 .hero-copy>p{margin-left:0!important;margin-right:0!important}.hero-v17 .hero-actions,.hero-v17 .trust{justify-content:flex-start!important}.hero-v17 .hero-copy h1{font-size:clamp(38px,11.5vw,54px)}
   .hero-proof-grid{grid-template-columns:1fr}.hero-proof-grid>div{min-height:72px;padding:13px 15px}
-  .landing-art-svg{max-height:500px}.hero-scene-caption{margin-top:-8px}
+  .landing-art-svg{max-height:500px}.art-float,.spark{animation:none!important}.hero-scene-caption{margin-top:-8px}
   .public-portal-highlights{grid-template-columns:1fr}.public-cta-band{display:grid}.public-cta-band .btn{width:100%}
   .auth-screen{display:block!important;overflow-y:auto!important;background:#f8f9fd!important;padding:0!important}.auth-brand-panel{display:none!important}.auth-form-panel{display:block!important;min-height:100dvh!important;padding:calc(12px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom))!important}.auth-mobile-home-link{display:flex!important;align-items:center;position:sticky;top:8px;z-index:4;width:100%;min-height:46px;margin:0 0 12px;background:#fff!important;border:1px solid #e7e5f4!important;box-shadow:0 10px 24px rgba(46,36,97,.06)}.auth-mobile-illustration{display:flex!important}.auth-card{margin:0 auto!important;border-radius:22px!important;padding:22px!important}.auth-card h2{font-size:28px!important}.auth-card input{height:48px}
   .role-hero-banner{grid-template-columns:1fr;padding:20px 18px}.role-hero-art-v18{min-height:150px}.role-art-svg{max-width:320px}.role-hero-pills{gap:7px}.role-hero-pills span{padding:7px 10px}
@@ -121,3 +121,5 @@ body.app-mode:not(.student-mode) .stat small{color:#646b80!important;font-weight
 
 @keyframes v18Float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes v18Spark{0%,100%{opacity:.65;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
+
+@keyframes v19SvgFloat{0%,100%{translate:0 0}50%{translate:0 -5px}}
