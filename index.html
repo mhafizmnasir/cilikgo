@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#6c5ce7" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%236c5ce7%27/%3E%3Ctext x=%2732%27 y=%2741%27 text-anchor=%27middle%27 font-size=%2726%27 font-family=%27Arial%27 fill=%27white%27%3ECG%3C/text%3E%3C/svg%3E" />
+  <title>CilikGo — Latihan Sekolah Rendah Tahun 1–6</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="responsive-v11.css" />
+  <link rel="stylesheet" href="ui-v18.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="CilikGo - Laman Utama"><span class="brand-badge">CG</span><span>CilikGo</span></a>
+    <nav id="mainNav" class="desktop-nav" aria-label="Navigasi utama">
+      <a href="#home">Utama</a><a href="#modules">Tahun 1–6</a><a href="#pricing">Harga</a><a href="#agent">Jadi Agent</a>
+    </nav>
+    <div class="top-actions desktop-actions" id="guestActions"><button class="btn ghost" data-auth="login">Log Masuk</button><button class="btn primary" data-auth="register">Daftar</button></div>
+    <div class="top-actions desktop-actions hidden" id="memberActions"><span id="memberName" class="member-name"></span><button class="btn ghost" id="dashboardBtn">Dashboard</button><button class="btn primary" id="logoutBtn">Log Keluar</button></div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Buka menu" aria-controls="mobileNavDrawer" aria-expanded="false"><span></span><span></span><span></span></button>
+  </header>
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+  <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
+    <div class="mobile-nav-head"><a class="brand" href="#home"><span class="brand-badge">CG</span><span>CilikGo</span></a><button class="mobile-nav-close" id="mobileNavClose" aria-label="Tutup menu">×</button></div>
+    <nav class="mobile-nav-links" aria-label="Menu mudah alih">
+      <a href="#home"><span>⌂</span><div><b>Utama</b><small>Laman utama CilikGo</small></div></a>
+      <a href="#modules"><span>🎒</span><div><b>Tahun 1–6</b><small>Struktur portal pembelajaran</small></div></a>
+      <a href="#pricing"><span>💳</span><div><b>Harga</b><small>Pelan langganan CilikGo</small></div></a>
+      <a href="#agent"><span>🤝</span><div><b>Jadi Agent</b><small>Program affiliate CilikGo</small></div></a>
+    </nav>
+    <div class="mobile-nav-actions" id="mobileGuestActions"><button class="btn ghost full" data-auth="login">Log Masuk</button><button class="btn primary full" data-auth="register">Daftar Akaun</button></div>
+    <div class="mobile-nav-actions hidden" id="mobileMemberActions"><div class="mobile-member-card"><span>👤</span><div><small>AKAUN</small><b id="mobileMemberName">Pengguna CilikGo</b></div></div><button class="btn ghost full" id="mobileDashboardBtn">Buka Dashboard</button><button class="btn primary full" id="mobileLogoutBtn">Log Keluar</button></div>
+  </aside>
+
+  <main>
+    <section id="home" class="hero section hero-v17">
+      <div class="hero-copy">
+        <div class="pill">Platform pembelajaran sekolah rendah</div>
+        <h1>Pembelajaran <span>lebih kemas</span>, menyeronokkan dan mudah dipantau.</h1>
+        <p>CilikGo menyatukan pembelajaran pelajar, pemantauan Penjaga, pengurusan Agent dan kawalan Admin dalam satu platform yang lebih tersusun. Murid belajar ikut tahun, subjek dan topik, manakala prestasi serta langganan boleh dipantau dengan lebih jelas.</p>
+        <div class="hero-actions"><button class="btn primary big" data-auth="register">Buka Akaun Penjaga</button><button class="btn ghost big" data-auth="login">Log Masuk</button></div>
+        <div class="trust"><span>✓ Tahun 1–6</span><span>✓ Latihan topikal</span><span>✓ Rekod kemajuan</span><span>✓ Portal Admin & Agent</span></div>
+        <div class="hero-proof-grid">
+          <div><small>Fokus</small><b>Tahun 1–6</b></div>
+          <div><small>Subjek</small><b>BM · BI · Matematik · Sains</b></div>
+          <div><small>Pemantauan</small><b>Prestasi & langganan</b></div>
+        </div>
+      </div>
+      <div class="hero-card portal-preview-card hero-learning-scene v18-landing-visual" aria-hidden="true">
+        <svg class="landing-art-svg" viewBox="0 0 720 560" role="img" aria-label="Ilustrasi pembelajaran CilikGo">
+          <defs>
+            <linearGradient id="cgBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1edff"/><stop offset="1" stop-color="#e8f7ff"/></linearGradient>
+            <linearGradient id="cgDesk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#725df0"/><stop offset="1" stop-color="#4ca9e8"/></linearGradient>
+            <filter id="cgShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#44398a" flood-opacity=".16"/></filter>
+          </defs>
+          <rect x="16" y="16" width="688" height="528" rx="48" fill="url(#cgBg)"/>
+          <circle cx="610" cy="92" r="58" fill="#ffd964" opacity=".65"/>
+          <circle cx="98" cy="92" r="34" fill="#8de2bf" opacity=".7"/>
+          <path d="M48 432 C160 382 260 440 360 404 C470 364 565 394 675 354 L675 520 L48 520Z" fill="#dff6e9"/>
+          <g class="art-float art-float-a" filter="url(#cgShadow)"><rect x="50" y="70" width="190" height="104" rx="24" fill="#fff"/><rect x="72" y="92" width="42" height="42" rx="12" fill="#efeaff"/><text x="93" y="120" text-anchor="middle" font-size="25">📚</text><text x="128" y="110" font-family="Arial,sans-serif" font-weight="700" font-size="16" fill="#2b2f49">Topik tersusun</text><text x="128" y="135" font-family="Arial,sans-serif" font-size="12" fill="#7b7f92">Belajar langkah demi langkah</text></g>
+          <g class="art-float art-float-b" filter="url(#cgShadow)"><rect x="468" y="92" width="182" height="104" rx="24" fill="#fff"/><circle cx="506" cy="130" r="22" fill="#e9fbf2"/><text x="506" y="138" text-anchor="middle" font-size="23">⭐</text><text x="542" y="122" font-family="Arial,sans-serif" font-weight="700" font-size="16" fill="#2b2f49">Kemajuan</text><text x="542" y="147" font-family="Arial,sans-serif" font-size="12" fill="#7b7f92">Dipantau Penjaga</text></g>
+          <g filter="url(#cgShadow)"><rect x="190" y="184" width="348" height="232" rx="38" fill="url(#cgDesk)"/><rect x="218" y="210" width="292" height="136" rx="26" fill="#fff" opacity=".96"/><rect x="242" y="235" width="94" height="18" rx="9" fill="#ece8ff"/><rect x="242" y="267" width="222" height="14" rx="7" fill="#e8edf7"/><rect x="242" y="292" width="172" height="14" rx="7" fill="#e8edf7"/><rect x="242" y="320" width="132" height="11" rx="6" fill="#a993ff"/><circle cx="473" cy="309" r="18" fill="#ffdc67"/><text x="473" y="316" text-anchor="middle" font-size="18">★</text><rect x="274" y="362" width="178" height="30" rx="15" fill="#ffffff" opacity=".28"/></g>
+          <g class="art-character" transform="translate(114 322)" filter="url(#cgShadow)"><circle cx="62" cy="62" r="56" fill="#ffd3b4"/><path d="M14 52 C18 5 102 -4 111 49 C85 29 51 26 14 52Z" fill="#663f31"/><circle cx="43" cy="62" r="6" fill="#2f3149"/><circle cx="82" cy="62" r="6" fill="#2f3149"/><path d="M48 84 Q63 98 78 84" stroke="#d66f71" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="25" y="114" width="75" height="75" rx="30" fill="#6c5ce7"/><path d="M32 132 L61 146 L91 132 L87 170 L35 170Z" fill="#fff" opacity=".95"/></g>
+          <g class="art-character art-character-two" transform="translate(510 342)" filter="url(#cgShadow)"><circle cx="55" cy="55" r="50" fill="#efc6a9"/><path d="M9 48 C18 4 93 2 103 47 C80 24 45 24 9 48Z" fill="#2e2a4f"/><circle cx="38" cy="57" r="5" fill="#2f3149"/><circle cx="73" cy="57" r="5" fill="#2f3149"/><path d="M42 76 Q55 87 68 76" stroke="#d66f71" stroke-width="4" fill="none" stroke-linecap="round"/><rect x="20" y="101" width="70" height="68" rx="28" fill="#43ba8b"/></g>
+          <g class="spark"><circle cx="110" cy="250" r="6" fill="#ff92ba"/><circle cx="586" cy="246" r="7" fill="#8c79f1"/><path d="M603 270 l6 13 14 3-10 10 2 14-12-7-13 7 3-14-10-10 14-3Z" fill="#ffd65b"/></g>
+        </svg>
+        <div class="hero-scene-caption"><span>🎒 Pelajar</span><span>📚 Pembelajaran</span><span>⭐ Kemajuan</span></div>
+      </div>
+    </section>
+
+    <section id="modules" class="section alt">
+      <div class="section-head"><div class="pill">Portal Tahun 1–6</div><h2>Satu portal pembelajaran untuk seluruh sekolah rendah.</h2><p>Profil pelajar ditetapkan mengikut Tahun 1 hingga Tahun 6. Kandungan disusun mengikut subjek dan topik supaya perjalanan belajar lebih jelas.</p></div>
+      <div class="year-portal-grid">
+        <article class="year-portal-card active"><span>01</span><div><small>TERSEDIA</small><h3>Tahun 1</h3><p>Bahasa Melayu · Bahasa Inggeris · Matematik · Sains</p></div></article>
+        <article class="year-portal-card active"><span>02</span><div><small>TERSEDIA</small><h3>Tahun 2</h3><p>Bahasa Melayu tersedia · Subjek lain menyusul.</p></div></article>
+        <article class="year-portal-card"><span>03</span><div><small>AKAN DATANG</small><h3>Tahun 3</h3><p>Kandungan akan ditambah berperingkat.</p></div></article>
+        <article class="year-portal-card"><span>04</span><div><small>AKAN DATANG</small><h3>Tahun 4</h3><p>Latihan mengikut subjek dan topik.</p></div></article>
+        <article class="year-portal-card"><span>05</span><div><small>AKAN DATANG</small><h3>Tahun 5</h3><p>Latihan mengikut subjek dan topik.</p></div></article>
+        <article class="year-portal-card"><span>06</span><div><small>AKAN DATANG</small><h3>Tahun 6</h3><p>Persediaan pembelajaran sekolah rendah.</p></div></article>
+      </div>
+      <div class="core-subject-strip"><span>🇲🇾 Bahasa Melayu</span><span>🔤 Bahasa Inggeris</span><span>➗ Matematik</span><span>🔬 Sains</span></div>
+    </section>
+
+    <section id="pricing" class="section">
+      <div class="section-head"><div class="pill">Pelan CilikGo</div><h2>Mudah untuk bermula.</h2></div>
+      <div class="pricing-card" id="publicPricingCard"><div><span class="tag" id="publicPricingTag">Promosi Lifetime</span><h3 id="publicPricingTitle">Akses Lifetime CilikGo</h3><p id="publicPricingDesc">Bayar sekali dan nikmati akses pembelajaran CilikGo tanpa bayaran bulanan sepanjang promosi.</p></div><div class="price"><strong id="publicPricingAmount">RM45</strong><small id="publicPricingPeriod">sekali bayar · akses Lifetime</small><p id="publicPricingAfter"><b>Promosi terhad</b> untuk menarik pengguna baharu.</p><button id="buyBtn" class="btn primary big">Dapatkan Akses</button></div></div>
+    </section>
+
+    <section id="agent" class="section alt">
+      <div class="split"><div><div class="pill">Program Agent</div><h2>Kongsi CilikGo, jana komisen.</h2><p id="publicAgentCopy">Agent menerima <b>RM30</b> untuk setiap pelanggan baharu yang diaktifkan. Selepas promosi Lifetime tamat, pembaharuan bulanan yang berjaya memberi komisen <b>RM10</b>.</p><button class="btn primary" id="agentSignupBtn">Daftar Sebagai Agent</button></div><div class="affiliate-preview"><span>Pautan referral anda</span><code>cilikgo.my/?ref=CG-AZLAN7</code><div class="mini-stats"><div><b>RM30</b><small>Pelanggan baharu</small></div><div><b>RM10</b><small>Renewal bulanan</small></div><div><b>Manual</b><small>Pengesahan Admin</small></div></div></div></div>
+    </section>
+
+    <section class="section dashboard-demo" id="portal">
+      <div class="app-topbar">
+        <button class="role-menu-btn" id="roleMenuBtn" aria-label="Buka menu dashboard" aria-expanded="false">☰</button>
+        <a class="app-brand" href="#dashboard"><span class="brand-badge">CG</span><span>CilikGo</span></a>
+        <div class="app-user desktop-app-actions"><span id="appMemberName"></span><button class="btn ghost small" id="appHomeBtn">Laman Utama</button><button class="btn primary small" id="appLogoutBtn">Log Keluar</button></div>
+        <button class="app-menu-btn" id="appMenuBtn" aria-label="Buka menu akaun" aria-expanded="false">👤</button>
+        <div class="app-mobile-menu" id="appMobileMenu">
+          <div class="app-mobile-account"><small>AKAUN</small><b id="appMobileMemberName">CilikGo</b></div>
+          <button id="appMobileHomeBtn">⌂ Laman Utama</button>
+          <button id="appMobileLogoutBtn">↪ Log Keluar</button>
+        </div>
+      </div>
+      <div class="role-nav-backdrop" id="roleNavBackdrop"></div>
+      <div class="section-head public-portal-head"><div class="pill">Kenapa pilih CilikGo</div><h2>Semua maklumat penting dalam satu tempat.</h2><p>Reka bentuk lebih kemas, mudah dibaca dan sesuai untuk Penjaga, Agent, Admin serta pelajar sekolah rendah.</p></div>
+      <div class="public-portal-highlights">
+        <article class="public-info-card tone-purple"><span>🎯</span><div><small>PEMBELAJARAN TERSUSUN</small><h3>Ikut tahun, subjek dan topik</h3><p>Pelajar belajar mengikut struktur yang jelas supaya lebih fokus dan tidak berserabut.</p></div></article>
+        <article class="public-info-card tone-blue"><span>👨‍👩‍👧</span><div><small>UNTUK PENJAGA</small><h3>Pantau anak dengan mudah</h3><p>Lihat profil anak, subjek aktif, bintang dan rekod kemajuan dalam satu dashboard.</p></div></article>
+        <article class="public-info-card tone-green"><span>🤝</span><div><small>UNTUK AGENT</small><h3>Referral dan komisen lebih jelas</h3><p>Kongsi pautan, semak jualan dan ikuti pembayaran komisen mingguan dengan lebih kemas.</p></div></article>
+        <article class="public-info-card tone-orange"><span>🛡️</span><div><small>UNTUK ADMIN</small><h3>Kawalan sistem yang teratur</h3><p>Urus pengguna, langganan, transaksi, komisen dan kandungan melalui pusat kawalan yang standard.</p></div></article>
+      </div>
+      <div class="public-cta-band"><div><small>MULA DENGAN MUDAH</small><h3>Daftar akaun dan teruskan pembelajaran hari ini.</h3><p>CilikGo direka untuk pengalaman yang profesional, moden dan mesra pelajar.</p></div><button class="btn primary" data-auth="register">Daftar Sekarang</button></div>
+      <div id="dashboard"><div class="portal-locked"><div class="lock-icon">🔐</div><h3>Portal dilindungi</h3><p>Log masuk untuk membuka dashboard.</p><button class="btn primary" data-auth="login">Log Masuk</button></div></div>
+    </section>
+  </main>
+
+  <footer><div class="brand"><span class="brand-badge">CG</span><span>CilikGo</span></div><p>Belajar hari ini, yakin esok.</p><div><a href="#">Privasi</a> · <a href="#">Terma</a> · <a href="#">Bantuan</a></div></footer>
+  <section id="authScreen" class="auth-screen hidden" aria-label="Akaun CilikGo">
+    <div class="auth-brand-panel">
+      <a class="auth-brand" href="#home"><span class="brand-badge">CG</span><span>CilikGo</span></a>
+      <div class="auth-brand-copy">
+        <span class="auth-kicker">CILIKGO LEARNING PORTAL</span>
+        <h1>Satu akaun untuk Penjaga, Agent dan Admin.</h1>
+        <p>Penjaga mengurus profil anak dan kemajuan. Pelajar mendapat ruang belajar yang ringkas tanpa gangguan.</p>
+        <div class="auth-benefits"><span>🎒 Tahun 1–6</span><span>📚 Latihan topikal</span><span>⭐ Rekod prestasi</span></div>
+        <div class="auth-visual-v18" aria-hidden="true">
+          <svg viewBox="0 0 520 230">
+            <rect x="28" y="52" width="464" height="150" rx="32" fill="rgba(255,255,255,.12)"/>
+            <circle cx="96" cy="104" r="38" fill="#ffd4b5"/><path d="M60 99 C68 60 123 61 132 99 C110 82 83 82 60 99Z" fill="#54372f"/><circle cx="84" cy="106" r="4" fill="#27283d"/><circle cx="108" cy="106" r="4" fill="#27283d"/><path d="M86 122 Q96 130 106 122" stroke="#c55c6d" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <rect x="150" y="76" width="220" height="92" rx="22" fill="#fff"/><rect x="172" y="96" width="72" height="13" rx="7" fill="#dcd5ff"/><rect x="172" y="122" width="156" height="11" rx="6" fill="#e9ebf4"/><rect x="172" y="145" width="112" height="9" rx="5" fill="#8c78f2"/>
+            <g transform="translate(392 76)"><rect width="76" height="76" rx="22" fill="rgba(255,255,255,.18)"/><text x="38" y="51" text-anchor="middle" font-size="40">📘</text></g>
+            <circle cx="434" cy="180" r="20" fill="#ffd75d"/><text x="434" y="188" text-anchor="middle" font-size="21">★</text>
+          </svg>
+        </div>
+      </div>
+      <button class="auth-home-link" id="authBackHome">← Kembali ke laman utama</button>
+    </div>
+    <div class="auth-form-panel">
+      <button class="auth-mobile-home-link" id="authBackHomeMobile">← Kembali ke laman utama</button>
+      <div class="auth-mobile-illustration" aria-hidden="true"><span>🎒</span><span>📘</span><span>⭐</span></div>
+      <div class="auth-card">
+        <div id="authLoginPanel">
+          <span class="auth-eyebrow">SELAMAT DATANG</span>
+          <h2>Log masuk ke CilikGo</h2>
+          <p class="auth-intro">Penjaga, Agent dan Admin menggunakan ruang log masuk yang sama.</p>
+          <label>E-mel<input id="loginEmail" type="email" autocomplete="email" placeholder="nama@email.com" required></label>
+          <label>Kata laluan<input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••" required></label>
+          <button type="button" id="loginBtn" class="btn primary full auth-main-btn">Log Masuk</button>
+          <button type="button" id="forgotBtn" class="link-btn">Lupa kata laluan?</button>
+          <div class="auth-switch">Belum ada akaun? <button type="button" id="showRegisterBtn">Daftar Penjaga / Agent</button></div>
+        </div>
+        <div id="authRegisterPanel" class="hidden">
+          <span class="auth-eyebrow">AKAUN BAHARU</span>
+          <h2>Daftar CilikGo</h2>
+          <p class="auth-intro">Pilih jenis akaun yang ingin didaftarkan.</p>
+          <div class="role-switch">
+            <button type="button" class="role-choice active" data-role-choice="user">👨‍👩‍👧 Penjaga</button>
+            <button type="button" class="role-choice" data-role-choice="agent">🤝 Agent</button>
+          </div>
+          <label>Nama penuh<input id="regName" autocomplete="name" required></label>
+          <label>E-mel<input id="regEmail" type="email" autocomplete="email" required></label>
+          <label>Kata laluan<input id="regPassword" type="password" minlength="6" autocomplete="new-password" required></label>
+          <input id="regRole" type="hidden" value="user">
+          <button type="button" id="registerBtn" class="btn primary full auth-main-btn">Daftar Akaun</button>
+          <div class="auth-switch">Sudah ada akaun? <button type="button" id="showLoginBtn">Log masuk</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <dialog id="childModal">
+    <form method="dialog" class="modal-form child-profile-form">
+      <button class="x" aria-label="Tutup">×</button>
+      <div class="profile-modal-head"><span>🎒</span><div><small>PROFIL PELAJAR</small><h2 id="childModalTitle">Tambah Profil Pelajar</h2><p id="childModalDesc">Maklumat ini membantu CilikGo memaparkan ruang belajar yang sesuai.</p></div></div>
+      <input id="childEditId" type="hidden" value="">
+      <label>Nama panggilan pelajar<input id="childName" maxlength="40" autocomplete="off" placeholder="Contoh: Aiman" required></label>
+      <div class="profile-form-grid">
+        <label>Jantina
+          <select id="childGender">
+            <option value="male">Lelaki</option>
+            <option value="female">Perempuan</option>
+          </select>
+        </label>
+        <label>Tahun / Darjah
+          <select id="childYear">
+            <option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option>
+            <option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option>
+          </select>
+        </label>
+      </div>
+      <label>Avatar
+        <select id="childAvatar">
+          <optgroup label="Pelajar">
+            <option value="👦">👦 Pelajar Lelaki</option>
+            <option value="👧">👧 Pelajar Perempuan</option>
+            <option value="🧒">🧒 Ceria</option>
+            <option value="👨‍🎓">👨‍🎓 Cendekiawan</option>
+            <option value="👩‍🎓">👩‍🎓 Cendekiawati</option>
+          </optgroup>
+          <optgroup label="Cita-cita">
+            <option value="👨‍🚀">👨‍🚀 Angkasawan Lelaki</option>
+            <option value="👩‍🚀">👩‍🚀 Angkasawan Perempuan</option>
+            <option value="👨‍🔬">👨‍🔬 Saintis Lelaki</option>
+            <option value="👩‍🔬">👩‍🔬 Saintis Perempuan</option>
+            <option value="🦸‍♂️">🦸‍♂️ Adiwira</option>
+            <option value="🦸‍♀️">🦸‍♀️ Adiwirati</option>
+          </optgroup>
+          <optgroup label="Haiwan Comel">
+            <option value="🐯">🐯 Harimau</option>
+            <option value="🦁">🦁 Singa</option>
+            <option value="🐼">🐼 Panda</option>
+            <option value="🐰">🐰 Arnab</option>
+            <option value="🐨">🐨 Koala</option>
+            <option value="🦊">🦊 Musang</option>
+            <option value="🐧">🐧 Penguin</option>
+          </optgroup>
+        </select>
+      </label>
+      <div class="avatar-preview-row"><span id="avatarPreview">👦</span><div><small>AVATAR DIPILIH</small><b id="avatarPreviewText">Pelajar Lelaki</b></div></div>
+      <button type="button" id="saveChildBtn" class="btn primary full">Simpan Profil</button>
+    </form>
+  </dialog>
+
+  <dialog id="gameModal"><div class="modal-form game"><button class="x" onclick="gameModal.close()">×</button><div id="gameContent"></div></div></dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
