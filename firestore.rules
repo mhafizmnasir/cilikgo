@@ -1,0 +1,176 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function userDoc(uid) { return get(/databases/$(database)/documents/users/$(uid)); }
+    function me() { return userDoc(request.auth.uid); }
+    function isAdmin() { return signedIn() && me().data.role == 'admin'; }
+    function isAgent() { return signedIn() && me().data.role == 'agent'; }
+    function ownsChild(childId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/children/$(childId))
+        && get(/databases/$(database)/documents/children/$(childId)).data.ownerUid == request.auth.uid;
+    }
+
+    match /users/{uid} {
+      // Akaun baru tidak boleh mencipta dirinya sebagai Admin atau bermula dengan langganan aktif.
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role in ['user','agent']
+        && request.resource.data.subscriptionStatus == 'inactive'
+        && (
+          (request.resource.data.role == 'user' && request.resource.data.agentCode == null)
+          || (request.resource.data.role == 'agent'
+              && request.resource.data.agentCode == 'CG-' + request.auth.uid)
+        );
+
+      // Agent hanya boleh membaca profil Penjaga yang benar-benar dirujuk oleh kod Agent sendiri.
+      allow read: if signedIn() && (
+        request.auth.uid == uid
+        || isAdmin()
+        || (isAgent()
+            && resource.data.role == 'user'
+            && resource.data.referredByCode == me().data.agentCode)
+      );
+
+      // Pengguna biasa hanya boleh ubah profil asas.
+      // Agent turut boleh menyimpan maklumat bank payout miliknya sendiri.
+      // role, agentCode, referral dan semua status/langganan kekal tidak boleh diubah sendiri.
+      allow update: if signedIn() && (
+        isAdmin()
+        || (
+          request.auth.uid == uid
+          && request.resource.data.role == resource.data.role
+          && (
+            (
+              resource.data.role == 'user'
+              && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['name','email','phone','gender','updatedAt'])
+            )
+            ||
+            (
+              resource.data.role == 'agent'
+              && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly([
+                   'name','email','phone','gender','updatedAt',
+                   'payoutBankName','payoutAccountName','payoutAccountNumber','payoutUpdatedAt'
+                 ])
+            )
+          )
+        )
+      );
+      allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+    }
+
+    function validChildProfile(data) {
+      return data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 60
+        && data.age is int
+        && (
+          // Profil lama untuk keserasian data sejarah.
+          (data.age >= 4 && data.age <= 6 && !('year' in data))
+          ||
+          // Profil portal Tahun 1-6: umur kompatibiliti 7-12.
+          ('year' in data
+            && data.year is int
+            && data.year >= 1
+            && data.year <= 6
+            && data.age == data.year + 6
+            && 'gender' in data
+            && data.gender is string
+            && data.gender in ['male', 'female'])
+        );
+    }
+
+    match /children/{childId} {
+      allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && validChildProfile(request.resource.data);
+      allow update: if signedIn()
+        && (resource.data.ownerUid == request.auth.uid || isAdmin())
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && validChildProfile(request.resource.data);
+      allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+    }
+
+    match /progress/{progressId} {
+      allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.childId is string
+        && ownsChild(request.resource.data.childId)
+        && request.resource.data.level is int
+        && request.resource.data.level >= 1
+        && request.resource.data.level <= 3
+        && request.resource.data.stars is int
+        && request.resource.data.stars >= 0
+        && request.resource.data.stars <= 30
+        && request.resource.data.attempts is int
+        && request.resource.data.attempts >= 1
+        && request.resource.data.attempts <= 100;
+      allow update: if false;
+      allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+    }
+
+    match /modules/{moduleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /questions/{questionId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if signedIn() && (
+        resource.data.userUid == request.auth.uid
+        || resource.data.agentUid == request.auth.uid
+        || isAdmin()
+      );
+      // Fallback Admin digunakan jika Firebase HTTPS Function tidak dapat dicapai.
+      // Hanya akaun role=admin boleh mencipta atau membaiki rekod transaksi.
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /commissions/{id} {
+      allow read: if signedIn() && (resource.data.agentUid == request.auth.uid || isAdmin());
+      // Admin sahaja boleh menulis fallback komisen; Agent kekal read-only.
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /commissionPayouts/{id} {
+      // Agent hanya boleh melihat sejarah pembayaran komisen miliknya.
+      // Admin mengurus proses payout mingguan.
+      allow read: if signedIn() && (resource.data.agentUid == request.auth.uid || isAdmin());
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /subscriptionAudit/{id} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /settings/{id} {
+      // Tetapan manualPayment ialah maklumat pembayaran awam (promo/harga/bank/WhatsApp).
+      allow read: if id == 'manualPayment' || signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /mailQueue/{id} {
+      // Firebase Function tetap menjadi penghantar e-mel.
+      // Admin browser boleh mencipta queue sebagai fallback jika endpoint HTTPS gagal.
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.status == 'queued'
+        && request.resource.data.userUid is string
+        && request.resource.data.to is string;
+      allow update, delete: if false;
+    }
+  }
+}
